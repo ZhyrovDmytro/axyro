@@ -1,0 +1,15 @@
+.next
+.next-e2e
+.next-build
+coverage
+node_modules
+playwright-report
+test-results
+AGENTS.md
+ARCHITECTURE.md
+DATA_MODEL.md
+DECISIONS.md
+IMPLEMENTATION_PLAN.md
+PRODUCT.md
+README.md
+UX_FLOWS.md

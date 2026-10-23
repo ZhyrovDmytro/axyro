@@ -1,0 +1,31 @@
+# dependencies
+/node_modules
+
+# Next.js
+/.next
+/.next-e2e
+/.next-build
+/out
+
+# tests
+/coverage
+/playwright-report
+/test-results
+
+# Local agent tooling and generated review/reference files
+/.agents
+/.claude
+/.codex
+/.impeccable
+/tmp
+
+# local configuration
+.env*
+!.env.example
+
+# editor and operating system files
+.DS_Store
+*.pem
+
+# TypeScript
+*.tsbuildinfo

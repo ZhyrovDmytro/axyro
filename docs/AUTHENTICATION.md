@@ -1,0 +1,17 @@
+# Authentication operations
+
+Axyro is a Next.js web application. Supabase Auth owns passwords, Google OAuth, email verification and refresh tokens. The application uses Supabase's documented REST API and PKCE flow without adding a browser auth SDK. Tokens stay in HttpOnly SameSite=Lax cookies and are verified against `/auth/v1/user`. Cookies use Secure in production. Every authenticated request reads the trusted profile role; signup metadata cannot assign an admin role.
+
+Set server environment variables `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`. Never prefix the service-role key with NEXT_PUBLIC. Apply the migrations in `supabase/migrations` before enabling account creation. Configure Supabase Site URL for the deployment origin and allow `<origin>/auth/callback` as a redirect. Enable Google in Supabase and configure its Google client ID and secret, with the Supabase-provided OAuth callback in Google Cloud. This is web-only; Apple distribution is not currently targeted.
+
+Enable email confirmation, production SMTP and provider rate limiting. Supabase signup/recovery emails must use the provider confirmation URL so PKCE yields a callback `code`. Signup and reset verification must be completed in the same browser that started the flow, because the verifier is in an HttpOnly cookie. Invalid, expired and cancelled callbacks return to sign in with an error. Recovery redirects to `/reset-password`; a short-lived HttpOnly recovery marker authorizes password replacement. Ordinary password changes additionally require the current password. OAuth-only users manage credentials with their provider.
+
+Profiles contain only display metadata and a separately protected role. Users may edit only display name, avatar and timestamps; role and owner ID are not writable by authenticated clients. Create production admins explicitly using a trusted SQL operation on `profiles.role`, never user metadata. Existing Supabase identities receive profiles during migration.
+
+In development/test only, signing in with `admin` / `admin` issues a server-HMAC session for eight hours. The key is random per server process, so restart invalidates it. Neither login nor verification accepts this shortcut when NODE_ENV=production; there is no production development-secret override. This identity does not create a database user and its data remains device-local. Production deployment must run a production Next build, not the development server.
+
+Account deletion requires the literal DELETE confirmation, a verified session and same-origin POST. The server cancels billing first, then deletes the Supabase identity with its server-only service key. Cascading foreign keys remove profile, training data and subscription rows. If billing cancellation fails, deletion fails rather than leaving an orphaned subscription. Logout invalidates the provider session and clears application session cookies.
+
+External setup remains operational work: Google credentials, Supabase project/SMTP/redirect configuration, migrations, Stripe products/webhooks and production environment secrets cannot be supplied by this repository. No credential has been committed or fabricated.
+
+Provider references: [PKCE](https://supabase.com/docs/guides/auth/sessions/pkce-flow), [password authentication](https://supabase.com/docs/guides/auth/passwords), [REST API contract](https://github.com/supabase/auth/blob/master/openapi.yaml).

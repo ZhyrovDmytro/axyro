@@ -67,7 +67,11 @@ No owners or target dates have been assigned yet.
   - 2026-10-24: owner supplied `https://github.com/ZhyrovDmytro/axyro.git` and
     selected Axyro as the product name. `origin` is configured; the remote had no
     branches at inspection. Local tooling and generated reference/review files
-    are excluded from source control. Initial commit/push verification is pending.
+    are excluded from source control. Initial source commit `19e3d3f` is saved
+    locally. Push failed because Git has no HTTPS GitHub credentials configured
+    (`could not read Username`); GitHub CLI is not installed. Authenticate Git on
+    this machine, then run `git push -u origin main` and verify the remote commit
+    before marking L02 complete. No hosting provider has been selected.
 
 - [ ] **L03 — Hosting, domain and environments** · Open
   - Complete when: staging and production are deployed; domain, DNS, HTTPS,
@@ -237,3 +241,4 @@ business and markets. Recheck current requirements when completing legal tasks.
 | 2026-10-23 | L01–L20      | Initial audit recorded; existing implementation separated from launch completion. No launch task marked complete.                                                                                                                                                                                                                                                                      |
 | 2026-10-23 | L01          | Completed dependency remediation: full and production audits show 0 vulnerabilities; 368 unit tests and 89 browser tests passed; TypeScript, webpack production build and clean script-disabled lockfile install passed. Lint: 0 errors, 188 existing warnings.                                                                                                                        |
 | 2026-10-24 | L02 / naming | Renamed the product/package/UI/docs to Axyro; configured the supplied GitHub origin and excluded local tooling/generated files. Preserved legacy saved-data keys and SQL fields. Verification: 368 unit tests, 89 browser tests, TypeScript, lint (0 errors/warnings), and webpack production build passed. Common secret-pattern scan found no matches; local environment is ignored. |
+| 2026-10-24 | L02          | Initial source committed locally as `19e3d3f`. HTTPS push blocked by missing GitHub credentials; remote backup remains unverified.                                                                                                                                                                                                                                                     |

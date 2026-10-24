@@ -73,10 +73,15 @@ No owners or target dates have been assigned yet.
     local `main` tracks `origin/main`. This resolves the earlier HTTPS credential
     blocker. Hosting remains open under L03.
 
-- [ ] **L03 — Hosting, domain and environments** · Open
+- [ ] **L03 — Hosting, domain and environments** · Partial
   - Complete when: staging and production are deployed; domain, DNS, HTTPS,
     canonical `APP_URL` and server secrets are configured; deployed routes work.
     No connected deployment was verified during the audit.
+  - 2026-10-24: owner selected Netlify, starting on Free. Committed build
+    configuration uses Node.js 24 and the verified webpack build path. See
+    [deployment instructions](NETLIFY_DEPLOYMENT.md). Account login and GitHub
+    integration, first deployment URL, runtime environment, domain and deployed
+    checks remain pending; no paid plan has been enabled.
 
 - [ ] **L04 — Production database and backups** · Partial
   - Baseline: four SQL migrations exist in `supabase/migrations`; hosted setup
@@ -222,8 +227,9 @@ Product/operator decisions still needed: legal business identity and jurisdictio
 target countries/age eligibility, domain/hosting, database region, prices/currencies,
 tax/refund policy, support contact, retention periods and AI launch setting.
 
-Naming is decided: Axyro. The repository is selected under L02; hosting remains
-undecided. See the [naming compatibility decision](../DECISIONS.md#2026-10-24--axyro-product-name).
+Naming is decided: Axyro. The repository is selected under L02; Netlify Free is
+selected for initial hosting under L03. See the
+[naming compatibility decision](../DECISIONS.md#2026-10-24--axyro-product-name).
 
 ## Legal reference material
 

@@ -18,6 +18,7 @@
 /.codex
 /.impeccable
 /tmp
+/.netlify
 
 # local configuration
 .env*

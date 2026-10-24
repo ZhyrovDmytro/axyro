@@ -127,8 +127,12 @@ No owners or target dates have been assigned yet.
     production-only `SUPABASE_SECRET_KEY` is now protected in Netlify. Preview,
     branch, agent and local values are empty. Modern-key compatibility passed
     373 unit tests, 7 account/subscription browser tests, TypeScript, lint and
-    the webpack production build. Deployment and real-user email flows are not
-    yet verified.
+    the webpack production build. Netlify published `02570c3` successfully as
+    deploy `6add1c720fca4fde9c5a0bce`; live auth session reports configured and
+    development admin disabled. A nonexistent-account browser login reached
+    Supabase Auth and returned expected invalid credentials (confirmed in Auth
+    logs). No account/email was created/sent. Real-user email, isolation,
+    privileged deletion and Google flows remain unverified; custom SMTP is next.
   - Complete when: Supabase email confirmation, SMTP, sender-domain authentication,
     redirect allowlists, Google OAuth and provider abuse limits are configured;
     real signup, verification, recovery, logout and deletion succeed. Confirm

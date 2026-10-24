@@ -53,5 +53,23 @@ described in [authentication operations](AUTHENTICATION.md), then redeploy and
 test actual signup, recovery, account deletion and two-user data isolation.
 Account/provider setup is not complete merely because tables exist.
 
+## Deployed connection verification — 2026-10-24
+
+Netlify successfully published commit `02570c3`, deploy
+`6add1c720fca4fde9c5a0bce`, with the approved protected production secret.
+`/api/auth/session` now returns `configured: true` and
+`developmentAdminEnabled: false`.
+
+A browser sign-in attempt using a nonexistent `.invalid` test address reached
+Supabase Auth. Its logs confirmed the expected `400: Invalid login credentials`,
+establishing that the deployed publishable key and auth transport work. No test
+account was created and no email was sent. An external HTTP probe was rejected
+by the origin guard, but the actual same-origin browser request passed; no
+origin/security checks were relaxed.
+
+Successful signup/email confirmation, password recovery, two-user data isolation,
+privileged account deletion and Google OAuth still need live verification.
+Custom SMTP is the next operational dependency for public email signup.
+
 Free projects can pause after inactivity. Automatic backups are not included;
 define and test a backup/restore procedure before accepting paying customers.

@@ -19,6 +19,7 @@
 /.impeccable
 /tmp
 /.netlify
+/supabase/.temp
 
 # local configuration
 .env*

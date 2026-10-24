@@ -106,10 +106,17 @@ No owners or target dates have been assigned yet.
 
   - 2026-10-24 account check via connected Supabase tools: organization
     `ZhyrovDmytro's org` (`wldmraxmhldflwkovyzr`) is on Free. One project is
-    listed: `ZhyrovDmytro's Project`, active/healthy in `eu-west-1`. A separate
-    Axyro project should fit the documented two-active-free-project limit,
-    subject to the creation-time quota/cost check. Existing project was not
-    modified; no Axyro project or credentials have been created yet.
+    originally listed: `ZhyrovDmytro's Project`, active/healthy in `eu-west-1`.
+    After owner approval, Supabase quoted $0/month and created **Axyro**
+    (`unrlqkymbdnpmgmmfltb`) in Frankfurt (`eu-central-1`), active/healthy.
+    The existing project was not modified. The four existing migrations were
+    applied to Axyro, followed by `restrict_profile_trigger_execution` to revoke
+    default anon/authenticated access to the internal signup trigger function.
+    Verified all three tables have RLS enabled; direct function privileges are
+    false; security advisors report no findings. A rolled-back signup test
+    verified profile creation and that metadata cannot assign an admin role.
+    Netlify credentials, provider configuration, real-account isolation and
+    backup/restore work remain pending. See [Supabase setup](SUPABASE_SETUP.md).
 
 - [ ] **L05 — Production authentication and email** · Partial
   - Complete when: Supabase email confirmation, SMTP, sender-domain authentication,

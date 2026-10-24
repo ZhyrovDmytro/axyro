@@ -36,7 +36,7 @@ Configure server-only `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, and
 Keep privileged keys out of chat, source control, browser assets and logs.
 The project URL and publishable key are now saved in Netlify; the publishable
 key is marked secret and only set for the production deploy context. The
-privileged secret is pending approval at the access-grant step. On this Free
+privileged secret was approved and saved as `SUPABASE_SECRET_KEY`. On this Free
 plan, secret variables have Builds, Functions and Runtime scopes; narrower
 scope selection requires an upgrade. Preview, branch, agent and local values
 remain empty. No paid upgrade is needed for this configuration.

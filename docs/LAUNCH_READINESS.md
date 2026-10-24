@@ -123,8 +123,12 @@ No owners or target dates have been assigned yet.
     Email signup/confirmation are enabled, anonymous sign-in is disabled;
     custom SMTP and Google OAuth remain disabled. Added tested modern Supabase
     API-key support with legacy fallbacks. Netlify project URL and production-only
-    publishable key are saved; privileged secret access is pending approval.
-    Deployment and real-user email flows are not yet verified.
+    publishable key are saved; privileged secret access was approved and the
+    production-only `SUPABASE_SECRET_KEY` is now protected in Netlify. Preview,
+    branch, agent and local values are empty. Modern-key compatibility passed
+    373 unit tests, 7 account/subscription browser tests, TypeScript, lint and
+    the webpack production build. Deployment and real-user email flows are not
+    yet verified.
   - Complete when: Supabase email confirmation, SMTP, sender-domain authentication,
     redirect allowlists, Google OAuth and provider abuse limits are configured;
     real signup, verification, recovery, logout and deletion succeed. Confirm

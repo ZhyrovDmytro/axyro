@@ -59,7 +59,7 @@ Use the server-only variable names in `.env.example`. Set secrets in Netlify's
 environment settings with the required Functions scope and deploy context.
 Never prefix secrets with `NEXT_PUBLIC_`.
 
-- Supabase: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`;
+- Supabase: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`;
   apply migrations and configure the site URL, callback and email provider.
 - Stripe test mode first: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, monthly
   and/or yearly Price IDs; webhook URL is `<APP_URL>/api/billing/webhook`.

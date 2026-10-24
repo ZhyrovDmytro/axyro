@@ -119,6 +119,12 @@ No owners or target dates have been assigned yet.
     backup/restore work remain pending. See [Supabase setup](SUPABASE_SETUP.md).
 
 - [ ] **L05 — Production authentication and email** · Partial
+  - 2026-10-24: saved and verified the deployed Site URL and exact auth callback.
+    Email signup/confirmation are enabled, anonymous sign-in is disabled;
+    custom SMTP and Google OAuth remain disabled. Added tested modern Supabase
+    API-key support with legacy fallbacks. Netlify project URL and production-only
+    publishable key are saved; privileged secret access is pending approval.
+    Deployment and real-user email flows are not yet verified.
   - Complete when: Supabase email confirmation, SMTP, sender-domain authentication,
     redirect allowlists, Google OAuth and provider abuse limits are configured;
     real signup, verification, recovery, logout and deletion succeed. Confirm

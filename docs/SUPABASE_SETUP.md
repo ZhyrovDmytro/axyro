@@ -31,13 +31,24 @@ checkout_reservations. Use `list_migrations` for the current remote history.
 
 ## Next: connect Netlify and Auth
 
-Configure server-only `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and
-`SUPABASE_SERVICE_ROLE_KEY` in Netlify Functions/build environment settings.
+Configure server-only `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, and
+`SUPABASE_SECRET_KEY` in Netlify Functions/build environment settings.
 Keep privileged keys out of chat, source control, browser assets and logs.
-No keys have been copied to Netlify in this setup step.
+The project URL and publishable key are now saved in Netlify; the publishable
+key is marked secret and only set for the production deploy context. The
+privileged secret is pending approval at the access-grant step. On this Free
+plan, secret variables have Builds, Functions and Runtime scopes; narrower
+scope selection requires an upgrade. Preview, branch, agent and local values
+remain empty. No paid upgrade is needed for this configuration.
+
+The application now supports Supabase's modern API keys while retaining legacy
+environment aliases. Tests cover modern public/admin requests, user JWTs and
+legacy behavior. See the [official migration guide](https://supabase.com/docs/guides/getting-started/migrating-to-new-api-keys).
 
 Set Auth Site URL to `https://axyro-training.netlify.app` and allow its
-`/auth/callback` redirect. Configure email confirmation, SMTP and Google OAuth as
+`/auth/callback` redirect. Both URLs are now saved and verified in the dashboard.
+Email signup and confirmation are enabled; anonymous sign-in is disabled.
+Custom SMTP and Google OAuth are currently disabled. Configure SMTP and Google OAuth as
 described in [authentication operations](AUTHENTICATION.md), then redeploy and
 test actual signup, recovery, account deletion and two-user data isolation.
 Account/provider setup is not complete merely because tables exist.

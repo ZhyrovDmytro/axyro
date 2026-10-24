@@ -35,7 +35,10 @@ const tokensSchema = z.object({
   expires_in: z.number().optional(),
 });
 export function authConfigured() {
-  return Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY);
+  return Boolean(
+    process.env.SUPABASE_URL &&
+    (process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY),
+  );
 }
 export function supabaseUrl() {
   const value = process.env.SUPABASE_URL;
@@ -62,16 +65,18 @@ export async function supabaseRequest(
   } = {},
 ): Promise<unknown> {
   const key = options.admin
-    ? process.env.SUPABASE_SERVICE_ROLE_KEY
-    : process.env.SUPABASE_ANON_KEY;
+    ? process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
+    : process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY;
   if (!key) throw new Error("Authentication is not configured");
+  // Modern API keys identify the app via apikey; only user/legacy JWTs are bearers.
+  const bearer = options.token ?? (key.startsWith("sb_") ? undefined : key);
   const response = await fetch(`${supabaseUrl()}/${path.replace(/^\//, "")}`, {
     method: options.method ?? "GET",
     cache: "no-store",
     signal: AbortSignal.timeout(15000),
     headers: {
       apikey: key,
-      Authorization: `Bearer ${options.token ?? key}`,
+      ...(bearer !== undefined ? { Authorization: `Bearer ${bearer}` } : {}),
       "Content-Type": "application/json",
       Prefer:
         options.prefer ?? "return=representation,resolution=merge-duplicates",

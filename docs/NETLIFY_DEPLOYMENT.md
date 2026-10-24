@@ -4,6 +4,27 @@ Selected 2026-10-24 for the first Axyro staging deployment. Start on Netlify Fre
 do not enable paid upgrades or automatic credit recharge without an operator
 decision. L03 stays open until a deployed URL and the hosting checks are verified.
 
+## Current deployment — 2026-10-24
+
+- Live preview: https://axyro-training.netlify.app/
+- Dashboard: https://app.netlify.com/projects/axyro-training/overview
+- Initial successful deploy: `6adccab4e4301aaaa1a5b8b8`, source commit `6322cad`.
+- GitHub `main` is connected for continuous deployment. Netlify labels this its
+  production deployment; it is currently our public staging preview, with no
+  separately configured staging/production pair.
+- `APP_URL=https://axyro-training.netlify.app`; `AI_PLANNER_ENABLED=false`.
+  No Supabase, Stripe or OpenAI secrets were supplied for this deployment.
+- Existing account dashboard confirms Free at $0, no payment method, 300 build
+  minutes and 100 GB bandwidth per month. These are this account's legacy
+  allowances; do not assume the current public credit-based pricing applies.
+- The plain `axyro` project name was unavailable. A custom domain can be selected
+  later without changing the product name.
+- Homepage, library preview, free-player start/mute/pause/resume/skip/save-exit,
+  auth session JSON and unavailable-billing fallback were checked live. Full
+  timed completion, provider lifecycle and real-device checks remain open.
+
+See L03 in the launch tracker for remaining checks and the observed console issue.
+
 ## Repository and build
 
 - Repository: `ZhyrovDmytro/axyro`, branch `main`, base directory: repository root.

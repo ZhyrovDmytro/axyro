@@ -79,9 +79,23 @@ No owners or target dates have been assigned yet.
     No connected deployment was verified during the audit.
   - 2026-10-24: owner selected Netlify, starting on Free. Committed build
     configuration uses Node.js 24 and the verified webpack build path. See
-    [deployment instructions](NETLIFY_DEPLOYMENT.md). Account login and GitHub
-    integration, first deployment URL, runtime environment, domain and deployed
-    checks remain pending; no paid plan has been enabled.
+    [deployment instructions](NETLIFY_DEPLOYMENT.md). First deployment is live at
+    [axyro-training.netlify.app](https://axyro-training.netlify.app/), connected to
+    GitHub `main`; deploy `6adccab4e4301aaaa1a5b8b8` published source `6322cad`.
+    `axyro` was unavailable, so the preview project is named `axyro-training`.
+    Configured `APP_URL=https://axyro-training.netlify.app` and
+    `AI_PLANNER_ENABLED=false`. Verified the existing team Free plan is $0 with
+    no payment method; its dashboard lists legacy allowances of 300 build minutes
+    and 100 GB bandwidth, rather than the current advertised credit model.
+  - Live checks: guest home/library preview, free-workout count-in and media,
+    mute, pause/resume, skip into recovery and save/exit work. Auth/billing APIs
+    return JSON; development admin is disabled, auth is unconfigured, Pro is
+    false and products are empty. Paywall shows the unavailable-billing fallback.
+    A full timed workout completion, real devices, provider flows and rollback
+    remain unverified. One MutationObserver console exception was observed;
+    source was not attributed (no corresponding app source reference found).
+  - L03 remains partial: separate staging/production environments, custom domain
+    decision, provider runtime secrets and remaining deployed checks are pending.
 
 - [ ] **L04 — Production database and backups** · Partial
   - Baseline: four SQL migrations exist in `supabase/migrations`; hosted setup
@@ -249,3 +263,4 @@ business and markets. Recheck current requirements when completing legal tasks.
 | 2026-10-24 | L02 / naming | Renamed the product/package/UI/docs to Axyro; configured the supplied GitHub origin and excluded local tooling/generated files. Preserved legacy saved-data keys and SQL fields. Verification: 368 unit tests, 89 browser tests, TypeScript, lint (0 errors/warnings), and webpack production build passed. Common secret-pattern scan found no matches; local environment is ignored. |
 | 2026-10-24 | L02          | Initial source committed locally as `19e3d3f`. HTTPS push blocked by missing GitHub credentials; remote backup remains unverified.                                                                                                                                                                                                                                                     |
 | 2026-10-24 | L02          | SSH push succeeded; remote main verified at `a2198fe`. Source-control task complete; hosting remains L03.                                                                                                                                                                                                                                                                              |
+| 2026-10-24 | L03          | Netlify project `axyro-training` deployed successfully from `6322cad`; live guest/player/API smoke checks passed. Existing $0 Free plan confirmed. Accounts, Stripe and custom domain remain unconfigured.                                                                                                                                                                             |

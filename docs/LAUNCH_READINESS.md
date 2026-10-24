@@ -104,6 +104,13 @@ No owners or target dates have been assigned yet.
     is tested, region/retention are chosen, backups are configured and a restore
     procedure is tested. See [user data architecture](MULTI_USER_DATA_ARCHITECTURE.md).
 
+  - 2026-10-24 account check via connected Supabase tools: organization
+    `ZhyrovDmytro's org` (`wldmraxmhldflwkovyzr`) is on Free. One project is
+    listed: `ZhyrovDmytro's Project`, active/healthy in `eu-west-1`. A separate
+    Axyro project should fit the documented two-active-free-project limit,
+    subject to the creation-time quota/cost check. Existing project was not
+    modified; no Axyro project or credentials have been created yet.
+
 - [ ] **L05 — Production authentication and email** · Partial
   - Complete when: Supabase email confirmation, SMTP, sender-domain authentication,
     redirect allowlists, Google OAuth and provider abuse limits are configured;

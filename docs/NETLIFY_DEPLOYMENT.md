@@ -73,6 +73,9 @@ See [authentication](AUTHENTICATION.md), [billing](billing.md) and the
 
 ## Verify after deployment
 
+Use [release checks and rollback](RELEASE_CHECKS.md) for CI, the deployed guest
+smoke command and the repeatable release/rollback procedure.
+
 - Confirm build success and that the deployment uses Node production mode.
 - Check guest navigation, media delivery and a complete free workout on mobile.
 - Check `/api/auth/session` returns JSON; development admin login is disabled.

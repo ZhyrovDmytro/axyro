@@ -20,6 +20,7 @@ Bundled third-party reference-image attribution is documented in
 ## Documentation
 - [Netlify deployment](docs/NETLIFY_DEPLOYMENT.md) — first staging setup, build settings, environment variables and deployed verification.
 - [Paid public launch tracker](docs/LAUNCH_READINESS.md) — release blockers, completion criteria, progress and verification evidence. Update this checklist as launch work is completed.
+- [Release checks and rollback](docs/RELEASE_CHECKS.md) — CI gates, production/staging smoke tests and release procedure.
 - `AGENTS.md` — primary implementation instructions for Codex/agents.
 - `PRODUCT.md` — product scope, users, MVP and future direction.
 - `ARCHITECTURE.md` — recommended technical architecture.

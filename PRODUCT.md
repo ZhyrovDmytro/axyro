@@ -52,20 +52,28 @@ A reusable movement with:
 - default tempo/cue configuration.
 
 ### Workout
-A named ordered collection of prescribed exercises. Generated names describe
-the physical work in the main exercise mix, such as first-step strength,
-lateral braking, grip endurance or shoulder control. Questionnaire goals and
-on-court outcomes appear in supporting copy as benefits the session is designed
-to support; they do not replace the workout name. A single accessory exercise
-must not determine the name of the whole session. Calendar labels must not use
-a weekday or a generic numbered session name in place of that title. Compact
-plan and home cards promote the primary supported outcome to the session title
-rather than repeating a generic training-quality title and an outcome subtitle.
-That outcome follows the session's assigned focus and
-rotates through additional matched priorities across later weeks instead of
-defaulting to the first questionnaire answer. If an assigned focus is not
-actually trained, the supporting copy names the session's training qualities
-instead of claiming an unsupported outcome. Plan cards show the actual duration. The overview explains the 10-minute default and links directly to duration refinement.
+A named ordered collection of prescribed exercises. Focused generated sessions
+use the supported padel improvement as their title, such as “Quicker net
+approaches”, “Better split-step preparation” or “Better overhead endurance”.
+The selected priority must account for at least half the main work, or at least
+one fifth when it is a core movement supported by foundation work (including
+sets and sides). These are product naming thresholds, not training-dose claims.
+A small accessory cannot name the session.
+If no priority qualifies, use a supported body-area title, then training qualities
+such as “Strength & Power” for general foundation sessions. Titles describe
+training intent, not guaranteed match results or opponent-reading skills.
+
+Names follow the session's assigned priorities rather than repeating the first
+questionnaire answer. For example, a three-session week with net-approach and
+split-step priorities has two dedicated sessions and one general session. Do not
+force a general session when all slots have explicit focus assignments. Home,
+Plan, preview and playback reuse the persisted title. Supporting copy can rotate
+through other matched benefits across weeks. Upcoming generic titles migrate to
+this policy without changing exercise selection; completed workouts and custom
+names are preserved. Plan cards show the actual duration. Default session length
+can be changed in Settings. Home shows the weekly schedule; Plan opens the full
+60-day calendar. Match rebalancing becomes available after a match schedule
+change and disables again once applied.
 
 Sport relevance belongs in exercise metadata and selection logic. Exercise
 names and execution should describe general physical training rather than name
@@ -235,6 +243,13 @@ primarily change the main Workout block. The player and completion snapshot
 retain section identity, and completion history distinguishes planned,
 completed, and skipped items.
 
+New and refined plans vary exercise selection and ordering from week to week
+while retaining each session's questionnaire focus. Timing targets progress in
+small weekly steps through the build and peak weeks; the final consolidation
+weeks deliberately reduce load. All sections stay within the selected duration
+tolerance. Limited compatible exercise pools can require repetition. Existing
+saved prescriptions remain unchanged until the athlete refines their plan.
+
 ### Training plan adaptation
 The plan generator is deterministic and local. It selects production-ready
 exercises using sport, goals, padel problem relevance, experience, pain flags
@@ -244,7 +259,8 @@ within explicit set and work-duration safety bounds. It records every
 target-duration adjustment. A generated session is accepted only when its
 authoritative player duration is within the smaller of 10% of the chosen target
 or two minutes. If the eligible catalog cannot meet that contract, setup stops
-and explains the closest compatible duration instead of saving a misleading
+and explains that no compatible plan fits, offering shorter sessions or an
+equipment review while retaining accurate discomfort answers, instead of saving a misleading
 plan. Older persisted plans that predate this rule remain inspectable, but label
 the mismatch explicitly rather than describing it as a successful match.
 Every selected physical development area must appear in the main training work

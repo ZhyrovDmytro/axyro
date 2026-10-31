@@ -175,3 +175,18 @@ countdown/transition tones. Settings distinguishes account-backed preferences
 from local guest/development-admin preferences.
 
 See `docs/design-review-follow-up-2026-10-23.md` for the implementation record.
+
+## Usability follow-up — 31 October 2026
+
+Workout cards use a shrinkable single-column grid on phones, with titles scaled
+from 1.5rem to 2.25rem so names and supporting information remain scannable at
+320px. Exercise-reference links in workout previews have an underlined affordance
+and a minimum 44px tap height. Settings uses a compact upright heading to expose
+guidance controls earlier on short screens.
+
+Plan review names equipment and provides 44px Edit actions under editable row
+labels. Saving an answer returns directly to review. Cloud-save errors offer a
+retry that preserves the local snapshot; conflicting versions require an explicit
+confirmation before replacing local changes with cloud data.
+
+See `docs/design-review-2026-10-31.md` for findings and verification.

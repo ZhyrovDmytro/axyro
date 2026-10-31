@@ -300,6 +300,10 @@ export const padelPerformanceExercises = z.array(exerciseSchema).parse([
   }),
   performanceExercise({
     id: "thread-the-needle",
+    sessionRoles: ["warmup", "main", "cooldown"],
+    intensity: "low",
+    preparationFor: ["strength", "stability", "rotation", "mobility"],
+    recoveryFor: ["back", "shoulders", "core"],
     name: "Thread the Needle",
     description:
       "Develop controlled upper-back rotation while the hips and lower back stay quiet.",

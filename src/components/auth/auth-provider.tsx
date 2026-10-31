@@ -13,6 +13,7 @@ import {
   clearUserStorageIdentity,
   flushUserStorage,
   initializeUserStorage,
+  retryUserStorageSync,
 } from "@/services/persistence/user-storage";
 
 type AuthState = {
@@ -48,6 +49,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
   const generation = useRef(0);
   const [syncError, setSyncError] = useState(false);
+  const [syncConflict, setSyncConflict] = useState(false);
+  const [retryingSync, setRetryingSync] = useState(false);
   const refresh = useCallback(async () => {
     const current = ++generation.current;
     clearUserStorageIdentity();
@@ -61,6 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await initializeUserStorage(payload.user?.id ?? null);
       if (current !== generation.current) return;
       setSyncError(false);
+      setSyncConflict(false);
       setState({ ...payload, loading: false, error: "" });
     } catch (error) {
       if (current !== generation.current) return;
@@ -99,16 +103,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [refresh]);
   useEffect(() => {
     const failed = () => setSyncError(true);
+    const saved = () => {
+      setSyncError(false);
+      setSyncConflict(false);
+    };
     const leaving = () => {
       void flushUserStorage();
     };
     window.addEventListener("axyro:sync-error", failed);
+    window.addEventListener("axyro:sync-success", saved);
     window.addEventListener("pagehide", leaving);
     return () => {
       window.removeEventListener("axyro:sync-error", failed);
+      window.removeEventListener("axyro:sync-success", saved);
       window.removeEventListener("pagehide", leaving);
     };
   }, []);
+  async function retrySync() {
+    setRetryingSync(true);
+    try {
+      const result = await retryUserStorageSync();
+      setSyncError(result !== "saved");
+      setSyncConflict(result === "conflict");
+    } finally {
+      setRetryingSync(false);
+    }
+  }
   return (
     <AuthContext.Provider value={{ ...state, refresh, signOut }}>
       {state.loading ? (
@@ -128,11 +148,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ) : (
         <div key={state.user?.id ?? "guest"}>
           {syncError && (
-            <aside className="safety-note" role="alert">
-              Your latest training changes could not be synced. Keep this tab
-              open to preserve your local changes.{" "}
-              <button className="text-link" onClick={() => void refresh()}>
-                Reload saved cloud data
+            <aside className="safety-note sync-notice" role="alert">
+              <p>
+                {syncConflict
+                  ? "Your account has newer changes from another session. Your unsaved changes are still on this device. Reloading cloud data will replace them."
+                  : "Your latest training changes could not be synced. Keep this tab open and retry saving to preserve your changes."}
+              </p>
+              <button
+                className="text-link"
+                disabled={retryingSync}
+                onClick={() => {
+                  if (!syncConflict) {
+                    void retrySync();
+                  } else if (
+                    window.confirm(
+                      "Replace this device’s unsaved training changes with the saved cloud data? This cannot be undone.",
+                    )
+                  ) {
+                    void refresh();
+                  }
+                }}
+              >
+                {retryingSync
+                  ? "Saving…"
+                  : syncConflict
+                    ? "Reload saved cloud data"
+                    : "Retry saving"}
               </button>
             </aside>
           )}

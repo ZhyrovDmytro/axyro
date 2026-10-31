@@ -20,8 +20,10 @@ and members. Desktop places the links inside a compact dark framed header;
 mobile keeps the links in the bottom dock and the account action at the top.
 Guests see **Sign in**, which retains the current pathname as the return
 destination (authentication pages return home). Members see **Account**, leading
-to account and settings management. Account/settings and authentication routes
-highlight their corresponding action. The navigation is hidden during a
+to account management. A separate gear icon beside the account action opens
+Settings at `/settings` for guests and members, with the accessible name
+**Settings**. Account, Settings and authentication routes highlight their own
+corresponding action. The navigation is hidden during a
 workout to keep player controls clear. Membership access rules are unchanged.
 A keyboard-visible **Skip to content** link moves focus past navigation.
 
@@ -29,28 +31,49 @@ See [the UX review and core flow map](docs/UX_REVIEW.md) for the applied
 checklist, recovery paths, and verification limits.
 
 ## Training plan setup
-Initial setup is a focused path covering sport, broad goals, non-painful physical development areas, concrete Padel court movements, shot actions, capacity, a separate current-discomfort safety check, weekly schedule and available time, equipment, and review. Non-Padel setup omits the three sport-specific screens. It uses a conservative beginner experience default. Weekly schedule uses three accessible duration choices: 5, 10 and 20 minutes, with 10 selected by default. Every screen asks about one logical topic, shows question progress, supports Back and Exit, and explains how optional information changes the plan. Each multi-select screen enforces its own limit of three choices; selections made on earlier screens do not reduce the allowance on the current screen. Setup does not offer a quick-workout detour because questionnaire progress is not persisted. The user can exit explicitly and begin again later.
+Initial setup is a focused path covering sport, broad goals, non-painful physical development areas, concrete Padel court movements, shot actions, capacity, a separate current-discomfort safety check, weekly schedule and available time, equipment, and review. Non-Padel setup omits the three sport-specific screens. It uses a conservative beginner experience default. Weekly schedule uses three accessible duration choices: 5, 10 and 20 minutes, with 10 selected by default. Every screen asks about one logical topic, shows question progress, supports Back and Exit, and explains how optional information changes the plan. Each multi-select screen enforces its own limit of three choices; selections made on earlier screens do not reduce the allowance on the current screen.
 
-After the first plan exists, **Change session length** / **Refine my plan** opens schedule and duration first, then physical focus and the Padel movement, shot, mobility/capacity, playing-experience, and upcoming-match questions. These answers rebuild the upcoming plan; current pain remains a separate protective input rather than being mixed with areas the athlete wants to strengthen.
+Setup answers and the current step are saved in owner-scoped session storage,
+including unfinished goal/day selections. Refreshing or exiting and returning
+in the same tab restores progress. Storage-blocked browsers retain in-memory
+operation; closing the tab is not a durable save. Final submission still validates
+the complete profile. Successful plan creation, plan reset and data deletion
+clear the corresponding draft. Review names the selected equipment and offers
+direct edits for available priority, physical-focus, comfort, schedule and
+equipment steps; Save answer returns to review. Safety exclusions are shown
+for general training as well as Padel. Back, Exit, edit actions and unmounting
+cancel pending generation so a late response cannot save or redirect.
+
+After the first plan exists, **Refine my plan** opens schedule and duration first, then physical focus and the Padel movement, shot, mobility/capacity, playing-experience, and upcoming-match questions. These answers rebuild the upcoming plan; current pain remains a separate protective input rather than being mixed with areas the athlete wants to strengthen. Settings also provides **Default session length** with 5, 10 and 20 minute choices. Changes persist in the training profile and rebuild upcoming scheduled workouts for the new target using saved feedback and adaptation preferences; past and in-progress sessions remain unchanged. An incompatible target leaves the existing plan unchanged and displays an error.
+
+The optional match-entry form groups each label with its control, with explicit
+gaps between fields and Add match. On wider screens, the date, importance and
+Add match action align in one row; on phones they stack at full width. Continue
+remains a separate action below the match form.
 
 The chosen session length is a generation constraint, not a suggestion. Every
 generated session must be within the smaller of 10% of the target or two
 minutes, using the same duration model as the player. If the current eligible
 catalog cannot meet that range, setup remains on the review step and explains
-the closest compatible duration plus the reversible choices: shorten the target
-or relax equipment/discomfort constraints. It never saves or opens the
+that no compatible plan fits. The API returns a recoverable 422 response. The
+athlete can try a shorter duration or review available equipment while keeping
+discomfort answers accurate. It never saves or opens the
 out-of-range 60-day plan.
 
 Padel priorities are positive training inputs and use recognizable outcomes: faster net approaches, controlled recovery for lobs, split-step reaction, lateral coverage, braking, bandeja/víbora rotation, overhead power/control, volley stability, racket control, mobility, balance and endurance. Non-painful physical focus areas prioritize matching exercises. Pain is a protective input: it removes conflicting workouts and displays a clinician-oriented safety message. Do not present pain as something the app diagnoses, treats or guarantees it can fix.
 
-## Training plan overview and calendar
-Each day in the overview's weekly schedule offers **Add match**, opening the
+## Home weekly schedule and full training plan
+
+The full plan’s **Upcoming games** panel shows today’s and future matches in date order. Past games remain in the saved plan/calendar but are omitted from this panel. If no current or future games remain, it shows **No upcoming games**.
+Each day in Home’s weekly schedule offers **Add match**, opening the
 same dated match form as the full calendar. Saved matches can be edited from
 that row and remain visible alongside a training session on the same day.
 Saving persists the match without automatically moving training; recovery
 rebalancing remains an explicit action in the full calendar.
 
-The Plan landing page displays the chosen session length and a direct link to change it, explaining that 10 minutes is the default with 5 and 20 available. It answers “what should I do next?” with only the today/next workout, the current week’s schedule, compact 60-day progress, and a **View full calendar** action. Profile refinement and activity remain available as secondary links without expanding the landing view into a management dashboard.
+Plan opens the full 60-day calendar and workout list directly at `/plan`; `/plan/calendar` remains an equivalent entry point. Home shows the today/next workout, weekly schedule with match and rescheduling controls, and compact plan progress. Default session length lives in Settings. The full plan keeps a **Refine my plan** link and shows missed workouts as a compact count with a correctly labeled **Review activity** link. Selecting a scheduled or missed workout in the calendar also offers **Move training**.
+
+The weekly schedule uses the same labeled status badges as Activity: completed is green, missed is red, and incomplete is amber. Finished and missed training rows use a neutral surface so orange remains associated with upcoming training. Scheduled and missed workouts offer **Move training**, with a date picker from today through the plan end date. Moving a missed workout makes that occurrence scheduled again without creating a duplicate history entry. Dates already occupied by another visible workout are rejected; completed and in-progress sessions cannot be moved.
 
 The deeper full-calendar workspace leads with the next 60 days and today’s training, followed by a chronological session list. Six upcoming sessions are shown initially; Show next reveals up to six more and announces the visible count. All scheduled dates remain available in the calendar. Selecting
 a training date reveals the workout name, description, duration, exercise count,
@@ -360,22 +383,25 @@ missing pages provide **Browse workouts** and **Go home**. These recovery screen
 do not promise that unsaved input survives an unexpected render failure.
 
 ### Compact weekly schedule
-The plan overview uses compact day rows. Training is orange, matches are blue,
+Home uses compact day rows. Upcoming training is orange, matches are blue,
 and recovery uses a neutral surface. A day with both uses blue and retains both
 the workout and match labels. Today has an outline independent of day type.
+Each workout title opens that session's preview, where the athlete can inspect
+its exercises and start it. Scheduled rows also offer **Start workout**, and
+in-progress rows offer **Resume workout**, using the saved effort preference.
+These links are separate from match and move controls and work with a keyboard.
 “Move training” opens an inline date control for scheduled sessions, including
 missed sessions. It reuses calendar rescheduling, persists the new date, blocks
 occupied training dates, and keeps matches on their original dates. Dates must
 be today or later and within the current plan. This changes one session, not the
 recurring availability preference. Completed sessions cannot be moved here.
-The progress panel sizes to its content instead of stretching to the week.
+The progress panel remains in Home’s block summary.
 
 Shared training and match dates also display an orange “Training + match · Same
 day” label on the blue match row, so the overlap is explicit without relying on
-color. When any matches exist, “Rebalance plan” is available beside “This week”
-and applies the same match-aware rebalancing as the full calendar.
+color. “Rebalance plan” is visible on Home and the full calendar, but disabled until the match schedule changes. Adding a match enables it; renaming a match does not. Applying rebalancing disables it again, including after reload. The comparison tracks dates and importance against the previously applied match schedule; existing plans start with their current schedule as the baseline.
 
-Rebalance actions announce their result on both plan screens: how many workouts
+Rebalance actions announce their result on Home and Plan: how many workouts
 moved, whether no changes were needed, or whether nearby dates were unavailable.
 Workouts already started or recorded are preserved; the result explains these
 exceptions. Weekly rows display lifecycle status so an in-progress workout is

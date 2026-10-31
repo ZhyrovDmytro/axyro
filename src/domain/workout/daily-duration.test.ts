@@ -19,9 +19,9 @@ describe("daily workouts", () => {
   it("keeps exactly 40 exercises and all forty attached moving references", () => {
     expect(exercises).toHaveLength(40);
     expect(exercises.filter((e) => e.media.type === "animation")).toHaveLength(
-      36,
+      39,
     );
-    expect(exercises.filter((e) => e.media.type === "video")).toHaveLength(4);
+    expect(exercises.filter((e) => e.media.type === "video")).toHaveLength(1);
     const areas = new Set(exercises.flatMap((e) => e.bodyAreas));
     expect([...areas]).toEqual(
       expect.arrayContaining([

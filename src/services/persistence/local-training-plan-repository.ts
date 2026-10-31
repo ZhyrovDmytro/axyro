@@ -1,3 +1,4 @@
+import { formatTrainingTitle } from "@/domain/workout/training-title";
 import { createBrowserUserStorage } from "./user-storage";
 import { isHomeExercise } from "@/domain/content/catalog-quality";
 import { exercises } from "@/content/exercises";
@@ -77,14 +78,24 @@ function migrateLegacySessionCopy(plan: TrainingPlan): TrainingPlan {
     weekNumber: number;
   }) => ({
     ...workout,
-    name: isLegacyOutcomeBasedSessionTitle(workout.name)
-      ? getPersonalizedSessionTitle({
-          profile: plan.profile,
-          workout,
-          exerciseCatalog: exercises,
-          sportProfiles: sportExerciseProfiles,
-        })
-      : workout.name,
+    name:
+      isLegacyOutcomeBasedSessionTitle(workout.name) ||
+      workout.name === formatTrainingTitle(workout.focus)
+        ? getPersonalizedSessionTitle({
+            profile: plan.profile,
+            workout,
+            exerciseCatalog: exercises,
+            sportProfiles: sportExerciseProfiles,
+            preferredPadelPriorities: questionnaireFocusForSlot(
+              plan.profile,
+              slot,
+            ).padelPriorities,
+            preferredDevelopmentAreas: questionnaireFocusForSlot(
+              plan.profile,
+              slot,
+            ).developmentAreas,
+          })
+        : workout.name,
     shortDescription: getPersonalizedSessionDescription({
       profile: plan.profile,
       workout,
@@ -102,6 +113,7 @@ function migrateLegacySessionCopy(plan: TrainingPlan): TrainingPlan {
     ...plan,
     generation: { ...plan.generation, plannerVersion: PLANNER_VERSION },
     sessions: plan.sessions.map((session, sessionIndex) => {
+      if (session.status !== "scheduled") return session;
       const sourceMatch = session.sourceWorkoutId.match(
         /^(?:generated|model)-session-(\d+)$/,
       );

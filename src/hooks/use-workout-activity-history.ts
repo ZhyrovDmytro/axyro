@@ -4,7 +4,8 @@ import {
   createBrowserUserStorage,
   userStorageChangedEvent,
 } from "@/services/persistence/user-storage";
-import { useMemo, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import type { SessionActivity } from "@/services/persistence/workout-activity-repository";
 
 import {
   createBrowserWorkoutActivityRepository,
@@ -35,13 +36,18 @@ function getSnapshot() {
 
 export function useWorkoutActivityHistory(currentDateKey: string) {
   const serialized = useSyncExternalStore(subscribe, getSnapshot, () => null);
-  return useMemo(
-    () =>
-      serialized === null
-        ? []
-        : createBrowserWorkoutActivityRepository().getActivityHistory(
-            currentDateKey,
-          ),
-    [currentDateKey, serialized],
-  );
+  const [history, setHistory] = useState<SessionActivity[]>([]);
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setHistory(
+        serialized === null
+          ? []
+          : createBrowserWorkoutActivityRepository().getActivityHistory(
+              currentDateKey,
+            ),
+      );
+    }, 0);
+    return () => window.clearTimeout(timeout);
+  }, [currentDateKey, serialized]);
+  return history;
 }

@@ -47,7 +47,7 @@ test("adds and edits a weekly match without replacing training", async ({
   await page.route("**/api/billing/status", (route) =>
     route.fulfill({ json: { hasPro: true, subscription: null } }),
   );
-  await page.goto("/plan");
+  await page.goto("/");
   await page.evaluate((seed) => {
     localStorage.setItem(
       "veyro.owner.development-admin.veyro.training-plan.v1",
@@ -56,6 +56,9 @@ test("adds and edits a weekly match without replacing training", async ({
   }, plan);
   await page.reload();
   const row = page.locator(".plan-week__days li.has-session").first();
+  await expect(
+    page.getByRole("button", { name: /Rebalance plan/ }),
+  ).toBeDisabled();
   const workout = await row.locator("strong").innerText();
   await row.getByRole("button", { name: /Add match/ }).click();
   const dialog = page.getByRole("dialog");
@@ -105,7 +108,9 @@ test("adds and edits a weekly match without replacing training", async ({
   await row.getByText("Move training", { exact: true }).click();
   await row.getByLabel("New training date").fill(destination);
   await row.getByRole("button", { name: "Save date" }).click();
-  await expect(page.getByText("Club match", { exact: true })).toBeVisible();
+  await expect(
+    page.locator(".plan-week").getByText("Club match", { exact: true }),
+  ).toBeVisible();
   await page.reload();
   const saved = await page.evaluate(() =>
     JSON.parse(
@@ -126,6 +131,9 @@ test("adds and edits a weekly match without replacing training", async ({
   await expect(page.getByText("Training + match · Same day")).toHaveCount(0);
   const expected = rebalancePlanAroundGames(saved);
   await page.getByRole("button", { name: /Rebalance plan/ }).click();
+  await expect(
+    page.getByRole("button", { name: /Rebalance plan/ }),
+  ).toBeDisabled();
   await expect(page.getByRole("status")).toContainText("No workouts moved.");
   await page.reload();
   const rebalanced = await page.evaluate(() =>
@@ -137,4 +145,7 @@ test("adds and edits a weekly match without replacing training", async ({
   );
   expect(rebalanced.sessions).toEqual(expected.sessions);
   expect(rebalanced.games).toEqual(saved.games);
+  await expect(
+    page.getByRole("button", { name: /Rebalance plan/ }),
+  ).toBeDisabled();
 });

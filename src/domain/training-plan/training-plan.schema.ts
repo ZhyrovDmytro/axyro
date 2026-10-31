@@ -232,6 +232,13 @@ export const athleteProfileSchema = z.preprocess(
   normalizedAthleteProfileSchema,
 );
 
+// Drafts retain unfinished choices; generating a plan still requires the full schema.
+export const athleteProfileDraftSchema = z.object({
+  ...normalizedAthleteProfileSchema.shape,
+  goals: z.array(z.enum(trainingGoalValues)).max(3),
+  preferredDays: z.array(z.enum(weekdayValues)).max(7),
+});
+
 export const durationStatusSchema = z.enum([
   "on_target",
   "close",
@@ -649,6 +656,7 @@ const storedTrainingPlanSchema = z.object({
   generation: planGenerationMetadataSchema.optional(),
   generatedAt: z.string().datetime(),
   lastRebalancedAt: z.string().datetime().optional(),
+  rebalancedGamesKey: z.string().optional(),
 });
 
 export const trainingPlanSchema = storedTrainingPlanSchema.transform((plan) => {

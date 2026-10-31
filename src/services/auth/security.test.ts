@@ -1,10 +1,30 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import {
   developmentAdminEnabled,
   safeNext,
   assertSameOrigin,
 } from "./security";
 describe("authentication security boundaries", () => {
+  afterEach(() => vi.unstubAllEnvs());
+  it("accepts the actual loopback host when Next normalizes development URLs", () => {
+    vi.stubEnv("NODE_ENV", "development");
+    const request = new Request("http://localhost:3000/api/auth/signin", {
+      headers: { origin: "http://127.0.0.1:3000", host: "127.0.0.1:3000" },
+    });
+    expect(() => assertSameOrigin(request)).not.toThrow();
+    for (const headers of [
+      { origin: "http://127.0.0.1:3001", host: "127.0.0.1:3001" },
+      { origin: "https://127.0.0.1:3000", host: "127.0.0.1:3000" },
+      { origin: "http://evil.test:3000", host: "evil.test:3000" },
+      { origin: "http://127.0.0.1:3000", host: "localhost:3000" },
+    ]) {
+      expect(() =>
+        assertSameOrigin(new Request(request.url, { headers })),
+      ).toThrow();
+    }
+    vi.stubEnv("NODE_ENV", "production");
+    expect(() => assertSameOrigin(request)).toThrow();
+  });
   it("never enables development admin in production", () => {
     expect(developmentAdminEnabled("production")).toBe(false);
     expect(developmentAdminEnabled("development")).toBe(true);

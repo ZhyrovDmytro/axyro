@@ -1,6 +1,8 @@
+import { formatTrainingTitle } from "@/domain/workout/training-title";
 import { exercises } from "@/content/exercises";
 import { sportExerciseProfiles } from "@/content/sport-exercise-profiles";
 
+import { matchesSessionFocus } from "./session-focus";
 import { compileModelWorkout } from "./compile-model-workout";
 import { generateTrainingPlan } from "./generate-training-plan";
 import type { ModelPlanIntent } from "./ai-planner.schema";
@@ -73,6 +75,26 @@ export function compileModelPlanIntent({
   }
 
   const sourceWorkouts = intent.sessions.map((session, index) => {
+    const offFocus = session.selectedExerciseIds.filter((id) => {
+      const exercise = exercises.find((candidate) => candidate.id === id);
+      return (
+        exercise &&
+        !matchesSessionFocus(
+          exercise,
+          sportExerciseProfiles.find(
+            (candidate) =>
+              candidate.exerciseId === id && candidate.sport === profile.sport,
+          ),
+          profile,
+          index,
+        )
+      );
+    });
+    if (offFocus.length) {
+      throw new Error(
+        `Session ${index + 1} contains exercises outside its assigned focus: ${offFocus.join(", ")}. Move them to a matching session.`,
+      );
+    }
     const compiled = compileModelWorkout({
       id: `model-session-${index + 1}`,
       name: session.name,
@@ -84,14 +106,24 @@ export function compileModelPlanIntent({
     }).workout;
     const personalizedWorkout = {
       ...compiled,
-      name: isLegacyOutcomeBasedSessionTitle(compiled.name)
-        ? getPersonalizedSessionTitle({
-            profile,
-            workout: compiled,
-            exerciseCatalog: exercises,
-            sportProfiles: sportExerciseProfiles,
-          })
-        : compiled.name,
+      name:
+        isLegacyOutcomeBasedSessionTitle(compiled.name) ||
+        compiled.name === formatTrainingTitle(compiled.focus)
+          ? getPersonalizedSessionTitle({
+              profile,
+              workout: compiled,
+              exerciseCatalog: exercises,
+              sportProfiles: sportExerciseProfiles,
+              preferredPadelPriorities: questionnaireFocusForSlot(
+                profile,
+                index,
+              ).padelPriorities,
+              preferredDevelopmentAreas: questionnaireFocusForSlot(
+                profile,
+                index,
+              ).developmentAreas,
+            })
+          : compiled.name,
       shortDescription: getPersonalizedSessionDescription({
         profile,
         workout: compiled,

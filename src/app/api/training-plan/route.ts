@@ -10,7 +10,7 @@ import {
   modelPlanIntentSchemaForCandidates,
   type AiPlanRequest,
 } from "@/domain/training-plan/ai-planner.schema";
-import { generateTrainingPlan } from "@/domain/training-plan/generate-training-plan";
+import { generateTrainingPlan, UnsupportedPlanDurationError } from "@/domain/training-plan/generate-training-plan";
 import {
   compileModelPlanIntent,
   modelCandidatesForProfile,
@@ -28,12 +28,20 @@ function deterministicResponse(
   request: AiPlanRequest,
   reason: "disabled" | "unconfigured" | "model-failed",
 ) {
-  const plan = generateTrainingPlan(
-    request.profile,
-    new Date(`${request.today}T12:00:00`),
-    [],
-    { adaptationProfile: request.adaptationProfile },
-  );
+  let plan: ReturnType<typeof generateTrainingPlan>;
+  try {
+    plan = generateTrainingPlan(
+      request.profile,
+      new Date(`${request.today}T12:00:00`),
+      [],
+      { adaptationProfile: request.adaptationProfile },
+    );
+  } catch (error) {
+    if (error instanceof UnsupportedPlanDurationError) {
+      return Response.json({ code: "unsupported-plan", error: "No compatible plan fits these answers." }, { status: 422 });
+    }
+    throw error;
+  }
   const quality = assessTrainingPlanQuality({
     plan,
     exerciseCatalog: exercises,
@@ -105,10 +113,11 @@ async function requestIntent({
       "Across the weekly sessions, cover every selected physical development area at least once and include capacity work that builds a general padel foundation.",
       "Use performance and transfer exercises to address concrete padel priorities, but do not build a plan entirely from sport-mimicking drills.",
       "Distribute selected padel priorities across the week. A priority needs meaningful coverage in at least one session; do not repeat it in every session unless the exercise mix independently justifies that repetition.",
-      "Use planRequirements.sessionFocusAssignments in session-number order. Each session must prioritize its assigned development areas and padel priorities before adding general foundation work.",
+      "Use planRequirements.sessionFocusAssignments in session-number order. Every main exercise must address an assigned development area or padel priority. General foundation work belongs in unassigned sessions; balance the whole week, not every focused session.",
       "Balance body areas and movement patterns across the week; avoid excessive shoulder loading.",
-      "Give each session a concise name for the physical work it contains, such as First-step strength and balance, Lateral strength and braking, or Shoulder strength and control.",
-      "Do not use an intended on-court outcome as the session name. For example, prefer First-step strength and balance over Net-approach acceleration. Outcomes belong in supporting explanations.",
+      "Keep calf, ankle, footwork and net-approach sessions lower-body focused. Put dedicated shoulder work in shoulder/overhead sessions, where it should dominate. Mixed-focus sessions are appropriate only when their assignments explicitly span those regions.",
+      "Name focused sessions after the supported padel improvement, such as Quicker net approaches, Better split-step preparation, or Better overhead endurance. Use body-area titles when no padel priority applies.",
+      "Use general names such as Strength & Power for broad foundation sessions, not for every workout. Titles describe a training intent, not guaranteed results; home footwork cannot promise opponent-reading or reaction skills.",
       "A name must represent the main exercise mix, not one accessory movement. Mention grip or forearm work only when a selected exercise has a dedicated grip_endurance or forearm_rotation movement role.",
       "Keep weekly session names meaningfully distinct. Do not use weekdays, ordinals, or generic labels such as Monday Session or Session 1.",
       "Treat safety exclusions only as movements to avoid; never describe pain or discomfort as a training goal.",

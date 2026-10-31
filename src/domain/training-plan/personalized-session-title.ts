@@ -3,6 +3,7 @@ import type { Exercise } from "@/domain/exercise/exercise.types";
 import type { SportExerciseProfile } from "@/domain/sport/sport-exercise-profile.types";
 import type { Workout } from "@/domain/workout/workout.types";
 
+import { exerciseMatchesDevelopmentArea } from "./profile-relevance";
 import { matchedQuestionnaireFocus } from "./questionnaire-context";
 import type { AthleteProfile } from "./training-plan.types";
 
@@ -85,17 +86,122 @@ const developmentAreaDescriptions: Record<
   "calves-ankles-feet": "Builds calf, ankle and foot strength.",
 };
 
+const priorityTitles: Record<
+  AthleteProfile["padelLimitations"][number],
+  string
+> = {
+  "slow-net-approach": "Quicker net approaches",
+  "slow-lob-recovery": "Quicker recovery after lobs",
+  "late-split-step": "Better split-step preparation",
+  "slow-lateral-movement": "Faster lateral court movement",
+  "poor-deceleration": "Better braking and direction changes",
+  "limited-bandeja-vibora-rotation": "Stronger bandeja and víbora rotation",
+  "weak-overhead-power": "More powerful overheads",
+  "unstable-volleys": "More stable volleys",
+  "weak-grip": "Steadier racket control",
+  "side-to-side-imbalance": "Better balance on both sides",
+  "limited-overhead-mobility": "More comfortable overhead reach",
+  "shoulder-fatigue": "Better overhead endurance",
+  "poor-single-leg-balance": "Better single-leg balance",
+  "match-endurance": "Stronger late-match movement",
+  "difficulty-low-balls": "Stronger low-ball movement",
+  "weak-core-rotation": "Better rotational control",
+  "slow-first-step": "A quicker first step",
+  "slow-return-to-position": "Quicker recovery to court position",
+  "weak-overhead-control": "Better overhead control",
+};
+
 export function getPersonalizedSessionTitle({
+  profile,
   workout,
+  exerciseCatalog,
+  sportProfiles,
+  preferredPadelPriorities = profile.padelLimitations,
+  preferredDevelopmentAreas = profile.developmentAreas,
 }: {
   profile: AthleteProfile;
   workout: Workout;
   exerciseCatalog: readonly Exercise[];
   sportProfiles: readonly SportExerciseProfile[];
+  preferredPadelPriorities?: readonly AthleteProfile["padelLimitations"][number][];
+  preferredDevelopmentAreas?: readonly AthleteProfile["developmentAreas"][number][];
 }) {
-  // Session names describe the physical work. Questionnaire outcomes belong
-  // in supporting copy so a single relevant exercise cannot rename the whole
-  // workout after an on-court result.
+  const totalWork = workout.items.reduce(
+    (total, item) =>
+      total +
+      item.sets *
+        item.prescription.durationSeconds *
+        (item.prescription.perSide ? 2 : 1),
+    0,
+  );
+  const matchingWork = (
+    matches: (
+      exercise: Exercise,
+      sportProfile: SportExerciseProfile | undefined,
+    ) => boolean,
+  ) =>
+    workout.items.reduce((total, item) => {
+      const exercise = exerciseCatalog.find(
+        (candidate) => candidate.id === item.exerciseId,
+      );
+      const sportProfile = sportProfiles.find(
+        (candidate) =>
+          candidate.exerciseId === item.exerciseId &&
+          candidate.sport === profile.sport,
+      );
+      return (
+        total +
+        (exercise && matches(exercise, sportProfile)
+          ? item.sets *
+            item.prescription.durationSeconds *
+            (item.prescription.perSide ? 2 : 1)
+          : 0)
+      );
+    }, 0);
+  // An accessory alone must not name an otherwise general session.
+  if (totalWork > 0) {
+    const priority = preferredPadelPriorities
+      .map((id) => ({
+        id,
+        work: matchingWork((_, sportProfile) =>
+          Boolean(sportProfile?.problemsAddressed.includes(id)),
+        ),
+      }))
+      .sort((a, b) => b.work - a.work)[0];
+    const priorityHasCoreWork =
+      priority &&
+      workout.items.some(
+        (item) =>
+          item.role === "core" &&
+          sportProfiles.some(
+            (candidate) =>
+              candidate.exerciseId === item.exerciseId &&
+              candidate.sport === profile.sport &&
+              candidate.problemsAddressed.includes(priority.id),
+          ),
+      );
+    if (
+      priority &&
+      (priority.work >= totalWork / 2 ||
+        (priorityHasCoreWork && priority.work >= totalWork / 5))
+    ) {
+      return priorityTitles[priority.id];
+    }
+    const area = preferredDevelopmentAreas
+      .map((id) => ({
+        id,
+        work: matchingWork((exercise, sportProfile) =>
+          exerciseMatchesDevelopmentArea(id, exercise, sportProfile),
+        ),
+      }))
+      .sort((a, b) => b.work - a.work)[0];
+    if (area && area.work >= totalWork / 2) {
+      return developmentAreaDescriptions[area.id]
+        .replace(/^Builds /, "")
+        .replace(/\.$/, "")
+        .replace(/^./, (letter) => letter.toUpperCase());
+    }
+  }
   return formatTrainingTitle(workout.focus);
 }
 

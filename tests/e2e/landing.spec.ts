@@ -100,9 +100,7 @@ test("guest landing offers a working free workout and accessible preview", async
     page.getByRole("button", { name: "Pause preview" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Pause preview" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Can I try Axyro without an account?" }),
-  ).toBeVisible();
+  await page.locator("summary", { hasText: "Can I try Axyro without an account?" }).click();
   await expect(
     page.getByText("Yes. One complete starter workout", { exact: false }),
   ).toBeVisible();
@@ -379,3 +377,30 @@ test("hero supporting words rotate without shifting layout and respect reduced m
     ),
   ).toHaveClass("sr-only");
 });
+
+for (const width of [320, 1280]) {
+  test(`FAQ questions toggle independently at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    const items = page.locator("#questions details");
+    await expect(items.first()).toBeVisible();
+    for (const item of await items.all()) {
+      const answer = item.locator("p");
+      await expect(answer).toBeHidden();
+      await item.locator("summary").click();
+      await expect(answer).toBeVisible();
+    }
+    for (const item of await items.all()) {
+      await item.locator("summary").focus();
+      await page.keyboard.press("Enter");
+      await expect(item.locator("p")).toBeHidden();
+      await page.keyboard.press("Space");
+      await expect(item.locator("p")).toBeVisible();
+    }
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    ).toBe(true);
+  });
+}

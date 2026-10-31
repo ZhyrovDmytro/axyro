@@ -8,13 +8,15 @@ import {
 export function DurationOptions({
   value,
   onChange,
+  legend = "Make time for movement.",
 }: {
   value: number;
   onChange: (minutes: DailyDuration) => void;
+  legend?: string;
 }) {
   return (
     <fieldset className="daily-duration">
-      <legend>Make time for movement.</legend>
+      <legend>{legend}</legend>
       <p>
         10 minutes is your daily starting point. Halve it or double it when you
         need.

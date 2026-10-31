@@ -75,18 +75,11 @@ test("off-day completion appears as extra without advancing plan progress", asyn
   await page.reload();
   await page.goto("/plan");
   await expect(
-    page.getByRole("heading", {
-      name: `0 of ${plan.sessions.length} planned sessions complete`,
-      exact: true,
-    }),
+    page.getByRole("heading", { name: "Your full plan.", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByText("+1 extra session completed", { exact: true }),
+    page.getByRole("grid", { name: "60-day training calendar" }),
   ).toBeVisible();
-  await expect(page.getByRole("progressbar")).toHaveAttribute(
-    "aria-valuenow",
-    "0",
-  );
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -101,6 +94,10 @@ test("off-day completion appears as extra without advancing plan progress", asyn
   await expect(
     page.getByText("+1 extra session completed", { exact: true }),
   ).toBeVisible();
+  await expect(page.getByRole("progressbar")).toHaveAttribute(
+    "aria-valuenow",
+    "0",
+  );
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,

@@ -33,7 +33,7 @@ describe("getPersonalizedSessionTitle", () => {
     items: [{ ...source.items[0], id: `test-${exerciseId}`, exerciseId }],
   });
 
-  it("names sessions after their physical training content", () => {
+  it("names focused sessions after supported padel improvements", () => {
     expect(
       getPersonalizedSessionTitle({
         profile,
@@ -41,13 +41,55 @@ describe("getPersonalizedSessionTitle", () => {
         exerciseCatalog: exercises,
         sportProfiles: sportExerciseProfiles,
       }),
-    ).toBe("Strength & Stability");
+    ).toBe("Stronger bandeja and víbora rotation");
     expect(
       getPersonalizedSessionTitle({
         profile,
         workout: workoutWith("dumbbell-wrist-extension"),
         exerciseCatalog: exercises,
         sportProfiles: sportExerciseProfiles,
+      }),
+    ).toBe("Steadier racket control");
+  });
+
+  it("does not name a whole session after a short accessory", () => {
+    const base = workoutWith("bodyweight-squat");
+    const workout: Workout = {
+      ...base,
+      items: [
+        {
+          ...base.items[0],
+          prescription: { type: "timed", durationSeconds: 120 },
+          sets: 3,
+        },
+        {
+          ...base.items[0],
+          id: "accessory",
+          exerciseId: "dumbbell-wrist-extension",
+          prescription: { type: "timed", durationSeconds: 20 },
+          sets: 1,
+        },
+      ],
+    };
+    expect(
+      getPersonalizedSessionTitle({
+        profile,
+        workout,
+        exerciseCatalog: exercises,
+        sportProfiles: sportExerciseProfiles,
+      }),
+    ).toBe("Strength & Stability");
+  });
+
+  it("keeps an unassigned foundation session general even when a priority incidentally matches", () => {
+    expect(
+      getPersonalizedSessionTitle({
+        profile,
+        workout: workoutWith("standing-dumbbell-wood-chop"),
+        exerciseCatalog: exercises,
+        sportProfiles: sportExerciseProfiles,
+        preferredPadelPriorities: [],
+        preferredDevelopmentAreas: [],
       }),
     ).toBe("Strength & Stability");
   });

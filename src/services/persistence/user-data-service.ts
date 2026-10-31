@@ -1,4 +1,4 @@
-import { createBrowserUserStorage } from "./user-storage";
+import { clearPlanDraft, createBrowserUserStorage } from "./user-storage";
 import { toDateKey } from "@/domain/training-plan/date";
 import { activeWorkoutSessionStorageKey } from "./local-workout-session-repository";
 import { preferencesStorageKey } from "./local-preferences-repository";
@@ -53,7 +53,7 @@ export function deleteAllUserData(storage: StorageLike) {
   return removeStorageKeys(storage, axyroUserDataStorageKeys);
 }
 
-export function createBrowserUserDataService() {
+export function createBrowserUserDataService(userId: string | null) {
   let storage: StorageLike | null = null;
   try {
     storage = createBrowserUserStorage();
@@ -63,10 +63,12 @@ export function createBrowserUserDataService() {
 
   return {
     resetTrainingPlan() {
-      return storage ? resetTrainingPlanData(storage) : false;
+      const draftCleared = clearPlanDraft(userId);
+      return storage ? resetTrainingPlanData(storage) && draftCleared : false;
     },
     deleteAll() {
-      return storage ? deleteAllUserData(storage) : false;
+      const draftCleared = clearPlanDraft(userId);
+      return storage ? deleteAllUserData(storage) && draftCleared : false;
     },
   };
 }

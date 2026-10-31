@@ -6,7 +6,7 @@ import { exercises } from "@/content/exercises";
 import { ExerciseMedia } from "./exercise-media";
 
 const exercise = exercises.find(
-  ({ id }) => id === "single-arm-prone-plate-over-obstacle",
+  ({ id }) => id === "dumbbell-romanian-deadlift",
 );
 const animatedExercise = exercises.find(({ id }) => id === "thread-the-needle");
 const scapularPushUp = exercises.find(({ id }) => id === "scapular-push-up");
@@ -26,6 +26,24 @@ if (!hipSwitch) throw new Error("90/90 Hip Switch fixture is missing.");
 if (!deadBug) throw new Error("Dead Bug fixture is missing.");
 
 describe("ExerciseMedia", () => {
+  it.each([false, true])("shows the Prone Overhead Press GIF with compact=%s", (compact) => {
+    const press = exercises.find(({ id }) => id === "prone-foam-roller-overhead-shoulder-press");
+    if (!press) throw new Error("Prone Overhead Press fixture is missing.");
+    const markup = renderToStaticMarkup(
+      createElement(ExerciseMedia, { exercise: press, compact }),
+    );
+    expect(markup).toContain("/images/exercises/animations/prone-foam-roller-overhead-shoulder-press.gif");
+    expect(markup).not.toContain("<video");
+  });
+  it.each([false, true])("shows the Shoulder Arc GIF with compact=%s", (compact) => {
+    const arc = exercises.find(({ id }) => id === "single-arm-prone-plate-over-obstacle");
+    if (!arc) throw new Error("Shoulder Arc fixture is missing.");
+    const markup = renderToStaticMarkup(
+      createElement(ExerciseMedia, { exercise: arc, compact }),
+    );
+    expect(markup).toContain("/images/exercises/animations/single-arm-prone-plate-over-obstacle.gif");
+    expect(markup).not.toContain("<video");
+  });
   it.each([
     ["exercise", false],
     ["preview", true],
@@ -75,7 +93,7 @@ describe("ExerciseMedia", () => {
 
     expect(markup).toContain("<video");
     expect(markup).toContain(
-      "/videos/single-arm-prone-plate-over-obstacle-v2.mov",
+      "/videos/dumbbell-romanian-deadlift.mov",
     );
     expect(markup).toContain('preload="auto"');
     expect(markup).toContain("Play demo");
@@ -89,7 +107,7 @@ describe("ExerciseMedia", () => {
 
     expect(markup).toContain("<video");
     expect(markup).toContain(
-      "/videos/single-arm-prone-plate-over-obstacle-v2.mov",
+      "/videos/dumbbell-romanian-deadlift.mov",
     );
     expect(markup).toContain('preload="metadata"');
     expect(markup).not.toContain("Play demo");

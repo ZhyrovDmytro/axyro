@@ -80,13 +80,14 @@ test("creates a five-minute plan and exposes duration refinement", async ({
   }
   await page.getByRole("button", { name: "Create My Plan" }).click();
   await expect(
-    page.getByRole("heading", { name: "What’s next?" }),
+    page.getByRole("heading", { name: "Your full plan." }),
   ).toBeVisible();
-  await expect(page.getByText("5 minutes, made for your day.")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Adjust my plan" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Change session length" })).toHaveCount(0);
   await page.screenshot({ path: "/tmp/axyro-plan-mobile.png" });
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.screenshot({ path: "/tmp/axyro-plan-desktop.png" });
-  await page.getByRole("link", { name: "Change session length" }).click();
+  await page.goto("/settings");
   await expect(
     page.getByRole("radio", { name: "5 min Short on time" }),
   ).toBeChecked();
@@ -94,4 +95,6 @@ test("creates a five-minute plan and exposes duration refinement", async ({
   await expect(
     page.getByRole("radio", { name: "20 min Go a little longer" }),
   ).toBeChecked();
+  await page.reload();
+  await expect(page.getByRole("radio", { name: "20 min Go a little longer" })).toBeChecked();
 });

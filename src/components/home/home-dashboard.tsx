@@ -7,6 +7,7 @@ import { useEntitlement } from "@/components/membership/entitlement-provider";
 import { useState } from "react";
 
 import { UiIcon } from "@/components/ui-icon";
+import { TrainingPlanDashboardContent } from "@/components/plan/training-plan-dashboard";
 import { ActiveWorkoutCard } from "@/components/workout/active-workout-card";
 import { RecentWorkout } from "@/components/workout/recent-workout";
 import { starterWorkouts as workouts } from "@/content/workouts";
@@ -289,7 +290,8 @@ function DiscoverHome() {
 
 export function HomeDashboard() {
   const { hasPro } = useEntitlement();
-  const { plan, ready, needsCatalogRefresh } = useTrainingPlan();
+  const trainingPlan = useTrainingPlan();
+  const { plan, ready, needsCatalogRefresh } = trainingPlan;
   const activeSession = useActiveWorkoutSession();
   const [dismissedSessionId, setDismissedSessionId] = useState<string | null>(
     null,
@@ -355,16 +357,6 @@ export function HomeDashboard() {
       ?.progressionPhase ??
     "consolidate";
   const phase = phaseContent[currentPhase];
-  const activityBySessionId = new Map(
-    activity
-      .filter((item) => item.planId === plan.generatedAt)
-      .map((item) => [item.sessionId, item.status]),
-  );
-  const currentWeekSessions = plan.sessions
-    .filter((session) => session.weekNumber === currentWeek)
-    .sort((left, right) =>
-      left.scheduledDate.localeCompare(right.scheduledDate),
-    );
   const upcomingEvents = [
     ...scheduled.map((session) => ({
       id: `session-${session.id}`,
@@ -562,53 +554,7 @@ export function HomeDashboard() {
       </section>
 
       <section className="home-plan-grid">
-        <div className="home-week" aria-labelledby="week-heading">
-          <div className="home-section-heading">
-            <div>
-              <span>This week</span>
-              <h2 id="week-heading">Your training rhythm</h2>
-            </div>
-            <Link className="text-link" href="/plan">
-              Open full plan <UiIcon name="arrow-right" />
-            </Link>
-          </div>
-          <div className="home-week__sessions">
-            {currentWeekSessions.map((session) => {
-              const status =
-                activityBySessionId.get(session.id) ?? session.status;
-              return (
-                <article key={session.id}>
-                  <time dateTime={session.scheduledDate}>
-                    {formatPlanDate(session.scheduledDate, {
-                      weekday: "short",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </time>
-                  <div>
-                    <strong>{getWorkoutTrainingTitle(session.workout)}</strong>
-                    <span>
-                      {formatSessionDurationMinutes(
-                        session.estimatedDurationSeconds,
-                      )}{" "}
-                      min · {flattenSessionSections(session.sections).length}{" "}
-                      exercises
-                    </span>
-                  </div>
-                  <span className={`home-session-status is-${status}`}>
-                    {status === "completed"
-                      ? "Completed"
-                      : session.scheduledDate === today
-                        ? "Today"
-                        : status === "scheduled"
-                          ? "Scheduled"
-                          : status}
-                  </span>
-                </article>
-              );
-            })}
-          </div>
-        </div>
+        <TrainingPlanDashboardContent {...trainingPlan} view="week" />
 
         <aside className="home-upcoming" aria-labelledby="upcoming-heading">
           <div className="home-section-heading">

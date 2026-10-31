@@ -45,6 +45,8 @@ import {
   PLANNER_VERSION,
 } from "./planner-versions";
 import type { AdaptationProfile } from "./adaptation-profile";
+import { sharesWorkoutFocus } from "@/domain/workout/exercise-focus";
+import { matchesSessionFocus } from "./session-focus";
 import { exerciseMatchesDevelopmentArea } from "./profile-relevance";
 import { questionnaireFocusForSlot } from "./questionnaire-context";
 import {
@@ -616,8 +618,16 @@ export function generateSessionPrescription(
 ): GeneratedTrainingSession {
   const targetDurationSeconds = targetDurationMinutes * 60;
   const adjustments: DurationAdjustment[] = [];
-  const mainEligibleExercises = eligibleExercises.filter((exercise) =>
-    exercise.sessionRoles.includes("main"),
+  const sourceExercises = sourceWorkout.items.flatMap((item) => {
+    const exercise = eligibleExercises.find(
+      (candidate) => candidate.id === item.exerciseId,
+    );
+    return exercise ? [exercise] : [];
+  });
+  const mainEligibleExercises = eligibleExercises.filter(
+    (exercise) =>
+      exercise.sessionRoles.includes("main") &&
+      sharesWorkoutFocus(exercise, sourceExercises),
   );
   let workout: Workout = {
     ...sourceWorkout,
@@ -787,15 +797,20 @@ export function assembleMainWorkout({
   profiles = sportExerciseProfiles,
   preferredExerciseIds = [],
   temporaryLoadAdjustment = 0,
+  week = 1,
+  recentExerciseIds = [],
 }: {
   profile: AthleteProfile;
   slot: number;
+  week?: number;
+  recentExerciseIds?: readonly string[];
   exerciseCatalog?: readonly Exercise[];
   profiles?: readonly SportExerciseProfile[];
   preferredExerciseIds?: readonly string[];
   temporaryLoadAdjustment?: AdaptationProfile["temporaryLoadAdjustment"];
 }): Workout | null {
   const preferred = new Set(preferredExerciseIds);
+  const recent = new Set(recentExerciseIds);
   const profileByExerciseId = new Map(
     profiles
       .filter((candidate) => candidate.sport === profile.sport)
@@ -826,6 +841,12 @@ export function assembleMainWorkout({
       (exercise) =>
         isExercisePlanEligible(exercise) &&
         !supportIds.has(exercise.id) &&
+        matchesSessionFocus(
+          exercise,
+          profileByExerciseId.get(exercise.id),
+          profile,
+          slot,
+        ) &&
         exercise.planning.sectionRoles.includes("main") &&
         difficultyOrder[exercise.difficulty] <= maximumDifficulty &&
         exerciseMatchesEquipment(exercise, profile) &&
@@ -833,15 +854,16 @@ export function assembleMainWorkout({
     )
     .map((exercise) => ({
       exercise,
-      score: exercisePlanningScore(
-        exercise,
-        profile,
-        profileByExerciseId.get(exercise.id),
-        assignedDevelopmentAreas,
-        assignedLimitations,
-        preferred,
-        temporaryLoadAdjustment,
-      ),
+      score:
+        exercisePlanningScore(
+          exercise,
+          profile,
+          profileByExerciseId.get(exercise.id),
+          assignedDevelopmentAreas,
+          assignedLimitations,
+          preferred,
+          temporaryLoadAdjustment,
+        ) - (recent.has(exercise.id) ? 8 : 0),
     }))
     .sort(
       (left, right) =>
@@ -863,7 +885,7 @@ export function assembleMainWorkout({
   );
   const usedPatterns = new Set<string>();
   const rotated = ranked.map(
-    (_, index) => ranked[(index + slot) % ranked.length],
+    (_, index) => ranked[(index + slot + week - 1) % ranked.length],
   );
   const addCandidate = (
     predicate: (candidate: (typeof ranked)[number]) => boolean,
@@ -989,8 +1011,10 @@ export function assembleMainWorkout({
     name: getPersonalizedSessionTitle({
       profile,
       workout: assembled,
-      exerciseCatalog: exercises,
-      sportProfiles: sportExerciseProfiles,
+      exerciseCatalog,
+      sportProfiles: profiles,
+      preferredPadelPriorities: assignedLimitations,
+      preferredDevelopmentAreas: assignedDevelopmentAreas,
     }),
     shortDescription: getPersonalizedSessionDescription({
       profile,
@@ -1278,6 +1302,45 @@ export function finalizeGeneratedTrainingPlan(
   };
 }
 
+export function changePlanSessionDuration(
+  plan: TrainingPlan,
+  minutes: 5 | 10 | 20,
+  today: string,
+  recentFeedback: readonly WorkoutFeedbackEvent[] = [],
+  adaptationProfile?: AdaptationProfile,
+): TrainingPlan {
+  const profile = { ...plan.profile, sessionDurationMinutes: minutes };
+  if (
+    !plan.sessions.some(
+      (session) => session.status === "scheduled" && session.scheduledDate >= today,
+    )
+  ) {
+    return { ...plan, profile };
+  }
+  const rebuilt = generateTrainingPlan(
+    profile,
+    fromDateKey(plan.startDate),
+    recentFeedback,
+    { adaptationProfile },
+  );
+  return {
+    ...plan,
+    profile,
+    sessions: plan.sessions.map((session, index) => {
+      if (session.status !== "scheduled" || session.scheduledDate < today)
+        return session;
+      const replacement = rebuilt.sessions[index];
+      if (!replacement)
+        throw new Error("The updated plan has no matching session.");
+      return {
+        ...replacement,
+        id: session.id,
+        scheduledDate: session.scheduledDate,
+      };
+    }),
+  };
+}
+
 export function normalizeScheduledExerciseFlow(
   plan: TrainingPlan,
   exerciseCatalog: readonly Exercise[] = exercises,
@@ -1392,14 +1455,36 @@ export function generateTrainingPlan(
       sessionsPerWeek[weekIndex] += 1;
     }
   }
+  const previousWorkoutBySlot = new Map<number, Workout>();
   const sessions =
     assembledWorkouts.length === 0
       ? []
       : scheduledDates.map((scheduled, index) => {
-          const sourceWorkout =
+          const template =
             assembledWorkouts[
               scheduled.sessionIndex % assembledWorkouts.length
             ];
+          const previous = previousWorkoutBySlot.get(scheduled.sessionIndex);
+          const variant =
+            scheduled.weekNumber === 1
+              ? null
+              : assembleMainWorkout({
+                  profile,
+                  slot: scheduled.sessionIndex,
+                  week: scheduled.weekNumber,
+                  exerciseCatalog: eligibleExercises,
+                  preferredExerciseIds: [
+                    ...(options.adaptationProfile?.preferredExercises ?? []),
+                    ...template.items.map((item) => item.exerciseId),
+                  ],
+                  recentExerciseIds:
+                    previous?.items.map((item) => item.exerciseId) ?? [],
+                  temporaryLoadAdjustment:
+                    options.adaptationProfile?.temporaryLoadAdjustment ?? 0,
+                });
+          const sourceWorkout = variant
+            ? { ...variant, id: template.id, slug: template.slug }
+            : template;
           const initialSections = buildSessionSections({
             mainWorkout: sourceWorkout,
             exerciseCatalog: eligibleExercises,
@@ -1426,6 +1511,15 @@ export function generateTrainingPlan(
             mainWorkoutFitTargetSeconds / 60,
             eligibleMainExercises.filter(
               (exercise) =>
+                matchesSessionFocus(
+                  exercise,
+                  sportExerciseProfiles.find(
+                    (p) =>
+                      p.exerciseId === exercise.id && p.sport === profile.sport,
+                  ),
+                  profile,
+                  scheduled.sessionIndex,
+                ) &&
                 !initialSections.some(
                   (section) =>
                     section.type !== "main" &&
@@ -1472,6 +1566,7 @@ export function generateTrainingPlan(
               Math.round(estimatedDurationSeconds / 60),
             ),
           };
+          previousWorkoutBySlot.set(scheduled.sessionIndex, workout);
           const progressionPhase = getProgressionPhase(scheduled.weekNumber);
           const validationErrors = validateGeneratedSessionSections({
             sections,
@@ -1562,11 +1657,36 @@ export function generateTrainingPlan(
     adaptedPlan,
     eligibleExercises,
   );
-  return assertPlanDurationFidelity(
+  const scheduledPlan =
     profile.matches.length > 0
       ? rebalancePlanAroundGames(finalizedPlan)
-      : finalizedPlan,
-  );
+      : finalizedPlan;
+  return assertPlanDurationFidelity({
+    ...scheduledPlan,
+    sessions: scheduledPlan.sessions.map((session, index) => {
+      if (options.sourceWorkouts && session.weekNumber === 1) return session;
+      const focus = questionnaireFocusForSlot(
+        profile,
+        index % profile.sessionsPerWeek,
+      );
+      const name = getPersonalizedSessionTitle({
+        profile,
+        workout: session.workout,
+        exerciseCatalog: eligibleExercises,
+        sportProfiles: sportExerciseProfiles,
+        preferredPadelPriorities: focus.padelPriorities,
+        preferredDevelopmentAreas: focus.developmentAreas,
+      });
+      return {
+        ...session,
+        workout: { ...session.workout, name },
+        originalSessionSnapshot: {
+          ...session.originalSessionSnapshot,
+          workout: { ...session.originalSessionSnapshot.workout, name },
+        },
+      };
+    }),
+  });
 }
 
 function gameRecoveryDays(plan: TrainingPlan) {
@@ -1622,6 +1742,21 @@ export function describePlanRebalance(
   return messages.join(" ");
 }
 
+export function getPlanGamesKey(plan: Pick<TrainingPlan, "games">): string {
+  return plan.games
+    .map(({ date, importance }) => `${date}:${importance}`)
+    .sort()
+    .join("|");
+}
+
+export function isPlanRebalanceNeeded(plan: TrainingPlan): boolean {
+  return (
+    plan.games.length > 0 &&
+    plan.rebalancedGamesKey !== undefined &&
+    plan.rebalancedGamesKey !== getPlanGamesKey(plan)
+  );
+}
+
 export function rebalancePlanAroundGames(plan: TrainingPlan): TrainingPlan {
   const gameDays = gameRecoveryDays(plan);
   const occupied = new Set(
@@ -1651,5 +1786,10 @@ export function rebalancePlanAroundGames(plan: TrainingPlan): TrainingPlan {
     }
     return session;
   });
-  return { ...plan, sessions, lastRebalancedAt: new Date().toISOString() };
+  return {
+    ...plan,
+    sessions,
+    lastRebalancedAt: new Date().toISOString(),
+    rebalancedGamesKey: getPlanGamesKey(plan),
+  };
 }

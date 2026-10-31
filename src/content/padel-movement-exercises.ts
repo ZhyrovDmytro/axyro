@@ -15,6 +15,10 @@ type DraftOptions = {
   roles: CatalogExercise["roles"];
   qualities: CatalogExercise["qualities"];
   targetedQualities: string[];
+  sessionRoles?: CatalogExercise["sessionRoles"];
+  preparationFor?: CatalogExercise["preparationFor"];
+  recoveryFor?: CatalogExercise["recoveryFor"];
+  sessionIntensity?: CatalogExercise["sessionIntensity"];
   equipment?: CatalogExercise["equipment"];
   setup?: CatalogExercise["setupRequirements"];
   laterality?: CatalogExercise["laterality"];
@@ -48,6 +52,10 @@ function reviewedExercise(options: DraftOptions): CatalogExercise {
     roles: options.roles,
     qualities: options.qualities,
     targetedQualities: options.targetedQualities,
+    sessionRoles: options.sessionRoles,
+    preparationFor: options.preparationFor,
+    recoveryFor: options.recoveryFor,
+    sessionIntensity: options.sessionIntensity,
     equipment: options.equipment ?? ["none"],
     setupRequirements: options.setup ?? ["floor"],
     laterality,
@@ -308,6 +316,10 @@ export const padelMovementExercises: CatalogExercise[] = [
   }),
   reviewedExercise({
     id: "ninety-ninety-hip-switch",
+    sessionRoles: ["warmup", "main", "cooldown"],
+    sessionIntensity: "low",
+    preparationFor: ["strength", "stability", "rotation", "mobility"],
+    recoveryFor: ["legs", "glutes"],
     name: "90/90 Hip Switch",
     description:
       "Practice controlled hip rotation through a comfortable seated range.",
@@ -331,6 +343,10 @@ export const padelMovementExercises: CatalogExercise[] = [
   }),
   reviewedExercise({
     id: "open-book-rotation",
+    sessionRoles: ["warmup", "main", "cooldown"],
+    sessionIntensity: "low",
+    preparationFor: ["strength", "stability", "rotation", "mobility"],
+    recoveryFor: ["back", "shoulders", "core"],
     name: "Open-book Rotation",
     description:
       "Practice comfortable upper-back rotation in a supported side-lying position.",

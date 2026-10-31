@@ -47,6 +47,15 @@ describe("model-assisted planner", () => {
       model: "test-model",
     });
 
+    const lineups = result.plan.sessions
+      .filter((session) => session.sourceWorkoutId === "model-session-1")
+      .map((session) =>
+        session.workout.items
+          .map((item) => item.exerciseId)
+          .sort()
+          .join(","),
+      );
+    expect(new Set(lineups).size).toBeGreaterThan(1);
     expect(result.quality.valid).toBe(true);
     expect(result.plan.sessions).toHaveLength(26);
     expect(result.plan.sessions[0].workout.name).toBe(

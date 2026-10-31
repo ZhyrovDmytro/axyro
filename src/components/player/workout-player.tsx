@@ -1086,6 +1086,11 @@ function WorkoutPlayerRuntime({
           {step.type === "rest" && (
             <RecoveryVisual paused={state.status === "paused"} />
           )}
+          {step.type === "ready" && (
+            <span className="player-ready-label" role="status">
+              Get ready
+            </span>
+          )}
           {step.type === "active" && (
             <div
               className="cadence-visual"
@@ -1237,7 +1242,6 @@ function WorkoutPlayerRuntime({
               </div>
               <button
                 aria-label="Close technique"
-                autoFocus
                 className="player-exit"
                 onClick={closeTechnique}
                 type="button"

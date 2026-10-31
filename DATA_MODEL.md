@@ -509,7 +509,8 @@ effort scaling cannot turn preparation or recovery into progressive overload.
 
 The calendar date determines the explicit progression week; page views and
 completion count never advance it. Each weekly slot keeps the same source
-workout across the block for movement continuity. `ProgressionChange` contains
+workout ID across the block for slot identity, while its exercise selection,
+ordering, and bounded prescription can vary each week. `ProgressionChange` contains
 only structured facts—bounded work-duration changes, round changes, or recovery
 changes—so presentation copy remains outside the domain. Existing stored plans
 are migrated with their calendar-derived phase and an empty feedback-adaptation

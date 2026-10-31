@@ -15,23 +15,22 @@ export function LibraryInvitation({ total }: { total: number }) {
         <span />
       </div>
       <div className="library-invitation-copy">
-        <h2 id="library-invitation-title">There’s more to explore.</h2>
+        <h2 id="library-invitation-title">Unlock the full library with Pro.</h2>
         <p>
           {total - FREE_LIBRARY_LIMIT} more exercises, with movement demos and
           clear technique cues. Explore the full library with Pro.
         </p>
         <div className="account-actions">
-          {user ? (
-            <Link
-              className="button button--dark"
-              href="/upgrade?context=library&returnTo=/exercises"
-            >
-              Explore Pro
-            </Link>
-          ) : (
+          <Link
+            className="button button--dark"
+            href="/upgrade?context=library&returnTo=/exercises"
+          >
+            Explore Pro
+          </Link>
+          {!user && (
             <>
               <Link
-                className="button button--dark"
+                className="button button--secondary"
                 href="/signup?next=/exercises"
               >
                 Create account

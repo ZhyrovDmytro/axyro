@@ -69,6 +69,16 @@ test("keeps mobile navigation to one safe five-item row", async ({ page }) => {
       .getByRole("banner")
       .getByRole("link", { name: "Sign in", exact: true }),
   ).toBeVisible();
+  const settings = page.getByRole("banner").getByRole("link", { name: "Settings", exact: true });
+  for (const width of [320, 1280]) {
+    await page.setViewportSize({ width, height: 844 });
+    await expect(settings).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  }
+  await settings.click();
+  await expect(page).toHaveURL(/\/settings$/);
+  await expect(settings).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("heading", { name: "Make each workout yours." })).toBeVisible();
 });
 
 test("browses a workout and previews its plan", async ({ page }) => {
@@ -126,18 +136,16 @@ test("builds and customizes a 60-day training plan", async ({ page }) => {
     .getByRole("button", { name: "Create My Plan" })
     .click({ force: true });
 
-  await expect(page.getByRole("heading", { name: "What’s next?" })).toBeVisible(
+  await expect(page.getByRole("heading", { name: "Your full plan." })).toBeVisible(
     { timeout: 60_000 },
   );
   await expect(
     page.locator(".plan-next-session").getByText("Your selected focus"),
   ).toHaveCount(0);
-  await expect(page.getByRole("heading", { name: "This week" })).toBeVisible();
-  await expect(page.getByText(/sessions complete/)).toBeVisible();
+  await expect(page.getByRole("heading", { name: "This week" })).toHaveCount(0);
   await expect(
     page.getByRole("link", { name: "Refine my plan" }),
   ).toBeVisible();
-  await page.getByRole("link", { name: /View full calendar/ }).click();
   await expect(page.getByText(/^\d+ planned$/)).toBeVisible();
   await expect(page.getByText("Your selected focus")).toHaveCount(0);
   await expect(
@@ -190,7 +198,7 @@ test("builds and customizes a 60-day training plan", async ({ page }) => {
   await deleteGameDialog
     .getByRole("button", { name: "Delete match", exact: true })
     .click();
-  await expect(page.getByText("No games added yet.")).toBeVisible();
+  await expect(page.getByText("No upcoming games.")).toBeVisible();
   await page.getByRole("link", { name: "Review", exact: true }).first().click();
   await expect(page.locator(".detail-hero--workout")).toBeVisible();
   await expect(
@@ -213,7 +221,6 @@ test("builds and customizes a 60-day training plan", async ({ page }) => {
     exerciseItems.nth(1).locator(".editor-exercise-copy > a"),
   ).toHaveText(firstExerciseName);
   await page.getByRole("button", { name: "Add exercise", exact: true }).click();
-  await page.getByPlaceholder("Search movement or body area").fill("dead bug");
   await page.locator(".exercise-picker-list button").first().click();
   await page.getByRole("button", { name: "Adapt today" }).click();
   await expect(
@@ -448,15 +455,13 @@ test("browses the shoulder library and opens full coaching details", async ({
       level: 2,
     })
     .click();
-  const singleArmVideo = page.getByLabel(
-    "Single-Arm Prone Shoulder Arc movement demonstration",
+  const singleArmVideo = page.getByAltText(
+    "Single-Arm Prone Shoulder Arc movement reference",
   );
   await expect(singleArmVideo).toHaveAttribute(
     "src",
-    "/videos/single-arm-prone-plate-over-obstacle-v2.mov",
+    /\/images\/exercises\/animations\/single-arm-prone-plate-over-obstacle\.gif$/,
   );
-  await expect(singleArmVideo).not.toHaveAttribute("controls", "");
-  await expect(singleArmVideo).toHaveAttribute("tabindex", "-1");
   await expect(
     page.getByRole("heading", { name: "How to move" }),
   ).toBeVisible();
@@ -466,28 +471,24 @@ test("browses the shoulder library and opens full coaching details", async ({
   ).toBeVisible();
 
   await page.goto("/exercises/prone-foam-roller-overhead-shoulder-press");
-  const foamRollerVideo = page.getByLabel(
-    "Prone Overhead Shoulder Press movement demonstration",
+  const foamRollerVideo = page.getByAltText(
+    "Prone Overhead Shoulder Press movement reference",
   );
   await expect(foamRollerVideo).toHaveAttribute(
     "src",
-    "/videos/prone-foam-roller-overhead-shoulder-press-v2.mov",
+    /\/images\/exercises\/animations\/prone-foam-roller-overhead-shoulder-press\.gif$/,
   );
-  await expect(foamRollerVideo).not.toHaveAttribute("controls", "");
-  await expect(foamRollerVideo).toHaveAttribute("tabindex", "-1");
 
   await page.goto(
     "/exercises/prone-foam-roller-plate-internal-external-rotation",
   );
-  const rotationVideo = page.getByLabel(
-    "Prone Shoulder Internal/External Rotation movement demonstration",
+  const rotationVideo = page.getByAltText(
+    "Prone Shoulder Internal/External Rotation movement reference",
   );
   await expect(rotationVideo).toHaveAttribute(
     "src",
-    "/videos/prone-foam-roller-plate-internal-external-rotation-v2.mov",
+    /\/images\/exercises\/animations\/prone-foam-roller-plate-internal-external-rotation\.gif$/,
   );
-  await expect(rotationVideo).not.toHaveAttribute("controls", "");
-  await expect(rotationVideo).toHaveAttribute("tabindex", "-1");
 });
 
 test("controls and completes a workout session", async ({ page }) => {
@@ -727,7 +728,6 @@ test("applies a transparent feedback change to a future plan session", async ({
     await page.getByRole("button", { name: "Continue" }).click();
   }
   await page.getByRole("button", { name: "Create My Plan" }).click();
-  await page.getByRole("link", { name: /View full calendar/ }).click();
   await page
     .getByRole("link", { name: /Review/ })
     .first()
@@ -757,7 +757,6 @@ test("applies a transparent feedback change to a future plan session", async ({
     page.getByText("Change applied to your next comparable session."),
   ).toBeVisible();
   await page.getByRole("link", { name: "Done" }).click();
-  await page.getByRole("link", { name: /View full calendar/ }).click();
   await expect(page.getByText("Adjusted for you").first()).toBeVisible();
 });
 

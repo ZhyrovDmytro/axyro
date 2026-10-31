@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { UiIcon, type UiIconName } from "@/components/ui-icon";
+import { UiIcon } from "@/components/ui-icon";
+import { ActivityStatus } from "./activity-status";
 import { formatPlanDate, toDateKey } from "@/domain/training-plan/date";
 import { intensityPresets } from "@/domain/workout/intensity";
 import { useTrainingPlan } from "@/hooks/use-training-plan";
@@ -13,19 +14,6 @@ import type {
   WorkoutFeedbackEvent,
   WorkoutSessionSnapshot,
 } from "@/services/persistence/workout-activity-repository";
-
-const statusContent: Record<
-  SessionActivity["status"],
-  { icon: UiIconName; label: string }
-> = {
-  scheduled: { icon: "scheduled", label: "Scheduled" },
-  "in-progress": { icon: "play", label: "In progress" },
-  completed: { icon: "check", label: "Completed" },
-  skipped: { icon: "skip", label: "Skipped" },
-  missed: { icon: "minus", label: "Missed" },
-  cancelled: { icon: "close", label: "Cancelled" },
-  incomplete: { icon: "incomplete", label: "Incomplete" },
-};
 
 const feedbackLabels = {
   "too-easy": "Too easy",
@@ -115,10 +103,7 @@ export function ActivityDetail({ activityId }: { activityId: string }) {
       <header className="activity-detail-hero">
         <p className="kicker">{formatPlanDate(activity.scheduledDate)}</p>
         <h1>{snapshot?.workoutName ?? "Workout"}</h1>
-        <span className={`activity-status activity-status--${activity.status}`}>
-          <UiIcon name={statusContent[activity.status].icon} />
-          {statusContent[activity.status].label}
-        </span>
+        <ActivityStatus status={activity.status} />
       </header>
 
       <dl className="activity-detail-stats">

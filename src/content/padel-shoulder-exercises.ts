@@ -415,6 +415,11 @@ export const padelShoulderExercises = padelShoulderExerciseListSchema.parse(
       ],
       media: {
         assetKey: "single-arm-prone-plate-over-obstacle",
+        type: "animation",
+        uri: "/images/exercises/animations/single-arm-prone-plate-over-obstacle.gif",
+        aspectRatio: "16 / 9",
+        loop: true,
+        version: "2",
         videoUrl: "/videos/single-arm-prone-plate-over-obstacle-v2.mov",
         status: "production",
         requiredViews: [
@@ -483,6 +488,11 @@ export const padelShoulderExercises = padelShoulderExerciseListSchema.parse(
       ],
       media: {
         assetKey: "prone-foam-roller-overhead-shoulder-press",
+        type: "animation",
+        uri: "/images/exercises/animations/prone-foam-roller-overhead-shoulder-press.gif",
+        aspectRatio: "16 / 9",
+        loop: true,
+        version: "2",
         videoUrl: "/videos/prone-foam-roller-overhead-shoulder-press-v2.mov",
         status: "production",
         requiredViews: [
@@ -552,6 +562,11 @@ export const padelShoulderExercises = padelShoulderExerciseListSchema.parse(
       ],
       media: {
         assetKey: "prone-foam-roller-plate-internal-external-rotation",
+        type: "animation",
+        uri: "/images/exercises/animations/prone-foam-roller-plate-internal-external-rotation.gif",
+        aspectRatio: "16 / 9",
+        loop: true,
+        version: "2",
         videoUrl:
           "/videos/prone-foam-roller-plate-internal-external-rotation-v2.mov",
         status: "production",

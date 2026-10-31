@@ -26,6 +26,18 @@ test("calendar shows persisted completed and skipped training alongside matches"
   plan.sessions[1].scheduledDate = addDays(today, 1);
   plan.games = [
     {
+      id: "future-match",
+      date: addDays(today, 2),
+      label: "Future match",
+      importance: "normal",
+    },
+    {
+      id: "past-match",
+      date: addDays(today, -1),
+      label: "Past match",
+      importance: "normal",
+    },
+    {
       id: "outcome-match",
       date: today,
       label: "Club match",
@@ -73,6 +85,16 @@ test("calendar shows persisted completed and skipped training alongside matches"
     },
   );
   await page.reload();
+  const upcomingGames = page.getByRole("complementary", {
+    name: "Upcoming games",
+  });
+  await expect(upcomingGames.locator(".game-list strong")).toHaveText([
+    "Club match",
+    "Future match",
+  ]);
+  await expect(
+    upcomingGames.getByText("Past match", { exact: true }),
+  ).toHaveCount(0);
   const calendar = page.getByRole("grid", { name: "60-day training calendar" });
   const done = calendar.getByRole("gridcell", {
     name: /Done, training:.*Club match/,
@@ -102,4 +124,15 @@ test("calendar shows persisted completed and skipped training alongside matches"
     path: "/tmp/axyro-calendar-outcomes-desktop.png",
     fullPage: false,
   });
+  await page.evaluate(() => {
+    const key = "veyro.owner.development-admin.veyro.training-plan.v1";
+    const savedPlan = JSON.parse(localStorage.getItem(key)!);
+    savedPlan.games = savedPlan.games.filter(
+      (game: { id: string }) => game.id === "past-match",
+    );
+    localStorage.setItem(key, JSON.stringify(savedPlan));
+  });
+  await page.reload();
+  await expect(upcomingGames.getByText(/No upcoming games/)).toBeVisible();
+  await expect(upcomingGames.locator(".game-list")).toHaveCount(0);
 });

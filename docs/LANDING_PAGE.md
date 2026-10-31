@@ -78,7 +78,7 @@ movement is limited to hover-capable fine pointers. Reduced motion disables
 movement and automatic hero rotation while preserving access to content.
 
 The schedule and editor examples and all FAQ answers are visible immediately.
-Content sections use semantic headings without accordion controls.
+Content sections use semantic headings; FAQ questions use native accordion controls.
 
 ## Asset provenance
 
@@ -92,3 +92,8 @@ The landing browser suite checks guest/member routing, free-workout navigation,
 preview playback and selection, keyboard access, rotating supporting copy and its reduced-motion fallback,
 reduced-motion behavior, both expandable examples, six complete library previews,
 closing actions, viewport overflow and automated accessibility.
+
+## FAQ interaction
+
+All FAQ answers start collapsed. Each question independently opens or closes its
+answer using native `details`/`summary` controls, with pointer and keyboard support.

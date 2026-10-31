@@ -13,7 +13,10 @@
 /test-results
 
 # Local agent tooling and generated review/reference files
-/.agents
+/.agents/*
+!/.agents/skills/
+/.agents/skills/*
+!/.agents/skills/frontend-design/
 /.claude
 /.codex
 /.impeccable

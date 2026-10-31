@@ -160,7 +160,7 @@ test("member sessions keep their authored name and reveal future sessions progre
   await expect(page.locator(".today-hero .lede")).toContainText(name);
   await expect(page.locator(".today-session-card > strong")).toHaveText(name);
   await page.goto("/plan");
-  await expect(page.locator("#next-session-heading")).toHaveText(name);
+  await expect(page.getByRole("heading", { name: "Your full plan.", exact: true })).toBeVisible();
   await page.goto("/plan/calendar");
   await expect(page.locator(".session-list .session-card")).toHaveCount(6);
   await page.screenshot({

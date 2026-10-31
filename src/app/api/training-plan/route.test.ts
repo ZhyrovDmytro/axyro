@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { defaultAdaptationProfile } from "@/domain/training-plan/adaptation-profile";
+import { painAreaValues } from "@/domain/training-plan/training-plan.schema";
 
 import { POST } from "./route";
 
@@ -16,6 +17,25 @@ afterEach(() => {
 });
 
 describe("training plan route", () => {
+  it("returns a recoverable response when no plan fits the selected constraints", async () => {
+    process.env.AI_PLANNER_ENABLED = "false";
+    const response = await POST(new Request("http://localhost/api/training-plan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        today: "2026-10-31",
+        adaptationProfile: defaultAdaptationProfile,
+        profile: {
+          sport: "padel", experience: "beginner", sessionsPerWeek: 3,
+          sessionDurationMinutes: 20, preferredDays: ["monday", "wednesday", "friday"],
+          equipment: ["bodyweight"], goals: ["movement-speed"],
+          developmentAreas: [], padelLimitations: [], painAreas: [...painAreaValues], matches: [],
+        },
+      }),
+    }));
+    expect(response.status).toBe(422);
+    expect(await response.json()).toMatchObject({ code: "unsupported-plan" });
+  });
   it("rejects guests before evaluating plan input", async () => {
     vi.mocked(getBillingAccess).mockResolvedValueOnce({ user: null, subscription: null, hasPro: false });
     expect((await POST(new Request("http://localhost/api/training-plan", {method:"POST"}))).status).toBe(401);

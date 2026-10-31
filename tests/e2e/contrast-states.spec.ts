@@ -96,10 +96,9 @@ test("text contrast throughout plan creation, calendar and editing", async ({
   }
   await page.getByRole("button", { name: "Create My Plan" }).click();
   await expect(
-    page.getByRole("heading", { name: "What’s next?" }),
+    page.getByRole("heading", { name: "Your full plan." }),
   ).toBeVisible();
   await checkContrast(page, "plan overview");
-  await page.getByRole("link", { name: /View full calendar/ }).click();
   await checkContrast(page, "calendar and current training arc");
   await page.locator(".calendar-day:not(:disabled)").first().click();
   await page.getByRole("button", { name: "Add game" }).click();
@@ -122,7 +121,8 @@ test("text contrast throughout plan creation, calendar and editing", async ({
   await checkContrast(page, "workout editor");
   await page.getByRole("button", { name: "Add exercise", exact: true }).click();
   await checkContrast(page, "exercise picker");
-  await page.getByPlaceholder("Search movement or body area").fill("dead bug");
+  const availableMovement = await page.locator(".exercise-picker-list button strong").first().innerText();
+  await page.getByPlaceholder("Search movement or body area").fill(availableMovement);
   await page.locator(".exercise-picker-list button").first().click();
   await page.getByRole("button", { name: "Adapt today" }).click();
   await checkContrast(page, "adapt dialog");

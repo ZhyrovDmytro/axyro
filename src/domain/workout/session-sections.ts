@@ -4,7 +4,8 @@ import type {
   Exercise,
 } from "@/domain/exercise/exercise.types";
 
-import { calculateSessionDuration } from "./session-duration";
+import { sharesWorkoutFocus } from "./exercise-focus";
+import { calculateSessionDuration, SESSION_TIMING } from "./session-duration";
 import type { SessionSection, Workout, WorkoutItem } from "./workout.types";
 
 export const SESSION_SECTION_DURATION_BUDGETS = {
@@ -136,6 +137,11 @@ function rankedWarmups(
     .filter(
       (exercise) =>
         exercise.sessionRoles.includes("warmup") &&
+        (sharesWorkoutFocus(exercise, mainExercises) ||
+          exercise.bodyAreas.includes("full-body") ||
+          (!mainBodyAreas.has("legs") &&
+            exercise.recoveryFor.includes("core") &&
+            mainBodyAreas.has("core"))) &&
         availableExercise(exercise, availableEquipment, excludedBodyAreas),
     )
     .map((exercise) => ({
@@ -168,16 +174,24 @@ function rankedCooldowns(
     .filter(
       (exercise) =>
         exercise.sessionRoles.includes("cooldown") &&
+        (sharesWorkoutFocus(exercise, mainExercises) ||
+          exercise.recoveryFor.includes("full-body") ||
+          (!mainBodyAreas.has("legs") &&
+            exercise.recoveryFor.includes("core") &&
+            mainBodyAreas.has("core"))) &&
+        exercise.recoveryFor.some(
+          (area) => area === "full-body" || mainBodyAreas.has(area),
+        ) &&
         availableExercise(exercise, availableEquipment, excludedBodyAreas),
     )
     .map((exercise) => ({
       exercise,
       score:
         exercise.recoveryFor.filter(
-          (area) => area === "full-body" || mainBodyAreas.has(area),
+          (area) => area !== "full-body" && mainBodyAreas.has(area),
         ).length *
           24 +
-        Number(exercise.recoveryFor.includes("full-body")) * 5,
+        Number(exercise.recoveryFor.includes("full-body")),
     }))
     .sort(
       (left, right) =>
@@ -232,10 +246,20 @@ function sectionItems(
       `[session-sections] Using ${selected.length} compatible ${section} exercise(s); ${count} preferred.`,
     );
   }
+  const templates = selected.map((exercise) =>
+    supportItem(exercise, section, 0),
+  );
+  const sides = templates.reduce(
+    (sum, item) => sum + (item.prescription.perSide ? 2 : 1),
+    0,
+  );
+  const overhead =
+    selected.length * SESSION_TIMING.initialReadySeconds +
+    templates.filter((item) => item.prescription.perSide).length *
+      SESSION_TIMING.sideTransitionSeconds;
   const workSeconds = Math.max(
-    20,
-    Math.round((preferredSeconds - selected.length * 5) / selected.length / 5) *
-      5,
+    10,
+    Math.round((preferredSeconds - overhead) / sides),
   );
   return selected.map((exercise) =>
     supportItem(exercise, section, workSeconds),
@@ -250,15 +274,17 @@ export function reserveSupportExerciseIds(
       exercise.sessionRoles.includes("warmup") &&
       exercise.sessionIntensity === "low",
   );
-  const cooldown = exerciseCatalog.find(
+  const cooldowns = exerciseCatalog.filter(
     (exercise) =>
       exercise.sessionRoles.includes("cooldown") &&
       exercise.sessionIntensity === "low",
   );
   const warmup =
-    warmups.find((exercise) => exercise.id === cooldown?.id) ?? warmups[0];
+    warmups.find((exercise) => exercise.id === cooldowns[0]?.id) ?? warmups[0];
   return new Set(
-    [warmup?.id, cooldown?.id].filter((id): id is string => Boolean(id)),
+    [warmup?.id, ...cooldowns.map((exercise) => exercise.id)].filter(
+      (id): id is string => Boolean(id),
+    ),
   );
 }
 

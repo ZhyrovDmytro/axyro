@@ -82,3 +82,18 @@ study with athletes. Live payment-provider success, production performance,
 offline relaunch, and recovery of unsaved state after a render crash require
 separate validation. The root route error boundary does not catch errors in the
 root layout/providers. No analytics, notifications, or new tracking were added.
+
+## Player layout corrections — 2026-10-28
+
+Technique opens centered in the viewport, with a scrollable height limit and
+a compact heading. Its focus trap handles initial focus and restores focus to
+the Technique button on Escape. Every ready/count-in phase shows a “Get ready”
+badge over the reference media; it disappears when work begins. The Up next
+panel fills the dock at every breakpoint, without an unused desktop column or
+contrasting background strip. Phase durations and automatic progression remain
+unchanged.
+
+Verified with 374 unit tests, TypeScript, lint (zero errors; 188 existing
+warnings), and six player browser checks. Layout and keyboard checks cover
+320 × 640, 390 × 844, 844 × 390 and 1440 × 900; screenshots were visually
+inspected. Physical-device testing and a production build were not repeated.

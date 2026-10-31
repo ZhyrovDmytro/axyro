@@ -501,18 +501,22 @@
   font-size: 38px;
   margin-bottom: 25px;
 }
-.faq article {
+.faq details {
   border-bottom: 1px solid var(--border);
   padding-block: 22px;
 }
-.faq h3 {
-  margin: 0 0 12px;
+.faq summary {
+  cursor: pointer;
   font-size: 15px;
   font-weight: 650;
   line-height: 1.5;
 }
-.faq article p {
-  margin: 0;
+.faq summary:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 5px;
+}
+.faq details p {
+  margin: 12px 0 0;
   font-size: 14px;
 }
 .closing {

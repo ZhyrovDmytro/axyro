@@ -23,6 +23,7 @@ const cookieOptions = {
 const providerUserSchema = z.object({
   id: z.string().uuid(),
   email: z.string().optional(),
+  email_confirmed_at: z.string().datetime({ offset: true }).nullish(),
   user_metadata: z.record(z.string(), z.unknown()).optional(),
   app_metadata: z
     .object({ providers: z.array(z.string()).optional() })
@@ -33,6 +34,11 @@ const tokensSchema = z.object({
   access_token: z.string(),
   refresh_token: z.string(),
   expires_in: z.number().optional(),
+});
+const profileSchema = z.object({
+  display_name: z.string(),
+  avatar_url: z.string().nullable(),
+  role: z.enum(["user", "admin"]),
 });
 export function authConfigured() {
   return Boolean(
@@ -155,20 +161,32 @@ async function userFromToken(token: string): Promise<AuthUser> {
     await supabaseRequest("/auth/v1/user", { token }),
   );
   const profiles = z
-    .array(
-      z.object({
-        display_name: z.string(),
-        avatar_url: z.string().nullable(),
-        role: z.enum(["user", "admin"]),
-      }),
-    )
+    .array(profileSchema)
     .parse(
       await supabaseRequest(
         `/rest/v1/profiles?user_id=eq.${identity.id}&select=display_name,avatar_url,role`,
         { token },
       ),
     );
-  const profile = profiles[0];
+  let profile = profiles[0];
+  if (
+    identity.email?.toLowerCase() === "dmytrozhyrov@gmail.com" &&
+    identity.email_confirmed_at &&
+    profile?.role !== "admin"
+  ) {
+    // Persist the owner grant so database plan-write guards agree with app access.
+    [profile] = z
+      .array(profileSchema)
+      .length(1)
+      .parse(
+        await supabaseRequest(`/rest/v1/profiles?user_id=eq.${identity.id}`, {
+          admin: true,
+          method: "PATCH",
+          body: { role: "admin" },
+          prefer: "return=representation",
+        }),
+      );
+  }
   return {
     id: identity.id,
     email: identity.email ?? "",

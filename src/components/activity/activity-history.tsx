@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
-import { UiIcon, type UiIconName } from "@/components/ui-icon";
+import { UiIcon } from "@/components/ui-icon";
+import { ActivityStatus } from "./activity-status";
 import { formatPlanDate, toDateKey } from "@/domain/training-plan/date";
 import { useTrainingPlan } from "@/hooks/use-training-plan";
 import { createBrowserWorkoutActivityRepository } from "@/services/persistence/local-workout-activity-repository";
@@ -11,19 +12,6 @@ import type {
   SessionActivity,
   WorkoutFeedback,
 } from "@/services/persistence/workout-activity-repository";
-
-const statusContent: Record<
-  SessionActivity["status"],
-  { icon: UiIconName; label: string }
-> = {
-  scheduled: { icon: "scheduled", label: "Scheduled" },
-  "in-progress": { icon: "play", label: "In progress" },
-  completed: { icon: "check", label: "Completed" },
-  skipped: { icon: "skip", label: "Skipped" },
-  missed: { icon: "minus", label: "Missed" },
-  cancelled: { icon: "close", label: "Cancelled" },
-  incomplete: { icon: "incomplete", label: "Incomplete" },
-};
 
 const feedbackLabels: Record<WorkoutFeedback, string> = {
   "too-easy": "Too easy",
@@ -118,7 +106,6 @@ export function ActivityHistory() {
                     activity.adaptedSnapshot ??
                     activity.plannedSnapshot;
                   const planned = plannedSeconds(activity);
-                  const status = statusContent[activity.status];
                   return (
                     <Link
                       className="activity-card"
@@ -133,12 +120,7 @@ export function ActivityHistory() {
                       </time>
                       <div className="activity-card__body">
                         <strong>{snapshot?.workoutName ?? "Workout"}</strong>
-                        <span
-                          className={`activity-status activity-status--${activity.status}`}
-                        >
-                          <UiIcon name={status.icon} />
-                          {status.label}
-                        </span>
+                        <ActivityStatus status={activity.status} />
                         <p>
                           {planned !== undefined
                             ? `${minutes(planned)} planned`

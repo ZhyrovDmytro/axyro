@@ -4,9 +4,11 @@ Axyro remains a Next.js App Router web application. Supabase owns credentials an
 
 ## Access contract
 
-Guests and authenticated Free users can run Foundation Strength with all duration, effort, audio and player controls. Exactly one curated workout has `access: free`; other authored content is Pro. Guests and Free members browse a stable media-first preview of 6 exercises; search and pagination operate within that selection. A single overflow gradient introduces account/sign-in actions for guests and Explore Pro for signed-in Free members. All exercise reference pages and media remain public, including links used by workout guidance; only full-library browsing is Pro. The 40 curated exercise records are preserved; all are eligible for home training, including the prone shoulder movements with optional light dumbbells.
+Guests and authenticated Free users can run Foundation Strength with all duration, effort, audio and player controls. Exactly one curated workout has `access: free`; other authored content is Pro. Guests and Free members browse a stable media-first preview of 6 exercises; search and pagination operate within that selection. A single overflow gradient introduces Explore Pro for everyone, with additional account/sign-in actions for guests. All exercise reference pages and media remain public, including links used by workout guidance; only full-library browsing is Pro. The 40 curated exercise records are preserved; all are eligible for home training, including the prone shoulder movements with optional light dumbbells.
 
 Pro unlocks personalized plan generation, plan scheduling/editing/execution, the workout and exercise libraries, history and progress. `hasEntitlement` centralizes subscription expiration and trusted admin overrides. APIs, SQL write policies and server workout guards enforce access independently of UI. Data is retained when Pro expires.
+
+For owner production testing, the server automatically assigns the trusted admin role to the authenticated, email-confirmed account `dmytrozhyrov@gmail.com`. The grant persists in `profiles.role`, so application and database checks agree. It requires the normal Supabase session and server secret; no Stripe subscription is required. See [authentication](./AUTHENTICATION.md) for verification and revocation details.
 
 ## Conversion
 

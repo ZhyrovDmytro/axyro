@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/auth-provider";
+import { UiIcon } from "@/components/ui-icon";
 
 const primaryLinks = [
   { href: "/", label: "Home" },
@@ -19,7 +20,7 @@ export function AppHeader() {
   if (/\/workouts\/[^/]+\/start\/?$/.test(pathname)) return null;
 
   const accountActive = user
-    ? pathname === "/account" || pathname === "/settings"
+    ? pathname === "/account"
     : ["/signin", "/signup", "/forgot-password", "/reset-password"].includes(
         pathname,
       );
@@ -54,32 +55,43 @@ export function AppHeader() {
           );
         })}
       </nav>
-      <Link
-        aria-current={accountActive ? "page" : undefined}
-        className="settings-link header-account"
-        href={accountHref}
-      >
-        <svg
-          aria-hidden="true"
-          fill="none"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
+      <div className="header-actions">
+        <Link
+          aria-current={accountActive ? "page" : undefined}
+          className="settings-link header-account"
+          href={accountHref}
         >
-          <path
-            d="M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"
-            stroke="currentColor"
-            strokeWidth="1.8"
-          />
-          <path
-            d="M4 21v-2a8 6 0 0 1 16 0v2"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="1.8"
-          />
-        </svg>
-        <span>{user ? "Account" : "Sign in"}</span>
-      </Link>
+          <svg
+            aria-hidden="true"
+            fill="none"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"
+              stroke="currentColor"
+              strokeWidth="1.8"
+            />
+            <path
+              d="M4 21v-2a8 6 0 0 1 16 0v2"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.8"
+            />
+          </svg>
+          <span>{user ? "Account" : "Sign in"}</span>
+        </Link>
+        <Link
+          className="settings-link"
+          href="/settings"
+          aria-label="Settings"
+          title="Settings"
+          aria-current={pathname === "/settings" ? "page" : undefined}
+        >
+          <UiIcon name="settings" />
+        </Link>
+      </div>
     </header>
   );
 }

@@ -391,10 +391,10 @@ export function LandingPage() {
           </div>
           <div>
             {questions.map(([question, answer]) => (
-              <article key={question}>
-                <h3>{question}</h3>
+              <details key={question}>
+                <summary>{question}</summary>
                 <p>{answer}</p>
-              </article>
+              </details>
             ))}
           </div>
         </section>

@@ -54,12 +54,10 @@ const RECOVERY_STEP_SECONDS = 5;
 const MIN_RECOVERY_SECONDS = 10;
 const MAX_CONSOLIDATE_RECOVERY_INCREASE_SECONDS = 10;
 
-const phaseWorkMultiplier: Record<ProgressionPhase, number> = {
-  foundation: 1,
-  build: 1.075,
-  peak: 1.15,
-  consolidate: 0.9,
-};
+// Weekly targets stay relative to baseline; consolidation deliberately eases load.
+const weeklyWorkMultipliers = [
+  1, 1.025, 1.05, 1.075, 1.1, 1.125, 1.15, 0.9, 0.925,
+];
 
 export function getProgressionPhase(week: number): ProgressionPhase {
   if (week >= 1 && week <= 2) return "foundation";
@@ -541,7 +539,7 @@ export function getProgressionPrescription({
   );
   const baselineWorkSeconds = calculateEffectiveWorkSeconds(baseline);
   const desiredWorkSeconds = Math.round(
-    baselineWorkSeconds * phaseWorkMultiplier[phase],
+    baselineWorkSeconds * weeklyWorkMultipliers[week - 1],
   );
   const toleranceSeconds = getSessionDurationToleranceSeconds(
     targetDurationSeconds,
@@ -550,7 +548,7 @@ export function getProgressionPrescription({
   const maximumDurationSeconds = targetDurationSeconds + toleranceSeconds;
   let workout = cloneWorkout(baseline);
 
-  if (phase === "build" || phase === "peak") {
+  if (week > 1 && phase !== "consolidate") {
     workout = increaseWork(
       workout,
       desiredWorkSeconds,

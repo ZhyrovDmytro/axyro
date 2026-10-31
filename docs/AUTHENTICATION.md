@@ -8,7 +8,16 @@ Enable email confirmation, production SMTP and provider rate limiting. Supabase 
 
 Profiles contain only display metadata and a separately protected role. Users may edit only display name, avatar and timestamps; role and owner ID are not writable by authenticated clients. Create production admins explicitly using a trusted SQL operation on `profiles.role`, never user metadata. Existing Supabase identities receive profiles during migration.
 
+The hardcoded owner testing exception is `dmytrozhyrov@gmail.com` (case-insensitive, exact address; no aliases). After Supabase verifies the session and reports a confirmed email, the server promotes that account's existing profile to `admin` using the server-only Supabase secret/service-role key. This grants full Pro access in production and satisfies database plan-write guards without a subscription. Unconfirmed emails and signup metadata never trigger the grant. Already-admin profiles are not rewritten. This is a persistent role assignment: removing the exception later also requires explicitly resetting the profile role if access should be revoked.
+
 In development/test only, signing in with `admin` / `admin` issues a server-HMAC session for eight hours. The key is random per server process, so restart invalidates it. Neither login nor verification accepts this shortcut when NODE_ENV=production; there is no production development-secret override. This identity does not create a database user and its data remains device-local. Production deployment must run a production Next build, not the development server.
+
+Local development supports both `http://localhost:3000` and
+`http://127.0.0.1:3000`. When Next normalizes a loopback request URL, mutation
+checks accept the browser's actual loopback Host only with the same protocol
+and port in development/test. Production still requires an exact origin match.
+The development admin receives full Pro application access without Supabase or
+Stripe setup; cloud account operations and real purchases require real accounts.
 
 Account deletion requires the literal DELETE confirmation, a verified session and same-origin POST. The server cancels billing first, then deletes the Supabase identity with its server-only service key. Cascading foreign keys remove profile, training data and subscription rows. If billing cancellation fails, deletion fails rather than leaving an orphaned subscription. Logout invalidates the provider session and clears application session cookies.
 

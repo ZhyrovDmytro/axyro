@@ -1,11 +1,10 @@
 "use client";
 
-import { getPlanProgress } from "@/domain/training-plan/plan-progress";
-
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { UiIcon } from "@/components/ui-icon";
+import { ActivityStatus } from "@/components/activity/activity-status";
 import { exercises } from "@/content/exercises";
 import {
   addDays,
@@ -15,6 +14,8 @@ import {
 } from "@/domain/training-plan/date";
 import {
   describePlanRebalance,
+  getPlanGamesKey,
+  isPlanRebalanceNeeded,
   rebalancePlanAroundGames,
 } from "@/domain/training-plan/generate-training-plan";
 import {
@@ -26,7 +27,6 @@ import {
   getProgressionPhase,
   progressionPhases,
   TRAINING_PLAN_DURATION_DAYS,
-  TRAINING_PLAN_WEEK_COUNT,
 } from "@/domain/training-plan/progression";
 import type {
   PlannedWorkout,
@@ -236,13 +236,25 @@ function ProgressionSummary({ session }: { session: PlannedWorkout }) {
   );
 }
 
+type DashboardView = "week" | "workspace";
+
 export function TrainingPlanDashboard({
-  view = "overview",
+  view = "workspace",
 }: {
-  view?: "overview" | "workspace";
+  view?: DashboardView;
 }) {
-  const { plan, ready, setPlan, updatePlan, needsCatalogRefresh } =
-    useTrainingPlan();
+  const state = useTrainingPlan();
+  return <TrainingPlanDashboardContent {...state} view={view} />;
+}
+
+export function TrainingPlanDashboardContent({
+  view = "workspace",
+  plan,
+  ready,
+  setPlan,
+  updatePlan,
+  needsCatalogRefresh,
+}: ReturnType<typeof useTrainingPlan> & { view?: DashboardView }) {
   const { preferredIntensity, ready: preferencesReady } = useUserPreferences();
   const [selectedDate, setSelectedDate] = useState("");
   const [visibleSessionCount, setVisibleSessionCount] = useState(6);
@@ -339,6 +351,9 @@ export function TrainingPlanDashboard({
       left.scheduledDate.localeCompare(right.scheduledDate),
     );
   const selectedGame = plan.games.find((game) => game.date === selectedDate);
+  const upcomingGames = plan.games
+    .filter((game) => game.date >= today)
+    .sort((left, right) => left.date.localeCompare(right.date));
   const gamePendingDeletion = plan.games.find(
     (game) => game.id === gamePendingDeletionId,
   );
@@ -440,114 +455,34 @@ export function TrainingPlanDashboard({
     </div>
   );
 
-  if (view === "overview") {
-    const nextSession = todaySession ?? upcoming[0];
+  if (view === "week") {
     const todayDate = fromDateKey(today);
-    const mondayOffset = (todayDate.getDay() + 6) % 7;
-    const weekStart = addDays(today, -mondayOffset);
+    const weekStart = addDays(today, -((todayDate.getDay() + 6) % 7));
     const weekDates = Array.from({ length: 7 }, (_, index) =>
       addDays(weekStart, index),
     );
-    const { completedCount, extraCount } = getPlanProgress(
-      plan,
-      activityHistory,
-    );
-    const totalCount = plan.sessions.length;
-    const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
-
     return (
-      <main className="page-shell page-shell--inner plan-overview">
-        <header className="plan-overview__header">
-          <div>
-            <h1>What’s next?</h1>
-          </div>
-          <Link className="text-link" href="/plan/refine">
-            Adjust my plan
-          </Link>
-        </header>
-
-        <div className="daily-plan-note">
-          <div>
-            <strong>
-              {plan.profile.sessionDurationMinutes} minutes, made for your day.
-            </strong>
-            <p>
-              10 is our daily default. Choose 5 or 20 whenever your schedule
-              changes.
-            </p>
-          </div>
-          <Link className="text-link" href="/plan/refine">
-            Change session length <UiIcon name="arrow-right" />
-          </Link>
-        </div>
-        <section
-          className="plan-next-session"
-          aria-labelledby="next-session-heading"
-        >
-          <div>
-            <p className="kicker">
-              {todaySession
-                ? "Today’s workout"
-                : nextSession
-                  ? `Next · ${formatPlanDate(nextSession.scheduledDate, { weekday: "long", month: "short", day: "numeric" })}`
-                  : "Training block"}
-            </p>
-            <h2 id="next-session-heading">
-              {nextSession
-                ? getWorkoutTrainingTitle(nextSession.workout)
-                : "You’re all caught up."}
-            </h2>
-            <p>
-              {nextSession
-                ? `${sessionMinutes(nextSession)} min · ${flattenSessionSections(nextSession.sections).length} exercises · ${nextSession.workout.difficulty}`
-                : "There are no scheduled sessions left in this block."}
-            </p>
-          </div>
-          <div className="button-row">
-            {nextSession && (
-              <Link
-                className="button button--primary"
-                href={
-                  todaySession
-                    ? getPlannedWorkoutStartHref(
-                        nextSession.id,
-                        preferredIntensity,
-                        preferencesReady,
-                      )
-                    : `/plan/workouts/${nextSession.id}/edit`
-                }
-              >
-                {todaySession ? "Start workout" : "Review next workout"}
-                <UiIcon name="arrow-right" />
-              </Link>
-            )}
-            <Link className="button button--secondary" href="/workouts">
-              Choose a quick workout
-            </Link>
-          </div>
-        </section>
-
+      <>
         <section className="plan-week" aria-labelledby="this-week-heading">
           <div className="section-heading section-heading--compact">
             <div>
               <p className="kicker">Your rhythm</p>
               <h2 id="this-week-heading">This week</h2>
             </div>
-            {plan.games.length > 0 && (
-              <button
-                className="button button--small rebalance-button"
-                onClick={rebalancePlan}
-                type="button"
-              >
-                <span aria-hidden="true" className="rebalance-button__icon">
-                  <UiIcon name="sparkle" />
-                </span>
-                <span>
-                  <strong>Rebalance plan</strong>
-                  <small>Around your games</small>
-                </span>
-              </button>
-            )}
+            <button
+              disabled={!isPlanRebalanceNeeded(plan)}
+              className="button button--small rebalance-button"
+              onClick={rebalancePlan}
+              type="button"
+            >
+              <span aria-hidden="true" className="rebalance-button__icon">
+                <UiIcon name="sparkle" />
+              </span>
+              <span>
+                <strong>Rebalance plan</strong>
+                <small>Around your games</small>
+              </span>
+            </button>
           </div>
           {rebalanceResult && (
             <p role="status" className="calendar-help">
@@ -568,6 +503,7 @@ export function TrainingPlanDashboard({
               return (
                 <li
                   className={`${session ? "has-session" : ""}${game ? " has-game" : ""}${isToday ? " is-today" : ""}`}
+                  data-status={session?.status}
                   key={date}
                 >
                   <span>
@@ -576,21 +512,30 @@ export function TrainingPlanDashboard({
                   </span>
                   <div className="plan-week__summary">
                     <strong>
-                      {session
-                        ? getWorkoutTrainingTitle(session.workout)
-                        : game
-                          ? game.label
-                          : "Recovery"}
+                      {session ? (
+                        <Link
+                          className="text-link"
+                          href={`/plan/workouts/${session.id}/edit`}
+                        >
+                          {getWorkoutTrainingTitle(session.workout)}
+                          <UiIcon name="arrow-right" />
+                        </Link>
+                      ) : game ? (
+                        game.label
+                      ) : (
+                        "Recovery"
+                      )}
                     </strong>
                     <small>
                       {session
-                        ? `${sessionMinutes(session)} min${session.status !== "scheduled" ? ` · ${session.status === "in-progress" ? "In progress" : session.status === "completed" ? "Done" : session.status === "missed" ? "Missed" : session.status === "incomplete" ? "Incomplete" : "Cancelled"}` : ""}`
+                        ? `${sessionMinutes(session)} min`
                         : game
                           ? "Match day"
                           : isToday
                             ? "Today"
                             : "No workout"}
                     </small>
+                    {session && <ActivityStatus status={session.status} />}
                     {game && session && (
                       <>
                         <small>{game.label} · Match day</small>
@@ -601,47 +546,23 @@ export function TrainingPlanDashboard({
                     )}
                   </div>
                   <div className="plan-week__match">
-                    {session?.status === "scheduled" && (
-                      <details className="plan-week__move">
-                        <summary>Move training</summary>
-                        <form
-                          onSubmit={(event) => {
-                            event.preventDefault();
-                            const date = String(
-                              new FormData(event.currentTarget).get("date"),
-                            );
-                            if (moveSession(session, date)) {
-                              event.currentTarget
-                                .closest("details")
-                                ?.removeAttribute("open");
-                            }
-                          }}
+                    {session &&
+                      (session.status === "scheduled" ||
+                        session.status === "in-progress") && (
+                        <Link
+                          className="text-link"
+                          href={getPlannedWorkoutStartHref(
+                            session.id,
+                            preferredIntensity,
+                            preferencesReady,
+                          )}
                         >
-                          <label>
-                            New training date
-                            <input
-                              className="plan-input"
-                              type="date"
-                              name="date"
-                              defaultValue={
-                                session.scheduledDate < today
-                                  ? today
-                                  : session.scheduledDate
-                              }
-                              min={today}
-                              max={plan.endDate}
-                              required
-                            />
-                          </label>
-                          <button
-                            className="button button--primary button--small"
-                            type="submit"
-                          >
-                            Save date
-                          </button>
-                        </form>
-                      </details>
-                    )}
+                          {session.status === "in-progress"
+                            ? "Resume workout"
+                            : "Start workout"}
+                        </Link>
+                      )}
+                    {session && renderMoveTraining(session)}
                     <button
                       aria-label={`${game ? "Edit" : "Add"} match on ${formatPlanDate(date)}`}
                       className="button button--secondary button--small"
@@ -663,59 +584,13 @@ export function TrainingPlanDashboard({
           </ol>
         </section>
 
-        <section className="plan-progress" aria-labelledby="progress-heading">
-          <div>
-            <p className="kicker">60-day progress</p>
-            <h2 id="progress-heading">
-              {completedCount} of {totalCount} planned sessions complete
-            </h2>
-            {extraCount > 0 && (
-              <p>
-                +{extraCount} extra {extraCount === 1 ? "session" : "sessions"}{" "}
-                completed
-              </p>
-            )}
-            <div
-              aria-label={`${Math.round(progress)}% complete`}
-              aria-valuemax={100}
-              aria-valuemin={0}
-              aria-valuenow={Math.round(progress)}
-              className="plan-progress__track"
-              role="progressbar"
-            >
-              <span style={{ width: `${progress}%` }} />
-            </div>
-            <p>
-              Week{" "}
-              {Math.min(
-                TRAINING_PLAN_WEEK_COUNT,
-                Math.max(1, currentWeekNumber ?? 1),
-              )}{" "}
-              of {TRAINING_PLAN_WEEK_COUNT} · {upcoming.length} sessions ahead
-            </p>
-          </div>
-          <Link className="text-link" href="/activity">
-            View activity <UiIcon name="arrow-right" />
-          </Link>
-        </section>
-
         {gameDialog}
-
-        <nav className="plan-workspace-links" aria-label="Plan workspace">
-          <Link className="button button--primary" href="/plan/calendar">
-            View full calendar <UiIcon name="arrow-right" />
-          </Link>
-          {plan.profile.sport === "padel" && (
-            <Link className="button button--secondary" href="/plan/refine">
-              Refine my plan
-            </Link>
-          )}
-        </nav>
-      </main>
+      </>
     );
   }
 
   function rebalancePlan() {
+    if (!plan || !isPlanRebalanceNeeded(plan)) return;
     updatePlan((current) => {
       const next = rebalancePlanAroundGames(current);
       setRebalanceResult(describePlanRebalance(current, next));
@@ -726,9 +601,12 @@ export function TrainingPlanDashboard({
   function addGame(event: FormEvent) {
     event.preventDefault();
     if (!selectedDate || !plan) return;
+    setRebalanceResult("");
     const importance = selectedGame?.importance ?? "normal";
     updatePlan((current) => ({
       ...current,
+      rebalancedGamesKey:
+        current.rebalancedGamesKey ?? getPlanGamesKey(current),
       profile: {
         ...current.profile,
         matches: [
@@ -772,11 +650,18 @@ export function TrainingPlanDashboard({
   }
 
   function moveSession(session: PlannedWorkout, date: string) {
-    if (!plan || date < today || date > plan.endDate) return false;
+    if (
+      !plan ||
+      date < today ||
+      date > plan.endDate ||
+      (session.status !== "scheduled" && session.status !== "missed")
+    )
+      return false;
     const conflict = plan?.sessions.some(
       (candidate) =>
         candidate.id !== session.id &&
-        candidate.status === "scheduled" &&
+        candidate.status !== "skipped" &&
+        candidate.status !== "cancelled" &&
         candidate.scheduledDate === date,
     );
     if (conflict) {
@@ -800,7 +685,51 @@ export function TrainingPlanDashboard({
     return true;
   }
 
+  function renderMoveTraining(session: PlannedWorkout) {
+    if (
+      !plan ||
+      (session.status !== "scheduled" && session.status !== "missed")
+    )
+      return null;
+    return (
+      <details key={session.id} className="plan-week__move">
+        <summary>Move training</summary>
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            const date = String(new FormData(event.currentTarget).get("date"));
+            if (moveSession(session, date)) {
+              event.currentTarget.closest("details")?.removeAttribute("open");
+            }
+          }}
+        >
+          <label>
+            New training date
+            <input
+              className="plan-input"
+              type="date"
+              name="date"
+              defaultValue={
+                session.scheduledDate < today ? today : session.scheduledDate
+              }
+              min={today}
+              max={plan.endDate}
+              required
+            />
+          </label>
+          <button
+            className="button button--primary button--small"
+            type="submit"
+          >
+            Save date
+          </button>
+        </form>
+      </details>
+    );
+  }
+
   function removeGame(gameId: string) {
+    setRebalanceResult("");
     updatePlan((current) => {
       const removed = current.games.find((game) => game.id === gameId);
       return {
@@ -825,7 +754,12 @@ export function TrainingPlanDashboard({
       <section className="plan-hero">
         <div>
           <p className="kicker">Plan workspace</p>
-          <h1>Your full plan.</h1>
+          <div className="plan-hero__title-row">
+            <h1>Your full plan.</h1>
+            <Link className="text-link" href="/plan/refine">
+              Refine my plan
+            </Link>
+          </div>
           <p className="lede">
             {plan.profile.sessionsPerWeek} training days a week ·{" "}
             {plan.profile.sessionDurationMinutes}-minute target ·{" "}
@@ -839,9 +773,6 @@ export function TrainingPlanDashboard({
             {" · "}
             {upcoming.length} sessions ahead
           </p>
-          <Link className="text-link" href="/plan">
-            <UiIcon name="arrow-left" /> Back to plan overview
-          </Link>
         </div>
       </section>
 
@@ -886,90 +817,16 @@ export function TrainingPlanDashboard({
 
       {missed.length > 0 && (
         <section
-          className="missed-workout-card"
+          className="missed-workout-notice"
           aria-labelledby="missed-heading"
         >
-          <p className="kicker">Plan continuity</p>
           <h2 id="missed-heading">
-            {missed.length === 1
-              ? "You missed a workout"
-              : `You have ${missed.length} missed workouts`}
+            {missed.length} missed{" "}
+            {missed.length === 1 ? "workout" : "workouts"}
           </h2>
-          {missed.length === 1 ? (
-            (() => {
-              const activity = missed[0];
-              const session = plan.sessions.find(
-                (item) => item.id === activity.sessionId,
-              );
-              if (!session)
-                return <p>Review Activity to decide what to do next.</p>;
-              return (
-                <>
-                  <p>
-                    {getWorkoutTrainingTitle(session.workout)} ·{" "}
-                    {sessionMinutes(session)} min
-                  </p>
-                  <div className="button-row">
-                    <button
-                      className="button button--primary"
-                      onClick={() => moveSession(session, today)}
-                      type="button"
-                    >
-                      Do it today
-                    </button>
-                    <details>
-                      <summary className="button button--secondary">
-                        Reschedule
-                      </summary>
-                      <form
-                        onSubmit={(event) => {
-                          event.preventDefault();
-                          const date = String(
-                            new FormData(event.currentTarget).get("date"),
-                          );
-                          moveSession(session, date);
-                        }}
-                      >
-                        <label>
-                          New date
-                          <input
-                            className="plan-input"
-                            min={today}
-                            name="date"
-                            required
-                            type="date"
-                          />
-                        </label>
-                        <button
-                          className="button button--primary button--small"
-                          type="submit"
-                        >
-                          Move workout
-                        </button>
-                      </form>
-                    </details>
-                    <button
-                      className="text-button"
-                      onClick={() => skipSession(session)}
-                      type="button"
-                    >
-                      Skip it
-                    </button>
-                  </div>
-                </>
-              );
-            })()
-          ) : (
-            <p>
-              Review the dates below or open Activity. Nothing has been added to
-              a future workout automatically.
-            </p>
-          )}
-          {missed.length > 1 && (
-            <Link className="button button--secondary" href="/activity">
-              Review plan
-            </Link>
-          )}
+          <Link className="text-link" href="/activity">
+            Review activity <UiIcon name="arrow-right" />
+          </Link>
         </section>
       )}
 
@@ -1068,21 +925,20 @@ export function TrainingPlanDashboard({
               <p className="kicker">Plan at a glance</p>
               <h2 id="calendar-heading">Next 60 days</h2>
             </div>
-            {plan.games.length > 0 && (
-              <button
-                className="button button--small rebalance-button"
-                onClick={rebalancePlan}
-                type="button"
-              >
-                <span aria-hidden="true" className="rebalance-button__icon">
-                  <UiIcon name="sparkle" />
-                </span>
-                <span>
-                  <strong>Rebalance plan</strong>
-                  <small>Around your games</small>
-                </span>
-              </button>
-            )}
+            <button
+              disabled={!isPlanRebalanceNeeded(plan)}
+              className="button button--small rebalance-button"
+              onClick={rebalancePlan}
+              type="button"
+            >
+              <span aria-hidden="true" className="rebalance-button__icon">
+                <UiIcon name="sparkle" />
+              </span>
+              <span>
+                <strong>Rebalance plan</strong>
+                <small>Around your games</small>
+              </span>
+            </button>
           </div>
           {rebalanceResult && (
             <p role="status" className="calendar-help">
@@ -1119,7 +975,7 @@ export function TrainingPlanDashboard({
                   aria-label={`${isToday ? "Today, " : ""}${formatPlanDate(date)}${session ? `, ${trainingStatus?.label}, training: ${getWorkoutTrainingTitle(session.workout)}` : ""}${game ? `, ${game.label}` : ""}`}
                   aria-selected={isSelected}
                   className={`calendar-day${!inPlan ? " calendar-day--outside" : ""}${session ? " calendar-day--training" : ""}${game ? " calendar-day--game" : ""}${trainingStatus ? ` calendar-day--${trainingStatus.tone}` : ""}${isSelected ? " calendar-day--selected" : ""}${isToday ? " calendar-day--today" : ""}`}
-                  disabled={!inPlan || date < today}
+                  disabled={!inPlan || (date < today && !session && !game)}
                   key={date}
                   onClick={() => {
                     setSelectedDate(date);
@@ -1244,16 +1100,19 @@ export function TrainingPlanDashboard({
                         Start today’s workout
                       </Link>
                     )}
-                  <button
-                    className="cancel-calendar-training"
-                    onClick={() => {
-                      removeSession(selectedSession);
-                      setSelectedDate("");
-                    }}
-                    type="button"
-                  >
-                    Cancel training
-                  </button>
+                  {renderMoveTraining(selectedSession)}
+                  {selectedSession.status === "scheduled" && (
+                    <button
+                      className="cancel-calendar-training"
+                      onClick={() => {
+                        removeSession(selectedSession);
+                        setSelectedDate("");
+                      }}
+                      type="button"
+                    >
+                      Cancel training
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -1380,14 +1239,14 @@ export function TrainingPlanDashboard({
         <aside className="plan-context" aria-labelledby="matches-heading">
           <p className="kicker">Court calendar</p>
           <h2 id="matches-heading">Upcoming games</h2>
-          {plan.games.length === 0 ? (
+          {upcomingGames.length === 0 ? (
             <p>
-              No games added yet. Select a calendar date to protect recovery
+              No upcoming games. Select a calendar date to protect recovery
               around a match.
             </p>
           ) : (
             <ul className="game-list">
-              {plan.games.map((game) => (
+              {upcomingGames.map((game) => (
                 <li key={game.id}>
                   <span>
                     <strong>{game.label}</strong>

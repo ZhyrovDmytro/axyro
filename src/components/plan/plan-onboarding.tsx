@@ -14,6 +14,7 @@ import { Paywall } from "@/components/membership/paywall";
 import { UiIcon } from "@/components/ui-icon";
 import {
   athleteProfileSchema,
+  athleteProfileDraftSchema,
   maxPadelPrioritiesPerStep,
   trainingGoalValues,
   weekdayValues,
@@ -34,6 +35,7 @@ import type {
 import { toDateKey } from "@/domain/training-plan/date";
 import { useTrainingPlan } from "@/hooks/use-training-plan";
 import { createBrowserAdaptationProfileRepository } from "@/services/persistence/local-adaptation-profile-repository";
+import { clearPlanDraft } from "@/services/persistence/user-storage";
 
 const initialPadelSteps = [
   "sport",
@@ -191,11 +193,12 @@ export function PlanOnboarding({
   const { hasPro, loading: membershipLoading } = useEntitlement();
   const [showPaywall, setShowPaywall] = useState(false);
   const continued = useRef(false);
+  const restoredReview = useRef(false);
+  const generationRequest = useRef<AbortController | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const stepHeadingRef = useRef<HTMLHeadingElement>(null);
   const draftKey = `veyro.plan-draft.${user?.id ?? "guest"}`;
   const { plan, profile: savedProfile, ready, setPlan } = useTrainingPlan();
-  const [step, setStep] = useState(0);
   const [profileOverride, setProfileOverride] = useState<AthleteProfile | null>(
     () => {
       if (typeof window === "undefined") return null;
@@ -206,7 +209,7 @@ export function PlanOnboarding({
           user && query.get("resume") === "1"
             ? window.sessionStorage.getItem("veyro.plan-draft.guest")
             : null;
-        const parsed = athleteProfileSchema.safeParse(
+        const parsed = athleteProfileDraftSchema.safeParse(
           JSON.parse(own ?? guest ?? "null"),
         );
         if (guest && parsed.success) {
@@ -220,6 +223,7 @@ export function PlanOnboarding({
     },
   );
   const [error, setError] = useState("");
+  const [editingReview, setEditingReview] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [matchDate, setMatchDate] = useState("");
   const [matchImportance, setMatchImportance] =
@@ -240,7 +244,29 @@ export function PlanOnboarding({
       : profile.sport === "padel"
         ? initialPadelSteps
         : initialGeneralSteps;
+  const stepKey = `${draftKey}.${mode}.step`;
+  const [step, setStep] = useState(() => {
+    if (!profileOverride) return 0;
+    try {
+      const stored = window.sessionStorage.getItem(stepKey);
+      const index = steps.findIndex((item) => item === stored);
+      return index < 0 ? 0 : index;
+    } catch {
+      return 0;
+    }
+  });
   const currentStep = steps[step];
+  const serializedProfile = JSON.stringify(profile);
+  useEffect(() => {
+    if (!ready) return;
+    try {
+      window.sessionStorage.setItem(draftKey, serializedProfile);
+      window.sessionStorage.setItem(stepKey, currentStep);
+    } catch {
+      // Setup remains usable when the browser blocks session storage.
+    }
+  }, [currentStep, draftKey, ready, serializedProfile, stepKey]);
+  useEffect(() => () => generationRequest.current?.abort(), []);
   useEffect(() => {
     if (ready && !showPaywall) {
       stepHeadingRef.current?.focus({ preventScroll: true });
@@ -248,11 +274,12 @@ export function PlanOnboarding({
     }
   }, [currentStep, ready, showPaywall]);
   useEffect(() => {
-    if (membershipLoading || !profileOverride) return;
+    if (membershipLoading || !profileOverride || restoredReview.current) return;
     const query = new URLSearchParams(window.location.search);
     if (query.get("resume") !== "1" && query.get("checkout") !== "success")
       return;
     const timer = window.setTimeout(() => {
+      restoredReview.current = true;
       setStep(steps.length - 1);
       if (!hasPro) setShowPaywall(true);
     }, 0);
@@ -291,6 +318,32 @@ export function PlanOnboarding({
       ...update,
     }));
     setError("");
+  }
+
+  function editAnswer(target: StepId, label: string) {
+    const index = steps.indexOf(target);
+    if (index < 0) return null;
+    return (
+      <button
+        className="text-button"
+        type="button"
+        aria-label={`Edit ${label}`}
+        onClick={() => {
+          cancelGeneration();
+          setError("");
+          setEditingReview(true);
+          setStep(index);
+        }}
+      >
+        Edit
+      </button>
+    );
+  }
+
+  function cancelGeneration() {
+    generationRequest.current?.abort();
+    generationRequest.current = null;
+    setIsGenerating(false);
   }
 
   function toggleGoal(goal: AthleteProfile["goals"][number]) {
@@ -379,6 +432,7 @@ export function PlanOnboarding({
 
   async function goForward(event: FormEvent) {
     event.preventDefault();
+    if (isGenerating) return;
     if (currentStep === "goals" && profile.goals.length === 0) {
       setError("Choose at least one priority.");
       return;
@@ -392,7 +446,8 @@ export function PlanOnboarding({
     }
     if (step < steps.length - 1) {
       setError("");
-      setStep((current) => current + 1);
+      setStep((current) => (editingReview ? steps.length - 1 : current + 1));
+      setEditingReview(false);
       return;
     }
 
@@ -414,9 +469,12 @@ export function PlanOnboarding({
     const adaptationProfile = createBrowserAdaptationProfileRepository().load();
     setIsGenerating(true);
     setError("");
+    const controller = new AbortController();
+    generationRequest.current = controller;
     let nextPlan: TrainingPlan;
     try {
       const response = await fetch("/api/training-plan", {
+        signal: controller.signal,
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -425,6 +483,14 @@ export function PlanOnboarding({
           adaptationProfile,
         }),
       });
+      if (response.status === 422) {
+        if (controller.signal.aborted) return;
+        setError(
+          "No plan fits these answers yet. Try a shorter session or review your available equipment. Keep your current discomfort selections accurate. Your answers are saved so you can return later.",
+        );
+        setIsGenerating(false);
+        return;
+      }
       if (!response.ok) throw new Error("Planner request failed.");
       const payload: unknown = await response.json();
       const parsed = trainingPlanSchema.safeParse(
@@ -433,20 +499,18 @@ export function PlanOnboarding({
           : null,
       );
       if (!parsed.success) throw new Error("Planner response was invalid.");
+      if (controller.signal.aborted) return;
       nextPlan = parsed.data;
     } catch {
+      if (controller.signal.aborted) return;
       setError(
         "Your plan could not be created. Check your connection and membership, then try again. Your answers are still here.",
       );
       setIsGenerating(false);
       return;
     }
-    try {
-      window.sessionStorage.removeItem(draftKey);
-    } catch {
-      /* Storage may be unavailable. */
-    }
     setPlan(nextPlan);
+    clearPlanDraft(user?.id ?? null);
     try {
       router.push("/plan");
     } finally {
@@ -505,7 +569,9 @@ export function PlanOnboarding({
           className="back-link back-link--button"
           disabled={step === 0}
           onClick={() => {
+            cancelGeneration();
             setError("");
+            setEditingReview(false);
             setStep((current) => Math.max(0, current - 1));
           }}
           type="button"
@@ -517,7 +583,10 @@ export function PlanOnboarding({
         </span>
         <button
           className="text-button"
-          onClick={() => router.push("/plan")}
+          onClick={() => {
+            cancelGeneration();
+            router.push("/plan");
+          }}
           type="button"
         >
           Exit
@@ -888,40 +957,46 @@ export function PlanOnboarding({
               competition. Importance controls how much recovery space the plan
               protects.
             </p>
-            <label className="field-label" htmlFor="match-date">
-              Match date
-            </label>
-            <input
-              className="plan-input"
-              id="match-date"
-              onChange={(event) => setMatchDate(event.target.value)}
-              type="date"
-              value={matchDate}
-            />
-            <label className="field-label" htmlFor="match-importance">
-              Importance
-            </label>
-            <select
-              className="plan-input"
-              id="match-importance"
-              onChange={(event) =>
-                setMatchImportance(
-                  event.target
-                    .value as AthleteProfile["matches"][number]["importance"],
-                )
-              }
-              value={matchImportance}
-            >
-              <option value="normal">Normal</option>
-              <option value="important">Important</option>
-            </select>
-            <button
-              className="button button--secondary"
-              onClick={addMatch}
-              type="button"
-            >
-              Add match
-            </button>
+            <div className="match-entry">
+              <div className="match-entry__field">
+                <label className="field-label" htmlFor="match-date">
+                  Match date
+                </label>
+                <input
+                  className="plan-input"
+                  id="match-date"
+                  onChange={(event) => setMatchDate(event.target.value)}
+                  type="date"
+                  value={matchDate}
+                />
+              </div>
+              <div className="match-entry__field">
+                <label className="field-label" htmlFor="match-importance">
+                  Importance
+                </label>
+                <select
+                  className="plan-input"
+                  id="match-importance"
+                  onChange={(event) =>
+                    setMatchImportance(
+                      event.target
+                        .value as AthleteProfile["matches"][number]["importance"],
+                    )
+                  }
+                  value={matchImportance}
+                >
+                  <option value="normal">Normal</option>
+                  <option value="important">Important</option>
+                </select>
+              </div>
+              <button
+                className="button button--secondary"
+                onClick={addMatch}
+                type="button"
+              >
+                Add match
+              </button>
+            </div>
             {profile.matches.length > 0 && (
               <dl className="review-list">
                 {profile.matches.map((match) => (
@@ -995,13 +1070,15 @@ export function PlanOnboarding({
                 </dd>
               </div>
               <div>
-                <dt>Priorities</dt>
+                <dt>Priorities {editAnswer("goals", "priorities")}</dt>
                 <dd>
                   {profile.goals.map((goal) => goalLabels[goal]).join(", ")}
                 </dd>
               </div>
               <div>
-                <dt>Physical focus</dt>
+                <dt>
+                  Physical focus {editAnswer("weak-areas", "physical focus")}
+                </dt>
                 <dd>
                   {profile.developmentAreas.length > 0
                     ? profile.developmentAreas
@@ -1032,25 +1109,24 @@ export function PlanOnboarding({
                   </dd>
                 </div>
               )}
-              {profile.sport === "padel" && (
-                <div>
-                  <dt>Current safety exclusions</dt>
-                  <dd>
-                    {profile.painAreas.length > 0
-                      ? profile.painAreas
-                          .map(
-                            (area) =>
-                              painOptions.find(
-                                (option) => option.value === area,
-                              )?.label,
-                          )
-                          .join(", ")
-                      : "None reported"}
-                  </dd>
-                </div>
-              )}
               <div>
-                <dt>Weekly rhythm</dt>
+                <dt>
+                  Current safety exclusions {editAnswer("pain", "comfort")}
+                </dt>
+                <dd>
+                  {profile.painAreas.length > 0
+                    ? profile.painAreas
+                        .map(
+                          (area) =>
+                            painOptions.find((option) => option.value === area)
+                              ?.label,
+                        )
+                        .join(", ")
+                    : "None reported"}
+                </dd>
+              </div>
+              <div>
+                <dt>Weekly rhythm {editAnswer("schedule", "schedule")}</dt>
                 <dd>
                   {profile.preferredDays
                     .map((day) => dayLabels[day])
@@ -1059,10 +1135,18 @@ export function PlanOnboarding({
                 </dd>
               </div>
               <div>
-                <dt>Equipment</dt>
+                <dt>Equipment {editAnswer("equipment", "equipment")}</dt>
                 <dd>
-                  {profile.equipment.length} setup
-                  {profile.equipment.length === 1 ? "" : "s"} available
+                  {profile.equipment
+                    .map(
+                      (item) =>
+                        ({
+                          bodyweight: "Bodyweight",
+                          "one-dumbbell": "One dumbbell",
+                          "two-dumbbells": "Two dumbbells",
+                        })[item],
+                    )
+                    .join(", ")}
                 </dd>
               </div>
               {profile.sport === "padel" && (
@@ -1114,7 +1198,9 @@ export function PlanOnboarding({
                 : plan
                   ? "Rebuild my 60-day plan"
                   : "Create My Plan"
-              : "Continue"}
+              : editingReview
+                ? "Save answer"
+                : "Continue"}
         </button>
       </form>
     </main>

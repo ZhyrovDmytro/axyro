@@ -1,3 +1,4 @@
+import { formatTrainingTitle } from "@/domain/workout/training-title";
 import { describe, expect, it } from "vitest";
 
 import { generateTrainingPlan } from "@/domain/training-plan/generate-training-plan";
@@ -103,18 +104,25 @@ describe("LocalTrainingPlanRepository", () => {
     expect(new LocalTrainingPlanRepository(storage).load()).toBeNull();
   });
 
-  it.each(["single-leg-balance-reach", "split-stance-brake", "standing-recovery-breath"])("preserves a saved plan containing %s and flags it for an explicit rebuild", (exerciseId) => {
-    const storage = memoryStorage();
-    const plan = generateTrainingPlan(profile, new Date(2026, 8, 28, 12));
-    plan.sessions[0].sections[1].items[0].exerciseId = exerciseId;
-    storage.setItem(trainingPlanStorageKey, JSON.stringify(plan));
+  it.each([
+    "single-leg-balance-reach",
+    "split-stance-brake",
+    "standing-recovery-breath",
+  ])(
+    "preserves a saved plan containing %s and flags it for an explicit rebuild",
+    (exerciseId) => {
+      const storage = memoryStorage();
+      const plan = generateTrainingPlan(profile, new Date(2026, 8, 28, 12));
+      plan.sessions[0].sections[1].items[0].exerciseId = exerciseId;
+      storage.setItem(trainingPlanStorageKey, JSON.stringify(plan));
 
-    expect(new LocalTrainingPlanRepository(storage).load()).toBeNull();
-    expect(storage.getItem(trainingPlanStorageKey)).not.toBeNull();
-    const repository = new LocalTrainingPlanRepository(storage);
-    repository.load();
-    expect(repository.hasOutdatedPlan).toBe(true);
-  });
+      expect(new LocalTrainingPlanRepository(storage).load()).toBeNull();
+      expect(storage.getItem(trainingPlanStorageKey)).not.toBeNull();
+      const repository = new LocalTrainingPlanRepository(storage);
+      repository.load();
+      expect(repository.hasOutdatedPlan).toBe(true);
+    },
+  );
 
   it("refuses to save a plan that references an unknown exercise", () => {
     const repository = new LocalTrainingPlanRepository(memoryStorage());
@@ -270,4 +278,31 @@ describe("LocalTrainingPlanRepository", () => {
       if (restored) new LocalTrainingPlanRepository(storage).save(restored);
     }).not.toThrow();
   });
+});
+
+it("updates generic upcoming titles without changing exercises, custom names or completed sessions", () => {
+  const storage = memoryStorage();
+  const plan = generateTrainingPlan(
+    { ...profile, padelLimitations: ["slow-net-approach", "late-split-step"] },
+    new Date(2026, 9, 26, 12),
+  );
+  const expectedTitle = plan.sessions[0].workout.name;
+  plan.generation.plannerVersion = "hybrid-planner.v11";
+  plan.sessions[0].workout.name = formatTrainingTitle(
+    plan.sessions[0].workout.focus,
+  );
+  plan.sessions[1].workout.name = "My custom workout";
+  plan.sessions[2].status = "completed";
+  plan.sessions[2].workout.name = "Strength & Stability";
+  storage.setItem(trainingPlanStorageKey, JSON.stringify(plan));
+  const repository = new LocalTrainingPlanRepository(storage);
+  const restored = repository.load()!;
+  expect(restored.sessions[0].workout.name).toBe(expectedTitle);
+  expect(restored.sessions[0].workout.items).toEqual(
+    plan.sessions[0].workout.items,
+  );
+  expect(restored.sessions[0].sections).toEqual(plan.sessions[0].sections);
+  expect(restored.sessions[1].workout.name).toBe("My custom workout");
+  expect(restored.sessions[2]).toEqual(plan.sessions[2]);
+  expect(repository.load()).toEqual(restored);
 });

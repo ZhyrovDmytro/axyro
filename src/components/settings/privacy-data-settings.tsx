@@ -8,6 +8,17 @@ import { useCallback, useRef, useState } from "react";
 import { intensityLevels, intensityPresets } from "@/domain/workout/intensity";
 import { useUserPreferences } from "@/hooks/use-user-preferences";
 import { useDialogFocusTrap } from "@/hooks/use-dialog-focus-trap";
+import { useTrainingPlan } from "@/hooks/use-training-plan";
+import { DurationOptions } from "@/components/workout/duration-options";
+import { changePlanSessionDuration } from "@/domain/training-plan/generate-training-plan";
+import { toDateKey } from "@/domain/training-plan/date";
+import {
+  parseDailyDuration,
+  type DailyDuration,
+} from "@/domain/workout/daily-duration";
+import { createBrowserTrainingProfileRepository } from "@/services/persistence/local-training-profile-repository";
+import { createBrowserWorkoutActivityRepository } from "@/services/persistence/local-workout-activity-repository";
+import { createBrowserAdaptationProfileRepository } from "@/services/persistence/local-adaptation-profile-repository";
 import { createBrowserUserDataService } from "@/services/persistence/user-data-service";
 
 type Confirmation = "reset" | "delete" | null;
@@ -15,6 +26,11 @@ type Confirmation = "reset" | "delete" | null;
 export function PrivacyDataSettings() {
   const { user } = useAuth();
   const router = useRouter();
+  const { plan, profile, ready: planReady, setPlan } = useTrainingPlan();
+  const [savedDuration, setSavedDuration] = useState<DailyDuration | null>(
+    null,
+  );
+  const [durationMessage, setDurationMessage] = useState("");
   const [confirmation, setConfirmation] = useState<Confirmation>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const confirmationDialogRef = useRef<HTMLElement>(null);
@@ -36,8 +52,39 @@ export function PrivacyDataSettings() {
     setPreferredIntensity,
   } = useUserPreferences();
 
+  function changeDuration(minutes: DailyDuration) {
+    if (!profile) return;
+    try {
+      if (plan) {
+        setPlan(
+          changePlanSessionDuration(
+            plan,
+            minutes,
+            toDateKey(new Date()),
+            createBrowserWorkoutActivityRepository().getRecentFeedbackForAdaptation(),
+            createBrowserAdaptationProfileRepository().load(),
+          ),
+        );
+      } else {
+        createBrowserTrainingProfileRepository().save({
+          ...profile,
+          sessionDurationMinutes: minutes,
+        });
+      }
+      setSavedDuration(minutes);
+      setDurationMessage(
+        "Session length saved. Upcoming scheduled workouts use this target.",
+      );
+      setActionError(null);
+    } catch {
+      setActionError(
+        "Your session length could not be changed safely. Your current plan is unchanged. Try another duration.",
+      );
+    }
+  }
+
   function finish(action: "reset" | "delete") {
-    const service = createBrowserUserDataService();
+    const service = createBrowserUserDataService(user?.id ?? null);
     const succeeded =
       action === "reset" ? service.resetTrainingPlan() : service.deleteAll();
     if (!succeeded) {
@@ -58,7 +105,6 @@ export function PrivacyDataSettings() {
   return (
     <main className="page-shell page-shell--inner settings-page">
       <header className="page-intro">
-        <p className="kicker">Settings</p>
         <h1>Make each workout yours.</h1>
         <p>
           Set your usual guidance and effort.{" "}
@@ -157,6 +203,33 @@ export function PrivacyDataSettings() {
           ))}
         </div>
         <p>{intensityPresets[preferredIntensity].description}</p>
+        <fieldset
+          className="setting-fieldset"
+          disabled={!planReady || !profile}
+        >
+          <legend className="sr-only">Default session length</legend>
+          <DurationOptions
+            legend="Default session length"
+            value={
+              savedDuration ??
+              parseDailyDuration(profile?.sessionDurationMinutes)
+            }
+            onChange={changeDuration}
+          />
+        </fieldset>
+        {!profile && planReady && (
+          <p>
+            <Link className="text-link" href="/plan/setup">
+              Set up your plan
+            </Link>{" "}
+            to choose its default session length.
+          </p>
+        )}
+        <p>
+          Changing the length rebuilds upcoming scheduled workouts. Past and
+          in-progress workouts keep their original length.
+        </p>
+        {durationMessage && <p role="status">{durationMessage}</p>}
       </section>
 
       <section className="context-card">

@@ -135,7 +135,7 @@ test("Free workout to Pro checkout continues directly into personal plan and sig
     .getByRole("button", { name: "Unlock My Plan", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "What’s next?", exact: true }),
+    page.getByRole("heading", { name: "Your full plan.", exact: true }),
   ).toBeVisible({ timeout: 30000 });
   expect(state.generations()).toBe(1);
   await page.goto("/account");

@@ -3,6 +3,9 @@ import { describe, expect, it } from "vitest";
 import { addDays } from "./date";
 import {
   assembleMainWorkout,
+  changePlanSessionDuration,
+  getPlanGamesKey,
+  isPlanRebalanceNeeded,
   describePlanRebalance,
   generateSessionPrescription,
   generateTrainingPlan,
@@ -34,6 +37,40 @@ const profile: AthleteProfile = {
 };
 
 describe("generateTrainingPlan", () => {
+  it("requires a match schedule change before rebalancing and remembers when it was applied", () => {
+    const plan = generateTrainingPlan(profile, new Date(2026, 9, 1, 12));
+    expect(isPlanRebalanceNeeded(plan)).toBe(false);
+    const changed = {
+      ...plan,
+      rebalancedGamesKey: getPlanGamesKey(plan),
+      games: [{ id: "new-match", date: "2026-10-10", label: "Match", importance: "normal" as const }],
+    };
+    expect(isPlanRebalanceNeeded(changed)).toBe(true);
+    const rebalanced = rebalancePlanAroundGames(changed);
+    expect(isPlanRebalanceNeeded(rebalanced)).toBe(false);
+    expect(isPlanRebalanceNeeded({ ...rebalanced, games: [{ ...rebalanced.games[0], label: "Renamed match" }] })).toBe(false);
+    expect(isPlanRebalanceNeeded({ ...changed, games: plan.games })).toBe(false);
+  });
+
+  it.each([5, 10, 20] as const)("changes upcoming session targets to %s minutes without changing history", (minutes) => {
+    const plan = generateTrainingPlan(profile, new Date(2026, 9, 1, 12));
+    plan.sessions[1].status = "completed";
+    plan.sessions[2].status = "in-progress";
+    const today = plan.sessions[1].scheduledDate;
+    const next = changePlanSessionDuration(plan, minutes, today);
+    expect(next.profile.sessionDurationMinutes).toBe(minutes);
+    expect(plan.profile.sessionDurationMinutes).toBe(20);
+    expect(next.sessions[0]).toBe(plan.sessions[0]);
+    expect(next.sessions[1]).toBe(plan.sessions[1]);
+    expect(next.sessions[2]).toBe(plan.sessions[2]);
+    for (const session of next.sessions.slice(3)) {
+      expect(session.targetDurationSeconds).toBe(minutes * 60);
+      expect(Math.abs(session.durationDeltaSeconds)).toBeLessThanOrEqual(
+        getSessionDurationToleranceSeconds(minutes * 60),
+      );
+    }
+  });
+
   it("turns normalized questionnaire matches into actionable plan events", () => {
     const plan = generateTrainingPlan(
       {
@@ -101,7 +138,7 @@ describe("generateTrainingPlan", () => {
       plan.sessions
         .filter((session) => session.weekNumber === 1)
         .map((session) => session.workout.name),
-    ).toEqual(["Rotation & Stability", "Strength & Endurance"]);
+    ).toEqual(["Stronger bandeja and víbora rotation", "Steadier racket control"]);
     expect(
       plan.sessions
         .filter((session) => session.weekNumber === 1)
@@ -256,7 +293,8 @@ describe("generateTrainingPlan", () => {
         expect(session.estimatedDurationSeconds).toBeGreaterThan(0);
         expect(session.targetDurationSeconds).toBe(targetMinutes * 60);
         expect(session.workout.items.length).toBeGreaterThanOrEqual(2);
-        expect(session.workout.items.length).toBeGreaterThanOrEqual(4);
+        // Focused sessions can have fewer distinct movements than full-body sessions.
+        expect(session.workout.items.length).toBeLessThanOrEqual(6);
         expect(
           Math.max(...session.workout.items.map((item) => item.sets)),
         ).toBeLessThanOrEqual(3);
@@ -414,7 +452,7 @@ describe("generateTrainingPlan", () => {
     ).toBe(true);
   });
 
-  it("builds a stable 60-day arc without random exercise changes", () => {
+  it("builds a deterministic 60-day arc with weekly exercise variety", () => {
     const first = generateTrainingPlan(profile, new Date(2026, 8, 28, 12));
     const second = generateTrainingPlan(profile, new Date(2026, 8, 28, 12));
 
@@ -462,7 +500,17 @@ describe("generateTrainingPlan", () => {
             session.workout.items.map((item) => item.exerciseId).join(","),
           ),
         ).size,
-      ).toBe(1);
+      ).toBeGreaterThan(1);
+      expect(
+        new Set(
+          matchingSlot.map((session) =>
+            session.workout.items
+              .map((item) => item.exerciseId)
+              .sort()
+              .join(","),
+          ),
+        ).size,
+      ).toBeGreaterThan(1);
     }
   });
 
@@ -692,5 +740,25 @@ it("consolidates duplicate saved main exercises without exceeding authored set b
   ).toBeLessThanOrEqual(item.maxSets ?? 20);
   expect(Math.abs(next.durationDeltaSeconds)).toBeLessThanOrEqual(
     getSessionDurationToleranceSeconds(next.targetDurationSeconds),
+  );
+});
+
+it("gives a three-session week two dedicated padel titles and a general foundation title", () => {
+  const plan = generateTrainingPlan(
+    {
+      ...profile,
+      padelLimitations: ["slow-net-approach", "late-split-step"],
+      developmentAreas: [],
+    },
+    new Date(2026, 9, 26, 12),
+  );
+  const firstWeek = plan.sessions.filter((session) => session.weekNumber === 1);
+  expect(firstWeek[0].workout.name).toBe("Quicker net approaches");
+  expect(firstWeek[1].workout.name).toBe("Better split-step preparation");
+  expect(firstWeek[2].workout.name).toMatch(
+    /Strength|Power|Stability|Endurance|Rotation|Mobility|Core control/,
+  );
+  expect(new Set(firstWeek.map((session) => session.workout.name)).size).toBe(
+    3,
   );
 });

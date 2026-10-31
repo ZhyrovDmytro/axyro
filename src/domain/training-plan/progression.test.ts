@@ -40,6 +40,20 @@ describe("60-day progression policy", () => {
     ]);
   });
 
+  it("advances timing within foundation and build weeks", () => {
+    for (const [previous, next] of [
+      [1, 2],
+      [3, 4],
+      [4, 5],
+    ]) {
+      expect(
+        calculateEffectiveWorkSeconds(prescription(next).workout),
+      ).toBeGreaterThan(
+        calculateEffectiveWorkSeconds(prescription(previous).workout),
+      );
+    }
+  });
+
   it("keeps foundation at baseline and progresses stimulus conservatively", () => {
     const foundation = prescription(1);
     const build = prescription(3);

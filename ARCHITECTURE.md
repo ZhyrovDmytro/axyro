@@ -445,19 +445,28 @@ same pure policy.
 
 `getProgressionPrescription` is a pure policy layered on the generated baseline
 session. Calendar offsets map to explicit phases: foundation, build, peak and
-consolidate. A session's slot within its week reuses the same generated exercise
-selection in every week, preserving movement practice while its prescription
-changes.
+consolidate. Week one establishes each slot's template (including model-selected
+workouts). Later weeks reassemble that slot from the eligible catalog using the
+same questionnaire focus, a preference for template movements, a penalty for
+movements used in the previous occurrence, and deterministic weekly ordering.
+Focus coverage, equipment, discomfort exclusions, difficulty and reserved support
+movements still constrain selection. Source workout IDs retain slot identity;
+the actual items and content-derived titles can differ. Small eligible pools may
+require repeated movements; variety never overrides safety, session focus or duration fitting.
+Focused-session selection, support roles, research rationale and saved-plan behavior
+are documented in [SESSION_FOCUS.md](docs/SESSION_FOCUS.md).
 
-Build targets roughly 7.5% more effective timed work using eligible
-strength/stability intervals. Peak targets roughly 15% more and may add one
-bounded round before modestly reducing eligible recovery to remain near the
-duration target. Consolidate targets roughly 10% less work than baseline—about
-15–25% below peak—by removing bounded rounds or work, then adding a small amount
-of recovery where the duration budget permits. Mobility/activation movements
-and explosive intervals are not lengthened or density-progressed. Every change
-is validated against item bounds and the existing one- or two-minute duration
-tolerance.
+Weekly effective-work targets relative to each variant's fitted baseline are
+100%, 102.5%, 105%, 107.5%, 110%, 112.5%, 115%, 90%, and 92.5%.
+These are bounded targets, not guaranteed increases in total work between
+different exercise lineups. Peak may add one bounded round and reduce eligible
+recovery. Consolidation deliberately eases load, then adds a small amount of
+recovery where the duration budget permits. Mobility/activation movements and
+explosive intervals are not lengthened or density-progressed. Every change is
+validated against item bounds and the existing session-duration tolerance.
+
+This policy applies when creating or refining a plan. Loading a saved plan does
+not silently replace prescriptions, edits, adaptations, or completion history.
 
 The policy does not read page views or roll missed volume forward. A skipped
 session therefore cannot enlarge a later prescription. The authoritative
@@ -682,3 +691,7 @@ stored plan contains a retired or reference-only movement. Loading does not
 delete it. Historical activity snapshots retain their stored names and timing.
 Goal-coverage validation only requires priorities achievable with available,
 pain-compatible content; actual pain/equipment violations still fail validation.
+
+### Home and Plan schedule views
+
+`TrainingPlanDashboardContent` renders the controlled weekly schedule inside Home using Home’s existing training-plan state. The route wrapper loads the same state for the full calendar at `/plan` and `/plan/calendar`. This keeps weekly match, rescheduling, and rebalance actions consistent without mounting a second plan repository hook on Home. `rebalancedGamesKey` persists the applied date/importance schedule; match edits retain the baseline and rebalancing records the current key. Activity history materialization runs in an effect so storage notifications do not update React subscribers during rendering.

@@ -13,6 +13,20 @@ export function safeNext(value: string | null, fallback = "/"): string {
 }
 export function assertSameOrigin(request: Request): void {
   const origin = request.headers.get("origin");
-  if (!origin || origin !== new URL(request.url).origin)
-    throw new Error("Origin not allowed");
+  const target = new URL(request.url);
+  if (origin === target.origin) return;
+  if (origin && developmentAdminEnabled()) {
+    const source = new URL(origin);
+    const loopback = ["localhost", "127.0.0.1"];
+    // Next dev can normalize the URL hostname; require the actual Host to match.
+    if (
+      loopback.includes(target.hostname) &&
+      loopback.includes(source.hostname) &&
+      source.protocol === target.protocol &&
+      source.port === target.port &&
+      source.host === request.headers.get("host")
+    )
+      return;
+  }
+  throw new Error("Origin not allowed");
 }

@@ -19,6 +19,7 @@ let syncTimer: ReturnType<typeof setTimeout> | undefined;
 let syncEnabled = false;
 let revision = 0;
 let pendingSync: (() => void) | undefined;
+let syncFailure: "failed" | "conflict" | null = null;
 
 function browserStorage(): Storage | null {
   try {
@@ -40,6 +41,7 @@ export function clearUserStorageIdentity() {
   syncEnabled = false;
   clearTimeout(syncTimer);
   pendingSync = undefined;
+  syncFailure = null;
   notify();
 }
 function snapshot(storage: Storage, userId: string): UserDataSnapshot {
@@ -67,15 +69,23 @@ function scheduleSync(storage: Storage, userId: string, version: number) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ userId, data, revision }),
           });
-          if (response.status === 409 && generation === version)
+          if (response.status === 409 && generation === version) {
             syncEnabled = false;
+            syncFailure = "conflict";
+          }
           if (!response.ok) throw new Error("Cloud save failed");
           const saved = (await response.json()) as { revision: number };
-          if (generation === version) revision = saved.revision;
+          if (generation === version) {
+            revision = saved.revision;
+            syncFailure = null;
+            window.dispatchEvent(new Event("axyro:sync-success"));
+          }
         } catch {
           // Keep the isolated local copy; a subsequent write retries synchronization.
-          if (generation === version)
+          if (generation === version) {
+            syncFailure ??= "failed";
             window.dispatchEvent(new Event("axyro:sync-error"));
+          }
         }
       });
   };
@@ -86,6 +96,19 @@ export async function flushUserStorage() {
   clearTimeout(syncTimer);
   pendingSync?.();
   await syncQueue;
+}
+
+export async function retryUserStorageSync(): Promise<
+  "saved" | "failed" | "conflict"
+> {
+  const storage = browserStorage();
+  const version = generation;
+  if (!storage || !identity) return "failed";
+  if (syncFailure === "conflict") return "conflict";
+  if (!syncEnabled) return "failed";
+  scheduleSync(storage, identity, version);
+  await flushUserStorage();
+  return generation === version ? (syncFailure ?? "saved") : "failed";
 }
 
 /** Factories capture their owner, so stale callbacks cannot write to a new account. */
@@ -159,5 +182,18 @@ export function removeUserStorage(userId: string) {
   const storage = browserStorage();
   for (const key of userDataKeys)
     storage?.removeItem(scopedStorageKey(userId, key));
+  clearPlanDraft(userId);
   clearUserStorageIdentity();
+}
+
+export function clearPlanDraft(userId: string | null): boolean {
+  try {
+    const key = `veyro.plan-draft.${userId ?? "guest"}`;
+    for (const suffix of ["", ".initial.step", ".refine.step"]) {
+      window.sessionStorage.removeItem(key + suffix);
+    }
+    return true;
+  } catch {
+    return false;
+  }
 }

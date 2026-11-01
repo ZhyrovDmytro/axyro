@@ -56,3 +56,34 @@ provider endpoints, redirect sanitization, confirmation messages and deletion
 confirmation requirements are unchanged. Browser coverage in
 `tests/e2e/forms.spec.ts` checks 320px, 390px and 1440px layouts, accessibility,
 password visibility, signup validation, recovery feedback and service fallback.
+
+Login and registration now use distinct transparent character illustrations:
+login shows a thumbs-up greeting and registration an open-hand welcome. Both
+follow the supplied character reference with Axyro orange accents. Recovery and
+password replacement retain the existing welcome illustration. Generation prompts
+and asset provenance are recorded in [Account image prompts](AUTH_IMAGE_PROMPTS.md).
+
+Password-change feedback (2026-11-01): account security shows an Updating password
+action with an indeterminate spinner, locks the fields during the request and
+announces success beside the form. Failures and password mismatches are displayed
+there too; failed requests preserve the fields for retry. A successful change
+clears the fields. Password replacement after recovery remains on an explicit
+Password updated screen with a Continue to account action, avoiding a session
+refresh that would unmount the confirmation. Reduced motion stops the spinner.
+
+Supabase's hosted Password changed security notification is enabled for the Axyro
+project and was verified on after reload. The existing provider template is
+retained. Supabase triggers it after a successful password change, including
+recovery; the application does not send a separate message or include password
+values in email. This is a hosted setting, independent of repository deployment.
+Live inbox delivery after a real change remains unverified. See
+[Supabase email templates](https://supabase.com/docs/guides/auth/auth-email-templates).
+
+Google OAuth is configured in production as of 2026-11-01: the dedicated Google
+Cloud project is `axyro-513421`, its External audience is published and Supabase
+Google is enabled. Only basic identity scopes are declared. A signed-out
+production Google login and a subsequent account reload succeeded with the
+existing profile and Admin access preserved. Google currently labels consent with
+the Supabase project domain; custom brand verification and new Google-only signup
+are not verified. Localhost callbacks were not added. See
+[Google configuration and verification](SUPABASE_SETUP.md#google-oauth--2026-11-01).

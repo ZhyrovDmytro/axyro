@@ -4,6 +4,17 @@ Axyro uses Stripe Checkout and Customer Portal with one `pro` entitlement. Price
 
 Required server environment: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_MONTHLY_PRICE_ID` and/or `STRIPE_YEARLY_PRICE_ID`, `APP_URL` (canonical deployment origin), plus the Supabase server configuration in the authentication setup. Keep secrets out of `NEXT_PUBLIC_*` variables. Apply all SQL migrations in filename order. Enable subscription management/cancellation in Stripe's Customer Portal.
 
+Approved regional membership prices are EUR 6.99/month or EUR 59.99/year and
+USD 7.99/month or USD 69.99/year. The original monthly/yearly environment
+variables hold EUR prices; optional `STRIPE_USD_MONTHLY_PRICE_ID` and
+`STRIPE_USD_YEARLY_PRICE_ID` add USD prices to the same product and Pro
+entitlement. Prices come from Stripe rather than client-side exchange-rate
+conversion. The paywall defaults to USD when configured, otherwise the available
+currency; customers can choose their currency and retain their billing period.
+Only that currency's plans are shown. Existing single-currency configurations
+continue to work without showing a currency picker. These are sandbox prices
+until live setup is verified; tax treatment remains a launch prerequisite.
+
 Configure Stripe's signed webhook endpoint at `/api/billing/webhook` for `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, and `invoice.payment_failed`. The REST API is pinned to `2025-06-30.basil`; subscription expiry comes from subscription items. Webhook delivery must use the endpoint signing secret, not the API secret.
 
 `GET /api/billing/products` supplies provider amounts in minor currency units and recurring intervals. `POST /api/billing/checkout` accepts a configured `priceId` and a same-application allowlisted `returnTo` (`/onboarding`, `/plan`, `/account`, `/workouts`, `/exercises`, `/activity`). A success redirect never grants access. The UI must call restore and wait for trusted status before continuing plan generation. `POST /api/billing/restore` fetches current provider state for the authenticated user's saved customer. `POST /api/billing/portal` creates a provider management session. Identity comes from the verified server session, never request payloads.

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 
 const alice = {
   id: "a0000000-0000-4000-8000-000000000000",
@@ -143,4 +144,181 @@ test("payment recovery offers management instead of another subscription", async
   await expect(page.getByLabel("New password", { exact: true })).toBeHidden();
   await page.getByText("Change password", { exact: true }).click();
   await expect(page.getByLabel("New password", { exact: true })).toBeVisible();
+});
+
+test("password change shows progress and confirms success beside the form", async ({
+  page,
+}) => {
+  await mockAccount(page, () => alice);
+  let finish!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    finish = resolve;
+  });
+  let requests = 0;
+  await page.route("**/api/auth/password", async (route) => {
+    requests++;
+    expect(route.request().postDataJSON()).toEqual({
+      currentPassword: "old-password",
+      password: "new-long-password",
+      confirmPassword: "new-long-password",
+    });
+    await pending;
+    await route.fulfill({ json: { ok: true } });
+  });
+  await page.goto("/account");
+  await page.getByText("Change password", { exact: true }).click();
+  await page
+    .getByLabel("Current password", { exact: true })
+    .fill("old-password");
+  await page
+    .getByLabel("New password", { exact: true })
+    .fill("new-long-password");
+  await page
+    .getByLabel("Confirm new password", { exact: true })
+    .fill("new-long-password");
+  await page
+    .getByRole("button", { name: "Update password", exact: true })
+    .click();
+  try {
+    await expect(
+      page.getByRole("button", { name: "Updating password…", exact: true }),
+    ).toBeDisabled();
+    await expect(
+      page.getByLabel("New password", { exact: true }),
+    ).toBeDisabled();
+    await page.screenshot({
+      path: test.info().outputPath("password-saving.png"),
+      fullPage: true,
+      scale: "css",
+    });
+    await expect(page.locator(".account-security form")).toHaveAttribute(
+      "aria-busy",
+      "true",
+    );
+  } finally {
+    finish();
+  }
+  await expect(
+    page.locator(".account-security").getByRole("status"),
+  ).toContainText("Your password has been updated.");
+  await expect(
+    page.getByLabel("Current password", { exact: true }),
+  ).toHaveValue("");
+  await expect(page.getByLabel("New password", { exact: true })).toHaveValue(
+    "",
+  );
+  expect(requests).toBe(1);
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 1000 });
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+    await page.screenshot({
+      path: test.info().outputPath(`password-updated-${width}.png`),
+      fullPage: true,
+      scale: "css",
+    });
+  }
+});
+
+test("password errors stay beside the form and preserve values for retry", async ({
+  page,
+}) => {
+  await mockAccount(page, () => alice);
+  await page.route("**/api/auth/password", (route) =>
+    route.fulfill({
+      status: 400,
+      json: { error: "Check your current password and try again." },
+    }),
+  );
+  await page.goto("/account");
+  await page.getByText("Change password", { exact: true }).click();
+  await page
+    .getByLabel("Current password", { exact: true })
+    .fill("old-password");
+  await page
+    .getByLabel("New password", { exact: true })
+    .fill("new-long-password");
+  await page
+    .getByLabel("Confirm new password", { exact: true })
+    .fill("different-password");
+  await page
+    .getByRole("button", { name: "Update password", exact: true })
+    .click();
+  await expect(page.locator(".account-security").getByRole("alert")).toHaveText(
+    "Passwords must match.",
+  );
+  await page
+    .getByLabel("Confirm new password", { exact: true })
+    .fill("new-long-password");
+  await page
+    .getByRole("button", { name: "Update password", exact: true })
+    .click();
+  await expect(page.locator(".account-security").getByRole("alert")).toHaveText(
+    "Check your current password and try again.",
+  );
+  await expect(page.getByLabel("New password", { exact: true })).toHaveValue(
+    "new-long-password",
+  );
+  await expect(
+    page.getByRole("button", { name: "Update password", exact: true }),
+  ).toBeEnabled();
+  await page.route("**/api/auth/password", (route) =>
+    route.fulfill({ json: { ok: true } }),
+  );
+  await page
+    .getByRole("button", { name: "Update password", exact: true })
+    .click();
+  await expect(
+    page.locator(".account-security").getByRole("status"),
+  ).toContainText("Your password has been updated.");
+  await expect(
+    page.locator(".account-security").getByRole("alert"),
+  ).toHaveCount(0);
+});
+
+test("recovery password replacement shows progress and an explicit completion screen", async ({
+  page,
+}) => {
+  await mockAccount(page, () => alice);
+  let finish!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    finish = resolve;
+  });
+  await page.route("**/api/auth/password", async (route) => {
+    await pending;
+    await route.fulfill({ json: { ok: true } });
+  });
+  await page.goto("/reset-password");
+  await page.getByLabel("Password", { exact: true }).fill("new-long-password");
+  await page
+    .getByLabel("Confirm password", { exact: true })
+    .fill("new-long-password");
+  await page
+    .getByRole("button", { name: "Update password", exact: true })
+    .click();
+  try {
+    await expect(
+      page.getByRole("button", { name: "Updating password…", exact: true }),
+    ).toBeDisabled();
+    await expect(page.getByLabel("Password", { exact: true })).toBeDisabled();
+  } finally {
+    finish();
+  }
+  await expect(
+    page.getByRole("heading", { name: "Password updated", exact: true }),
+  ).toBeVisible();
+  await expect(page.locator(".auth-panel").getByRole("status")).toContainText(
+    "Your password has been updated.",
+  );
+  await expect(page.getByLabel("Password", { exact: true })).toHaveCount(0);
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 1000 });
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+    await page.screenshot({
+      path: test.info().outputPath(`reset-completed-${width}.png`),
+      fullPage: true,
+      scale: "css",
+    });
+  }
+  await page.getByRole("link", { name: "Continue to account" }).click();
+  await expect(page).toHaveURL(/\/account$/);
 });

@@ -211,3 +211,25 @@ checkboxes, radio choices, ranges, validation and training behavior are retained
 Password fields have individually controlled Show/Hide actions inside the field;
 password requirements are connected to the field for assistive technology.
 The account-deletion action retains its warning and literal DELETE confirmation.
+
+## Pro paywall — 1 November 2026
+
+The paywall uses a compact benefits column beside membership choices at desktop
+widths (56rem and above), with a stacked layout on phones. Context-specific
+headings and existing benefit claims are preserved. Checkmarks use the shared
+icon set. The membership area carries the Axyro Pro identity, explicit prices and
+billing periods, and the existing currency selector. Selected plans keep a dark
+surface with an orange outline; orange fill marks the primary next action.
+
+Membership loading is announced before account continuation becomes available.
+When subscriptions are unavailable, the free workout is primary and free account
+creation is secondary. Renewal terms, sign-in, restore and management links remain
+available. Checkout, entitlement rules and currency selection behavior are retained.
+
+See `docs/paywall-design-review-2026-11-01.md` for findings and verification.
+
+An optional Promo code field sits below the membership choices using the shared
+input styling. It is an editable UI placeholder with an explicit coming-soon
+explanation: entered codes do not change pricing, get submitted, or persist.
+Validation, redemption and checkout integration are deferred until promotions
+are implemented.

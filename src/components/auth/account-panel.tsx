@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { authRequest, useAuth } from "./auth-provider";
 import { PasswordField } from "./password-field";
+import { UiIcon } from "@/components/ui-icon";
 import { useEntitlement } from "@/components/membership/entitlement-provider";
 import { removeUserStorage } from "@/services/persistence/user-storage";
 
@@ -12,19 +13,21 @@ export function AccountPanel() {
   const { user, refresh, signOut } = useAuth();
   const { hasPro, subscription, loading } = useEntitlement();
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [passwordNotice, setPasswordNotice] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [pending, setPending] = useState<"account" | "password" | null>(null);
+  const busy = pending !== null;
   const [deleting, setDeleting] = useState(false);
   async function action(task: () => Promise<void>) {
-    setBusy(true);
+    if (busy) return;
+    setPending("account");
     setError("");
-    setNotice("");
     try {
       await task();
     } catch (error) {
       setError(error instanceof Error ? error.message : "Please try again.");
     } finally {
-      setBusy(false);
+      setPending(null);
     }
   }
   if (!user)
@@ -65,22 +68,34 @@ export function AccountPanel() {
   }
   async function changePassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (busy) return;
     const form = event.currentTarget;
     const data = new FormData(form);
+    setPasswordNotice("");
+    setPasswordError("");
+    setError("");
     if (data.get("password") !== data.get("confirmPassword")) {
-      setError("Passwords must match.");
+      setPasswordError("Passwords must match.");
       return;
     }
-    await action(async () => {
+    setPending("password");
+    try {
       await authRequest("password", {
         currentPassword: data.get("currentPassword"),
         password: data.get("password"),
         confirmPassword: data.get("confirmPassword"),
       });
       form.reset();
-      setNotice("Your password has been updated.");
-    });
+      setPasswordNotice("Your password has been updated.");
+    } catch (error) {
+      setPasswordError(
+        error instanceof Error ? error.message : "Please try again.",
+      );
+    } finally {
+      setPending(null);
+    }
   }
+
   async function manage() {
     await action(async () => {
       const response = await fetch("/api/billing/portal", { method: "POST" });
@@ -121,7 +136,6 @@ export function AccountPanel() {
             {error}
           </p>
         )}
-        {notice && <p role="status">{notice}</p>}
         {user.isDevelopmentAdmin && (
           <p className="safety-note">
             Development administrator. This account is unavailable in
@@ -201,27 +215,60 @@ export function AccountPanel() {
             <details className="account-security">
               <summary>Change password</summary>
               <p>Use 10–128 characters for your new password.</p>
-              <form className="account-form" onSubmit={changePassword}>
-                <PasswordField
-                  label="Current password"
-                  name="currentPassword"
-                  autoComplete="current-password"
-                />
-                <PasswordField
-                  label="New password"
-                  name="password"
-                  autoComplete="new-password"
-                  minLength={10}
-                />
-                <PasswordField
-                  label="Confirm new password"
-                  name="confirmPassword"
-                  autoComplete="new-password"
-                  minLength={10}
-                />
-                <button className="button button--primary" disabled={busy}>
-                  Update password
-                </button>
+              <form
+                className="account-form"
+                onSubmit={changePassword}
+                onChange={() => setPasswordNotice("")}
+                aria-busy={pending === "password"}
+                aria-describedby={
+                  passwordError ? "password-change-error" : undefined
+                }
+              >
+                <fieldset className="account-form__fields" disabled={busy}>
+                  <legend className="sr-only">Change your password</legend>
+                  <PasswordField
+                    label="Current password"
+                    name="currentPassword"
+                    autoComplete="current-password"
+                  />
+                  <PasswordField
+                    label="New password"
+                    name="password"
+                    autoComplete="new-password"
+                    minLength={10}
+                  />
+                  <PasswordField
+                    label="Confirm new password"
+                    name="confirmPassword"
+                    autoComplete="new-password"
+                    minLength={10}
+                  />
+                  <button className="button button--primary" disabled={busy}>
+                    {pending === "password" && (
+                      <span className="button-spinner" aria-hidden="true" />
+                    )}
+                    {pending === "password"
+                      ? "Updating password…"
+                      : "Update password"}
+                  </button>
+                </fieldset>
+                {passwordError && (
+                  <p
+                    id="password-change-error"
+                    className="form-error"
+                    role="alert"
+                  >
+                    {passwordError}
+                  </p>
+                )}
+                {(pending === "password" || passwordNotice) && (
+                  <p className="password-feedback" role="status">
+                    {passwordNotice && <UiIcon name="check" />}
+                    {pending === "password"
+                      ? "Updating your password…"
+                      : passwordNotice}
+                  </p>
+                )}
               </form>
             </details>
           ) : (

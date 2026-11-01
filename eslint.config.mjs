@@ -6,6 +6,8 @@ export default defineConfig([
   ...nextVitals,
   ...nextTypeScript,
   globalIgnores([
+    ".agents/**",
+    ".claude/**",
     ".next/**", ".next-e2e/**", ".next-build/**",
     "coverage/**",
     "playwright-report/**",

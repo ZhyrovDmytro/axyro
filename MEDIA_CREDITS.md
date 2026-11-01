@@ -204,3 +204,12 @@ support executable floor exercises with optional light dumbbells: Single-Arm
 Prone Shoulder Arc, Prone Overhead Shoulder Press, and Prone Shoulder
 Internal/External Rotation. This supersedes their earlier reference-only
 classification. Source video filenames and stable IDs are unchanged.
+
+## Confirmation email welcome guide (2026-11-01)
+
+`public/images/email/welcome-guide-v1.jpg` was generated with the built-in
+OpenAI image generation tool from the operator-supplied fictional athlete
+reference, adapting the wristbands to Axyro orange. The reference collage is
+not redistributed. Generation does not establish rights to the supplied
+reference; the existing media-rights launch review remains open. Prompt and
+email deployment details: [EMAIL_CONFIRMATION.md](docs/EMAIL_CONFIRMATION.md).

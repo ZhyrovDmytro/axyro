@@ -1,6 +1,6 @@
 # Paid public launch tracker
 
-Last updated: 2026-10-24 (Europe/Prague).
+Last updated: 2026-11-01 (Europe/Prague).
 
 This is the shared checklist for launching Axyro as a paid public web app.
 Current verdict: **not ready to accept public payments**. Core membership code
@@ -94,8 +94,15 @@ No owners or target dates have been assigned yet.
     A full timed workout completion, real devices, provider flows and rollback
     remain unverified. One MutationObserver console exception was observed;
     source was not attributed (no corresponding app source reference found).
-  - L03 remains partial: separate staging/production environments, custom domain
-    decision, provider runtime secrets and remaining deployed checks are pending.
+  - 2026-11-01: owner purchased `axyro.app` through Cloudflare. Added it as the
+    Netlify primary domain with `www` redirect; saved both DNS-only CNAME records.
+    Netlify confirms Let's Encrypt HTTPS for both hostnames. Saved canonical
+    `APP_URL=https://axyro.app` and redeployed `ab1875e` successfully as
+    `6ae73419c9b447d39154fc25`. Browser verified HTTPS homepage and free-workout
+    navigation/start/pause and the `www` redirect. See
+    [domain details](NETLIFY_DEPLOYMENT.md).
+  - L03 remains partial: separate staging/production environments, remaining
+    provider runtime secrets and deployed checks are pending.
 
 - [ ] **L04 — Production database and backups** · Partial
   - Baseline: four SQL migrations exist in `supabase/migrations`; hosted setup
@@ -119,6 +126,27 @@ No owners or target dates have been assigned yet.
     backup/restore work remain pending. See [Supabase setup](SUPABASE_SETUP.md).
 
 - [ ] **L05 — Production authentication and email** · Partial
+  - 2026-11-01: saved Auth Site URL `https://axyro.app` and added the exact
+    `/auth/callback` redirect, preserving the previous Netlify callback. Operator
+    signed into Resend; added `auth.axyro.app` in Ireland and its three required
+    DNS records in Cloudflare. Resend confirms the domain is verified and ready
+    to send. Operator approved a domain-limited sending key and Supabase storage.
+    Enabled SMTP with the approved replacement key; verified enabled settings and
+    stored password after reload. Revoked the unused first key with explicit
+    approval; one domain-limited sending key remains. The operator subsequently
+    confirmed real email delivery, confirmation and sign-in with a disposable
+    test address. Recovery and remaining L05 flows are still open.
+    See [email setup](SUPABASE_SETUP.md).
+  - 2026-11-01 follow-up: clarified signup feedback so it does not promise a new
+    email for an existing account, and added immediate sign-in/reset links.
+    Preserved the same public API response for new and existing accounts to
+    prevent account discovery. Verified 412 unit tests, seven account/subscription
+    browser tests, TypeScript, zero-warning lint and webpack production build.
+  - 2026-10-31: operator confirmed no domain is owned yet and requested a free
+    email-provider recommendation. Recommended Resend's free tier (3,000 emails
+    per month, 100 per day), using its documented Supabase SMTP integration.
+    Provider selection is not yet confirmed; a verified sending domain is required.
+    No email account, domain purchase, SMTP configuration or messages were created.
   - 2026-10-24: saved and verified the deployed Site URL and exact auth callback.
     Email signup/confirmation are enabled, anonymous sign-in is disabled;
     custom SMTP and Google OAuth remain disabled. Added tested modern Supabase
@@ -227,11 +255,27 @@ No owners or target dates have been assigned yet.
     sitemap/robots rules; measure deployed mobile performance and optimize media
     delivery/compression without loading the full library initially.
 
-- [ ] **L19 — Automated release checks** · Open
+- [ ] **L19 — Automated release checks** · Partial
   - Baseline: local scripts/tests exist; no repository CI configuration was found.
   - Complete when: CI runs types, lint, tests and production build; staging smoke
     tests and a repeatable release/rollback process are established. Resolve the
     default build environment issue or explicitly configure a verified alternative.
+  - 2026-10-31: added GitHub Actions checks for lint with zero warnings, generated
+    route types, TypeScript, unit tests, dependency audit, the verified webpack
+    build, production guest smoke and full development browser regressions.
+    A separate manually triggered workflow checks deployed staging without
+    provider mocks or development login. See [release checks](RELEASE_CHECKS.md)
+    for commands and the release/rollback procedure. Local production smoke and
+    deployed preview smoke each passed both tests: public pages, disabled admin,
+    guest billing status, free-player audio/pause/resume and skip-to-completion.
+    Unit tests (410), all 104 development browser tests, TypeScript, zero-warning
+    ESLint and webpack build passed.
+    Local agent-tool directories are excluded from app linting; app rules remain
+    unchanged. Audit reports no high/critical findings and 16 moderate findings
+    in development tooling through minimatch; these remain for L01 reassessment.
+    Hosted Actions execution, required branch checks, separate staging/provider
+    verification and an exercised rollback remain open. Main still deploys
+    independently through Netlify; this workflow alone does not gate publishing.
 
 - [ ] **L20 — Tracking, storage and AI launch decisions** · Open
   - Complete when: record whether AI planning ships enabled, its data/cost limits
@@ -296,3 +340,8 @@ business and markets. Recheck current requirements when completing legal tasks.
 | 2026-10-31 | L03 / L17 / L19 | Usability release prepared: 410 unit tests, all 104 browser tests across full run and targeted rerun, TypeScript, targeted ESLint and webpack production build passed. Responsive audit covered nine routes at three sizes. Real-device/provider checks remain open; deployment evidence follows after publishing. |
 | 2026-10-31 | L01 / L03 | Release audit found high-severity undici advisories in transitive OpenAI dependency; updated lockfile from 7.30.0 to 7.30.1. Production audit now reports 0 vulnerabilities; 410 unit tests and webpack production build passed after patch. |
 | 2026-10-31 | L03 / L19 | Netlify published `c31a43d` successfully: deploy `6ae5f8544363e1e407c55047`, https://axyro-training.netlify.app. Public landing/settings/workout/preview/player and read-only auth/billing endpoints returned 200; live player start/pause verified. Prior published `6865c70` remains available through Netlify deploy history for rollback. Real-device, live payment and full provider flows remain unverified. |
+| 2026-10-31 | L19 | Added CI quality/regression workflows, guest-only local production and deployed staging smoke, and release/rollback instructions. Verified 410 unit tests, 104 browser regressions, two local production smoke tests and two deployed preview smoke tests; types, zero-warning lint and webpack build pass. Hosted Actions, branch enforcement and rollback rehearsal remain open. |
+| 2026-10-31 | L05 | Recommended Resend free SMTP; operator has no domain yet. Sending-domain verification and real email lifecycle checks remain pending. |
+| 2026-11-01 | L03 / L05 | Connected Cloudflare-registered axyro.app to Netlify with HTTPS and www redirect; saved canonical app/Auth URLs and exact callback. Deploy 6ae73419c9b447d39154fc25 published ab1875e. Verified homepage and player start/pause. Resend verified auth.axyro.app in Ireland; enabled Supabase SMTP with one approved domain-limited sending key and verified persistence after reload. Unused first key revoked. Real signup/email confirmation and recovery remain unverified. |
+| 2026-11-01 | L05 | Operator confirmed a real confirmation email and successful sign-in using a disposable test address. Clarified generic signup feedback with sign-in/reset links; protected new/existing-account API equivalence with tests. 412 unit tests, seven account/subscription browser tests, types, zero-warning lint and webpack build passed. Recovery and other remaining provider flows are unverified. |
+| 2026-11-01 | L05 / L13 | Preparing branded confirmation template and operator-approved generated welcome illustration. Resend delivered-message metadata confirms From is Axyro <noreply@auth.axyro.app>; temporary inbox showed a provider envelope address. Saved branded subject/template in hosted Supabase; verified exact source equality after reload, desktop/390px previews, public pinned image URL and token placeholders. New real-inbox rendering remains unverified; reference rights remain part of L13. |

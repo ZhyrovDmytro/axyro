@@ -6,6 +6,12 @@ Set server environment variables `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, and
 
 Enable email confirmation, production SMTP and provider rate limiting. Supabase signup/recovery emails must use the provider confirmation URL so PKCE yields a callback `code`. Signup and reset verification must be completed in the same browser that started the flow, because the verifier is in an HttpOnly cookie. Invalid, expired and cancelled callbacks return to sign in with an error. Recovery redirects to `/reset-password`; a short-lived HttpOnly recovery marker authorizes password replacement. Ordinary password changes additionally require the current password. OAuth-only users manage credentials with their provider.
 
+Signup without a session returns the same verification response for a new account
+and an obfuscated existing-account response from Supabase. The UI describes email
+confirmation conditionally and offers sign-in/password-reset links in the status
+message. Do not add an account-existence lookup to this public flow. See
+[Supabase signup behavior](https://supabase.com/docs/reference/javascript/auth-signup).
+
 Profiles contain only display metadata and a separately protected role. Users may edit only display name, avatar and timestamps; role and owner ID are not writable by authenticated clients. Create production admins explicitly using a trusted SQL operation on `profiles.role`, never user metadata. Existing Supabase identities receive profiles during migration.
 
 The hardcoded owner testing exception is `dmytrozhyrov@gmail.com` (case-insensitive, exact address; no aliases). After Supabase verifies the session and reports a confirmed email, the server promotes that account's existing profile to `admin` using the server-only Supabase secret/service-role key. This grants full Pro access in production and satisfies database plan-write guards without a subscription. Unconfirmed emails and signup metadata never trigger the grant. Already-admin profiles are not rewritten. This is a persistent role assignment: removing the exception later also requires explicitly resetting the profile role if access should be revoked.
@@ -24,3 +30,12 @@ Account deletion requires the literal DELETE confirmation, a verified session an
 External setup remains operational work: Google credentials, Supabase project/SMTP/redirect configuration, migrations, Stripe products/webhooks and production environment secrets cannot be supplied by this repository. No credential has been committed or fabricated.
 
 Provider references: [PKCE](https://supabase.com/docs/guides/auth/sessions/pkce-flow), [password authentication](https://supabase.com/docs/guides/auth/passwords), [REST API contract](https://github.com/supabase/auth/blob/master/openapi.yaml).
+
+
+Confirmation email branding (2026-11-01): the hosted Confirm sign up template
+now uses `supabase/templates/confirmation.html`, subject “Welcome to Axyro —
+confirm your email”, and the generated welcome guide. Sender remains
+Axyro <noreply@auth.axyro.app>. Exact persisted HTML was verified after reload;
+new inbox rendering remains to be tested. See [email operations and asset
+provenance](EMAIL_CONFIRMATION.md). Repository deployment does not sync these
+Dashboard settings automatically.

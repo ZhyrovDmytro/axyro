@@ -1,5 +1,16 @@
 # Privacy and data inventory
 
+## Production email delivery — 2026-11-01
+
+Supabase Auth is configured to deliver account confirmation and password-recovery
+emails through Resend SMTP, using `noreply@auth.axyro.app` and the Ireland region.
+Resend processes recipient addresses, authentication-email contents/links and
+delivery metadata. Receiving and tracking metrics are not configured. The SMTP
+credential is stored in Supabase, scoped to sending from this domain, and is not
+part of application source or browser assets. Live email delivery/retention
+verification and the publishable provider disclosures remain launch work under
+L05/L09/L12.
+
 > Current account/subscription extension: see [Membership implementation](docs/MEMBERSHIP_IMPLEMENTATION.md), [Authentication](docs/AUTHENTICATION.md), [Billing](docs/billing.md), and [Multi-user data](docs/MULTI_USER_DATA_ARCHITECTURE.md). These replace earlier local-only/no-account scope statements below. Guest access is the single free starter; personalized plans and full access require Pro.
 
 

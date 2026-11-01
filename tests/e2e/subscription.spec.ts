@@ -184,6 +184,17 @@ test("registration mismatch and reset email use account API boundaries", async (
     .getByRole("button", { name: "Create account", exact: true })
     .click();
   await expect(page.getByRole("status")).toContainText("Check your email");
+  await expect(page.getByRole("status")).toContainText(
+    "if this is a new account",
+  );
+  await expect(
+    page
+      .getByRole("status")
+      .getByRole("link", { name: "Sign in", exact: true }),
+  ).toHaveAttribute("href", "/signin?next=%2Fplan%2Fsetup");
+  await expect(
+    page.getByRole("status").getByRole("link", { name: "reset your password" }),
+  ).toHaveAttribute("href", "/forgot-password");
   expect(registrations).toBe(1);
   await page.route("**/api/auth/recover", (route) =>
     route.fulfill({ json: { ok: true } }),

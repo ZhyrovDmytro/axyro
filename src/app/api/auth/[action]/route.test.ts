@@ -29,6 +29,30 @@ describe("auth route trust boundaries", () => {
     vi.unstubAllEnvs();
     vi.clearAllMocks();
   });
+  it.each(["new", "already registered"])(
+    "keeps signup responses generic for %s accounts awaiting no session",
+    async (account) => {
+      auth.supabaseRequest.mockResolvedValueOnce({
+        id: "provider-user-id",
+        identities: account === "new" ? [{ provider: "email" }] : [],
+      });
+      const response = await POST(
+        request("signup", {
+          email: "player@example.com",
+          password: "secure-password-123",
+          confirmPassword: "secure-password-123",
+          displayName: "Player",
+        }),
+        { params: Promise.resolve({ action: "signup" }) },
+      );
+      expect(response.status).toBe(200);
+      expect(await response.json()).toEqual({
+        user: null,
+        requiresVerification: true,
+      });
+      expect(auth.setProviderSession).not.toHaveBeenCalled();
+    },
+  );
   it("rejects admin/admin in production before issuing any session", async () => {
     vi.stubEnv("NODE_ENV", "production");
     const response = await POST(

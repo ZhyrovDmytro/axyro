@@ -69,9 +69,10 @@ account was created and no email was sent. An external HTTP probe was rejected
 by the origin guard, but the actual same-origin browser request passed; no
 origin/security checks were relaxed.
 
-Successful signup/email confirmation, password recovery, two-user data isolation,
-privileged account deletion and Google OAuth still need live verification.
-Custom SMTP was enabled on 2026-11-01; real email delivery remains to be verified.
+On 2026-11-01 the operator reported receiving a real confirmation email and
+successfully signing in with a disposable test address. Password recovery,
+two-user data isolation, privileged account deletion and Google OAuth still need
+live verification. Custom SMTP was enabled on 2026-11-01.
 
 ## Custom email domain — 2026-11-01
 
@@ -88,8 +89,8 @@ Saved and verified after reloading the dashboard, custom SMTP: sender
 to `auth.axyro.app`. The active key is named `Axyro Supabase Auth SMTP replacement`;
 the unused first key was revoked with explicit approval. Exactly one sending key
 remains. The dashboard confirms SMTP enabled and a stored password after reload.
-Keep credentials out of chat, Git, reports and screenshots. No test message has
-been sent yet; real signup/confirmation and recovery remain open under L05.
+Keep credentials out of chat, Git, reports and screenshots. The operator confirmed
+real signup/email confirmation/sign-in on 2026-11-01; recovery remains open under L05.
 A monitored support inbox/forwarding address remains separate work.
 
 Free projects can pause after inactivity. Automatic backups are not included;

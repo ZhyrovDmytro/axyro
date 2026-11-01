@@ -133,9 +133,15 @@ No owners or target dates have been assigned yet.
     to send. Operator approved a domain-limited sending key and Supabase storage.
     Enabled SMTP with the approved replacement key; verified enabled settings and
     stored password after reload. Revoked the unused first key with explicit
-    approval; one domain-limited sending key remains. No test email has been sent;
-    real signup/confirmation, recovery and remaining L05 flows are still open.
+    approval; one domain-limited sending key remains. The operator subsequently
+    confirmed real email delivery, confirmation and sign-in with a disposable
+    test address. Recovery and remaining L05 flows are still open.
     See [email setup](SUPABASE_SETUP.md).
+  - 2026-11-01 follow-up: clarified signup feedback so it does not promise a new
+    email for an existing account, and added immediate sign-in/reset links.
+    Preserved the same public API response for new and existing accounts to
+    prevent account discovery. Verified 412 unit tests, seven account/subscription
+    browser tests, TypeScript, zero-warning lint and webpack production build.
   - 2026-10-31: operator confirmed no domain is owned yet and requested a free
     email-provider recommendation. Recommended Resend's free tier (3,000 emails
     per month, 100 per day), using its documented Supabase SMTP integration.
@@ -337,3 +343,4 @@ business and markets. Recheck current requirements when completing legal tasks.
 | 2026-10-31 | L19 | Added CI quality/regression workflows, guest-only local production and deployed staging smoke, and release/rollback instructions. Verified 410 unit tests, 104 browser regressions, two local production smoke tests and two deployed preview smoke tests; types, zero-warning lint and webpack build pass. Hosted Actions, branch enforcement and rollback rehearsal remain open. |
 | 2026-10-31 | L05 | Recommended Resend free SMTP; operator has no domain yet. Sending-domain verification and real email lifecycle checks remain pending. |
 | 2026-11-01 | L03 / L05 | Connected Cloudflare-registered axyro.app to Netlify with HTTPS and www redirect; saved canonical app/Auth URLs and exact callback. Deploy 6ae73419c9b447d39154fc25 published ab1875e. Verified homepage and player start/pause. Resend verified auth.axyro.app in Ireland; enabled Supabase SMTP with one approved domain-limited sending key and verified persistence after reload. Unused first key revoked. Real signup/email confirmation and recovery remain unverified. |
+| 2026-11-01 | L05 | Operator confirmed a real confirmation email and successful sign-in using a disposable test address. Clarified generic signup feedback with sign-in/reset links; protected new/existing-account API equivalence with tests. 412 unit tests, seven account/subscription browser tests, types, zero-warning lint and webpack build passed. Recovery and other remaining provider flows are unverified. |

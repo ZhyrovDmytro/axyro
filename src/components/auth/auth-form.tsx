@@ -54,7 +54,7 @@ export function AuthForm({
       }
       if (mode === "signup" && !result.user) {
         setMessage(
-          "Check your email to verify your account. Open the link in this browser, then continue your setup.",
+          "Check your email for a confirmation link if this is a new account. Look in spam too, and open the link in this browser.",
         );
         return;
       }
@@ -196,6 +196,23 @@ export function AuthForm({
             {message && (
               <p role="status" className="safety-note">
                 {message}
+                {mode === "signup" && (
+                  <>
+                    {" "}
+                    Already registered?{" "}
+                    <Link
+                      className="text-link"
+                      href={`/signin?next=${encodeURIComponent(target)}`}
+                    >
+                      Sign in
+                    </Link>{" "}
+                    or{" "}
+                    <Link className="text-link" href="/forgot-password">
+                      reset your password
+                    </Link>
+                    .
+                  </>
+                )}
               </p>
             )}
             <button

@@ -39,3 +39,9 @@ Axyro <noreply@auth.axyro.app>. Exact persisted HTML was verified after reload;
 new inbox rendering remains to be tested. See [email operations and asset
 provenance](EMAIL_CONFIRMATION.md). Repository deployment does not sync these
 Dashboard settings automatically.
+
+
+Account loading uses a centered Axyro mark and an indeterminate CSS spinner with
+one polite status announcement and concise text. The spinner stops under reduced
+motion. It reflects the existing session/data request lifecycle without simulated
+percentages or an added minimum wait; error/retry behavior is unchanged.

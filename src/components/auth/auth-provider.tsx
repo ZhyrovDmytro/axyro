@@ -132,8 +132,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider value={{ ...state, refresh, signOut }}>
       {state.loading ? (
-        <main className="page-shell" role="status">
-          Loading your account…
+        <main className="account-loading">
+          <div className="account-loading__content" role="status">
+            <div className="account-loading__mark" aria-hidden="true">
+              <span className="account-loading__ring" />
+              <span className="account-loading__letter">A</span>
+            </div>
+            <p className="account-loading__brand" aria-hidden="true">
+              Axyro
+            </p>
+            <h1>Loading your account…</h1>
+            <p className="account-loading__hint">
+              Getting your training ready.
+            </p>
+          </div>
         </main>
       ) : state.error ? (
         <main className="page-shell">

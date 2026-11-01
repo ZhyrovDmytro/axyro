@@ -39,3 +39,20 @@ Axyro <noreply@auth.axyro.app>. Exact persisted HTML was verified after reload;
 new inbox rendering remains to be tested. See [email operations and asset
 provenance](EMAIL_CONFIRMATION.md). Repository deployment does not sync these
 Dashboard settings automatically.
+
+
+Account loading uses a centered Axyro mark and an indeterminate CSS spinner with
+one polite status announcement and concise text. The spinner stops under reduced
+motion. It reflects the existing session/data request lifecycle without simulated
+percentages or an added minimum wait; error/retry behavior is unchanged.
+
+Form presentation (2026-11-01): registration, sign-in, password recovery and
+password replacement share a responsive split layout using the existing Axyro
+welcome illustration on desktop. Mobile prioritizes the form. Email is the
+primary action, with Google as a secondary option on sign-in and registration.
+Profile and security fields use the shared field treatment; each password field
+has an independent, keyboard-accessible visibility control. Password validation,
+provider endpoints, redirect sanitization, confirmation messages and deletion
+confirmation requirements are unchanged. Browser coverage in
+`tests/e2e/forms.spec.ts` checks 320px, 390px and 1440px layouts, accessibility,
+password visibility, signup validation, recovery feedback and service fallback.

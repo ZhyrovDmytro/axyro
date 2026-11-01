@@ -190,3 +190,24 @@ retry that preserves the local snapshot; conflicting versions require an explici
 confirmation before replacing local changes with cloud data.
 
 See `docs/design-review-2026-10-31.md` for findings and verification.
+
+## Forms — 1 November 2026
+
+Account entry uses a split layout on screens at least 56rem wide: the existing
+Axyro welcome illustration and training message sit beside a focused form.
+The illustration uses contain sizing on a continuous charcoal surface, with
+separate spacing around the headline and caption so the image and text are
+never cropped into hard black bands. Smaller screens show the form alone,
+with a Back to Axyro link except on sign-in, where the shared header provides
+home navigation. Registration,
+sign-in, recovery and password replacement share this layout, upright headings,
+persistent labels, orange primary actions and a secondary Google sign-in action
+where supported. Space below the account shell keeps the mobile dock clear.
+
+Profile, security, account-deletion, training setup, scheduling, workout editing
+and library search fields share charcoal input surfaces, readable labels, 16px
+input text, 52px minimum field height and orange keyboard focus. Existing
+checkboxes, radio choices, ranges, validation and training behavior are retained.
+Password fields have individually controlled Show/Hide actions inside the field;
+password requirements are connected to the field for assistive technology.
+The account-deletion action retains its warning and literal DELETE confirmation.

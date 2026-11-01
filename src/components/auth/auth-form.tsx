@@ -3,6 +3,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { authRequest, useAuth } from "./auth-provider";
+import { PasswordField } from "./password-field";
+import { UiIcon } from "@/components/ui-icon";
 
 type Mode = "signin" | "signup" | "recover" | "password";
 export function AuthForm({
@@ -19,7 +21,6 @@ export function AuthForm({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(initialError);
   const [message, setMessage] = useState("");
-  const [visible, setVisible] = useState(false);
   const target =
     next.startsWith("/") && !next.startsWith("//") && !next.includes("\\")
       ? next
@@ -75,27 +76,43 @@ export function AuthForm({
     password: "Choose a new password",
   }[mode];
   return (
-    <main className="page-shell account-shell">
-      <section className="account-panel">
-        <h1>{title}</h1>
+    <main className="page-shell auth-shell">
+      <aside className="auth-story" aria-label="Training with Axyro">
+        {mode !== "signin" && (
+          <Link className="auth-back" href="/">
+            <UiIcon name="arrow-left" /> Back to Axyro
+          </Link>
+        )}
+        <p className="auth-story__title">
+          Train anywhere.
+          <br />
+          Win on court.
+        </p>
+        <div className="auth-story__image" />
+        <div className="auth-story__caption">
+          <p>Your next session starts here.</p>
+          <span>Guided home workouts. 5, 10 or 20 minutes.</span>
+        </div>
+      </aside>
+      <section
+        className="account-panel auth-panel"
+        aria-labelledby="auth-title"
+      >
+        {mode !== "signin" && (
+          <Link className="auth-back auth-back--mobile" href="/">
+            <UiIcon name="arrow-left" /> Back to Axyro
+          </Link>
+        )}
+        <h1 id="auth-title">{title}</h1>
         <p className="lede">
           {mode === "signup"
             ? "One real workout free forever. A personal plan when you’re ready for Pro."
             : mode === "recover"
               ? "We’ll email you a secure link to reset your password."
-              : "Your training, ready when you are."}
+              : mode === "password"
+                ? "Choose a password to keep your account secure."
+                : "Your training, ready when you are."}
         </p>
-        {(mode === "signin" || mode === "signup") && configured && (
-          <>
-            <a
-              className="button button--secondary button--full"
-              href={`/api/auth/oauth?provider=google&next=${encodeURIComponent(target)}`}
-            >
-              Continue with Google
-            </a>
-            <p className="auth-divider">or use email</p>
-          </>
-        )}
         {!configured && (
           <p className="safety-note">
             Account services are temporarily unavailable. You can still try the
@@ -112,6 +129,7 @@ export function AuthForm({
           <form
             onSubmit={submit}
             className="account-form"
+            aria-busy={busy}
             aria-describedby={error ? "auth-error" : undefined}
           >
             {mode === "signup" && (
@@ -119,6 +137,7 @@ export function AuthForm({
                 Name
                 <input
                   name="displayName"
+                  placeholder="Your name"
                   autoComplete="name"
                   required
                   maxLength={100}
@@ -137,6 +156,13 @@ export function AuthForm({
                       ? "text"
                       : "email"
                   }
+                  placeholder={
+                    developmentAdminEnabled && mode === "signin"
+                      ? "Email or login"
+                      : "you@example.com"
+                  }
+                  autoCapitalize="none"
+                  spellCheck={false}
                   autoComplete="email"
                   required
                   maxLength={254}
@@ -145,46 +171,34 @@ export function AuthForm({
             )}
             {mode !== "recover" && (
               <>
-                <label>
-                  Password
-                  <div className="password-field">
-                    <input
-                      aria-label="Password"
-                      name="password"
-                      type={visible ? "text" : "password"}
-                      autoComplete={
-                        mode === "signin" ? "current-password" : "new-password"
-                      }
-                      required
-                      minLength={mode === "signin" ? 1 : 10}
-                      maxLength={128}
-                    />
-                    <button
-                      type="button"
-                      aria-label={visible ? "Hide password" : "Show password"}
-                      onClick={() => setVisible(!visible)}
+                <div className="auth-password-group">
+                  <PasswordField
+                    label="Password"
+                    name="password"
+                    autoComplete={
+                      mode === "signin" ? "current-password" : "new-password"
+                    }
+                    minLength={mode === "signin" ? 1 : 10}
+                    hint={
+                      mode === "signin" ? undefined : "Use 10–128 characters."
+                    }
+                  />
+                  {mode === "signin" && (
+                    <Link
+                      className="text-link auth-forgot"
+                      href="/forgot-password"
                     >
-                      {visible ? "Hide" : "Show"}
-                    </button>
-                  </div>
-                </label>
+                      Forgot password?
+                    </Link>
+                  )}
+                </div>
                 {(mode === "signup" || mode === "password") && (
-                  <p className="account-fine-print">
-                    Use 10–128 characters for your password.
-                  </p>
-                )}
-                {(mode === "signup" || mode === "password") && (
-                  <label>
-                    Confirm password
-                    <input
-                      name="confirmPassword"
-                      type={visible ? "text" : "password"}
-                      autoComplete="new-password"
-                      required
-                      minLength={10}
-                      maxLength={128}
-                    />
-                  </label>
+                  <PasswordField
+                    label="Confirm password"
+                    name="confirmPassword"
+                    autoComplete="new-password"
+                    minLength={10}
+                  />
                 )}
               </>
             )}
@@ -216,7 +230,7 @@ export function AuthForm({
               </p>
             )}
             <button
-              className="button button--dark button--full"
+              className="button button--primary button--full"
               disabled={
                 busy ||
                 (!configured && !(developmentAdminEnabled && mode === "signin"))
@@ -233,42 +247,55 @@ export function AuthForm({
             </button>
           </form>
         )}
-        {mode === "signin" && (
-          <>
-            <Link className="text-link" href="/forgot-password">
-              Forgot password?
-            </Link>
+        {(mode === "signin" || mode === "signup") && configured && (
+          <div className="auth-social">
+            <p className="auth-divider">or continue with</p>
+            <a
+              className="button button--secondary button--full"
+              href={`/api/auth/oauth?provider=google&next=${encodeURIComponent(target)}`}
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M21.6 12.2c0-.7-.1-1.4-.2-2.1H12v4h5.4a4.7 4.7 0 0 1-2 3.1v2.6h3.3c1.9-1.8 2.9-4.4 2.9-7.6ZM12 22c2.7 0 5-.9 6.7-2.4l-3.3-2.6c-.9.6-2 .9-3.4.9-2.6 0-4.8-1.7-5.6-4.1H3v2.7A10 10 0 0 0 12 22ZM6.4 13.8a6 6 0 0 1 0-3.6V7.5H3a10 10 0 0 0 0 9l3.4-2.7ZM12 6.1c1.5 0 2.8.5 3.8 1.5l2.9-2.9A9.6 9.6 0 0 0 12 2a10 10 0 0 0-9 5.5l3.4 2.7C7.2 7.8 9.4 6.1 12 6.1Z" />
+              </svg>
+              Continue with Google
+            </a>
+          </div>
+        )}
+        <div className="auth-navigation">
+          {mode === "signin" && (
+            <>
+              <p>
+                Don’t have an account?{" "}
+                <Link
+                  className="text-link"
+                  href={`/signup?next=${encodeURIComponent(target)}`}
+                >
+                  Create account
+                </Link>
+              </p>
+            </>
+          )}
+          {mode === "signup" && (
             <p>
-              Don’t have an account?{" "}
+              Already have an account?{" "}
               <Link
                 className="text-link"
-                href={`/signup?next=${encodeURIComponent(target)}`}
+                href={`/signin?next=${encodeURIComponent(target)}`}
               >
-                Create account
+                Sign in
               </Link>
             </p>
-          </>
-        )}
-        {mode === "signup" && (
-          <p>
-            Already have an account?{" "}
+          )}
+          {mode === "recover" && (
             <Link
               className="text-link"
               href={`/signin?next=${encodeURIComponent(target)}`}
             >
-              Sign in
+              Back to sign in
             </Link>
-          </p>
-        )}
-        {mode === "recover" && (
-          <Link
-            className="text-link"
-            href={`/signin?next=${encodeURIComponent(target)}`}
-          >
-            Back to sign in
-          </Link>
-        )}
-        <p className="account-fine-print">
+          )}
+        </div>
+        <p className="account-fine-print auth-legal">
           <Link href="/terms">Terms</Link> ·{" "}
           <Link href="/privacy">Privacy</Link>
         </p>

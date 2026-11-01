@@ -104,3 +104,22 @@ Axyro <noreply@auth.axyro.app>. Exact persisted HTML was verified after reload;
 new inbox rendering remains to be tested. See [email operations and asset
 provenance](EMAIL_CONFIRMATION.md). Repository deployment does not sync these
 Dashboard settings automatically.
+
+
+## Owner sign-in incident — 2026-11-01
+
+Email confirmation and password authentication succeeded, but loading the owner
+profile failed: the privileged profile PATCH returned HTTP 401 while the
+user-scoped profile GET returned 200. Netlify contained the shortened secret-key
+identifier rather than the full key. With operator approval, replaced it with a
+new key named `axyro_netlify_production`, saved only in the production context,
+and deleted the previous default secret key after its value appeared in a tool
+result during repair. The publishable key and other projects were unchanged.
+Netlify published deploy `6ae75f417e7909cf594eab3b` from `60d7f96`.
+The existing confirmed browser session now loads `/account` with the owner
+profile and Admin access. No password or confirmation link was requested.
+
+When transferring a Dashboard key, reveal and use the complete value; the masked
+prefix is only an identifier. Never include revealed key fields in snapshots,
+logs, screenshots or source control. Verify a deployed privileged operation,
+not just `configured: true`, before considering the backend key verified.

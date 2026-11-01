@@ -507,23 +507,13 @@ select {
 .metric-grid label {
   display: block;
   margin: 1rem 0 0.4rem;
-  font-size: 0.78rem;
-  font-weight: 850;
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 
 .field-label small {
   color: var(--muted);
   font-weight: 600;
-}
-
-.plan-input,
-.timing-fields input {
-  width: 100%;
-  min-height: 3.25rem;
-  padding: 0.75rem 0.9rem;
-  border: 1px solid var(--control-border);
-  border-radius: 0.75rem;
-  background: var(--paper);
 }
 
 .plan-input--short {
@@ -555,11 +545,6 @@ select {
   .match-entry {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
   }
-}
-
-.plan-textarea {
-  min-height: 7rem;
-  resize: vertical;
 }
 
 .metric-grid {
@@ -838,7 +823,13 @@ select {
   color: var(--text);
 }
 
-.plan-week__days li.has-session:is([data-status="completed"], [data-status="missed"], [data-status="incomplete"], [data-status="cancelled"]):not(.has-game) {
+.plan-week__days
+  li.has-session:is(
+    [data-status="completed"],
+    [data-status="missed"],
+    [data-status="incomplete"],
+    [data-status="cancelled"]
+  ):not(.has-game) {
   --text: #f5f5f5;
   --muted: #bdbdbd;
   background: var(--surface-soft);
@@ -4395,16 +4386,6 @@ h3 {
   text-transform: uppercase;
 }
 
-.filter-panel input,
-.filter-panel select {
-  width: 100%;
-  height: 3rem;
-  padding-inline: 0.8rem;
-  border: 1px solid var(--control-border);
-  border-radius: 0.7rem;
-  background: var(--paper);
-}
-
 .exercise-filter-panel {
   position: relative;
   display: grid;
@@ -4460,15 +4441,6 @@ h3 {
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-}
-
-.exercise-search-field input {
-  width: 100%;
-  height: 3rem;
-  padding-inline: 0.8rem;
-  border: 1px solid var(--control-border);
-  border-radius: 0.7rem;
-  background: var(--paper);
 }
 
 .filter-chip-group {
@@ -7488,7 +7460,7 @@ h3 {
 .account-panel h1 {
   font-size: clamp(2rem, 5vw, 3rem);
   line-height: 1.08;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.035em;
   margin-block: 0.5rem 1rem;
 }
 .account-panel h2 {
@@ -7499,42 +7471,241 @@ h3 {
 }
 .account-form {
   display: grid;
-  gap: 1rem;
-  margin-block: 1.5rem;
+  gap: 1.25rem;
+  margin-block: 1.75rem;
 }
-.account-form label {
+.account-form label,
+.account-field {
   display: grid;
   gap: 0.5rem;
-  font-weight: 650;
 }
-.account-form input {
+.account-form label,
+.exercise-search-field > span,
+.filter-panel label > span {
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.account-form input,
+.plan-input,
+.timing-fields input,
+.exercise-search-field input,
+.filter-panel input,
+.filter-panel select {
   min-width: 0;
   width: 100%;
-  min-height: 3rem;
+  min-height: 3.25rem;
+  padding: 0.85rem 1rem;
   border: 1px solid var(--control-border);
-  border-radius: 0.6rem;
-  padding: 0.75rem;
-  background: var(--paper);
+  border-radius: 0.65rem;
+  background: var(--surface-soft);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.4;
+  caret-color: var(--accent);
+}
+:is(
+  .account-form input,
+  .plan-input,
+  .timing-fields input,
+  .exercise-search-field input,
+  .filter-panel input,
+  .filter-panel select
+):focus-visible {
+  border-color: var(--accent);
+}
+.plan-textarea {
+  min-height: 7rem;
+  resize: vertical;
 }
 .account-form input[readonly] {
   color: var(--muted);
-  background: var(--surface-soft);
+  border-style: dashed;
+  background: var(--paper);
+}
+.account-field__hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
 }
 .password-field {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  position: relative;
+  min-width: 0;
+}
+.password-field input {
+  padding-right: 4.5rem;
 }
 .password-field button {
+  position: absolute;
+  inset: 0.25rem 0.25rem 0.25rem auto;
+  min-width: 3.5rem;
   min-height: 2.75rem;
+  padding-inline: 0.5rem;
+  border-radius: 0.4rem;
   background: none;
+  color: var(--muted);
   border: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
   cursor: pointer;
 }
+.password-field button:hover {
+  background: var(--paper);
+  color: var(--text);
+}
 .auth-divider {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-block: 1.5rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: var(--border);
+}
+.auth-shell {
+  margin-bottom: calc(7rem + env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--paper);
+}
+.auth-story {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 2rem;
+  border-radius: 0.75rem;
+  background: var(--paper);
+}
+.auth-back {
+  display: inline-flex;
+  align-items: center;
+  align-self: start;
+  min-height: 2.75rem;
+  gap: 0.6rem;
   color: var(--muted);
   font-size: 0.875rem;
+}
+.auth-back svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+.auth-back:hover {
+  color: var(--text);
+}
+.auth-story__title {
+  font-size: clamp(2.25rem, 3.2vw, 3rem);
+  font-weight: 650;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+}
+.auth-story__image {
+  flex: 1;
+  min-height: 21rem;
+  background: url("/images/email/welcome-guide-v1.jpg") center / contain no-repeat;
+  mix-blend-mode: lighten;
+}
+.auth-story__caption {
+  margin-top: 1.5rem;
+}
+.auth-story__caption p {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+  font-weight: 550;
+}
+.auth-story__caption span {
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.auth-panel {
+  align-self: center;
+  width: 100%;
+  max-width: 32rem;
+  padding: clamp(1.25rem, 3vw, 2.75rem);
+  margin-inline: auto;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.auth-panel h1 {
+  max-width: none;
+  margin-block: 0 0.75rem;
+  font-size: clamp(2rem, 3vw, 2.75rem);
+  font-style: normal;
+  font-weight: 650;
+  text-wrap: balance;
+}
+.auth-panel .lede {
+  margin: 0;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+.auth-password-group {
+  position: relative;
+}
+.auth-password-group:has(.auth-forgot) > .account-field > label {
+  padding-right: 9rem;
+}
+.auth-forgot {
+  position: absolute;
+  top: -0.65rem;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  font-size: 0.8rem;
+}
+.auth-navigation {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+}
+.auth-legal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin: 1.5rem 0 0;
+}
+.auth-legal a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.auth-back--mobile {
+  display: none;
+}
+@media (width < 56rem) {
+  .auth-shell {
+    display: block;
+    max-width: 36rem;
+    padding: 0;
+  }
+  .auth-story {
+    display: none;
+  }
+  .auth-panel {
+    max-width: none;
+    padding: 1.5rem;
+  }
+  .auth-back--mobile {
+    display: inline-flex;
+    margin-bottom: 1.5rem;
+  }
 }
 .account-heading {
   display: flex;
@@ -8034,5 +8205,76 @@ textarea::placeholder {
     font-size: 0.5rem;
     white-space: nowrap;
     overflow-wrap: normal;
+  }
+}
+
+.account-loading {
+  display: grid;
+  min-height: 100svh;
+  place-items: center;
+  padding: max(2rem, env(safe-area-inset-top)) 1.5rem
+    max(2rem, env(safe-area-inset-bottom));
+  text-align: center;
+}
+
+.account-loading__content {
+  width: min(100%, 24rem);
+}
+
+.account-loading__mark {
+  position: relative;
+  display: grid;
+  width: 5rem;
+  height: 5rem;
+  margin: 0 auto 1.25rem;
+  place-items: center;
+}
+
+.account-loading__ring {
+  position: absolute;
+  inset: 0;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: account-loading-spin 1s linear infinite;
+}
+
+.account-loading__letter {
+  color: var(--accent);
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.account-loading__brand {
+  margin: 0 0 2rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.account-loading h1 {
+  margin: 0;
+  font-size: clamp(1.375rem, 4.5vw, 1.75rem);
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  line-height: 1.25;
+}
+
+.account-loading__hint {
+  margin: 0.75rem 0 0;
+  color: var(--muted);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+@keyframes account-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .account-loading__ring {
+    animation: none;
   }
 }

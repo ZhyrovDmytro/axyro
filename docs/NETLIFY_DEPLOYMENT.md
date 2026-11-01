@@ -4,7 +4,28 @@ Selected 2026-10-24 for the first Axyro staging deployment. Start on Netlify Fre
 do not enable paid upgrades or automatic credit recharge without an operator
 decision. L03 stays open until a deployed URL and the hosting checks are verified.
 
-## Current deployment — 2026-10-24
+## Custom domain — 2026-11-01
+
+- Primary origin: `https://axyro.app`, registered and managed through Cloudflare.
+- Netlify redirects `www.axyro.app` to the primary domain. The original
+  `axyro-training.netlify.app` address remains available.
+- Cloudflare DNS uses DNS-only CNAME records: `@` points to
+  `apex-loadbalancer.netlify.com`; `www` points to `axyro-training.netlify.app`.
+  Cloudflare flattens the apex CNAME. Nameservers remain with Cloudflare.
+- Netlify confirms Let's Encrypt HTTPS for both hostnames, with automatic renewal.
+- `APP_URL=https://axyro.app` is saved with the existing scopes/context policy.
+  Deploy `6ae73419c9b447d39154fc25` published `ab1875e` successfully after the
+  environment update. AI planning remains disabled.
+- Verified the HTTPS homepage, `www` redirect and free-workout navigation/start/
+  pause in the browser.
+  Full timed completion and real provider lifecycle checks remain open.
+
+Local browser storage is scoped to the origin. Guest settings/history saved on
+the old Netlify address are not automatically moved to the custom domain; retain
+the old address for access to that local data. Account synchronization requires
+the separately verified signed-in flow.
+
+## Initial deployment — 2026-10-24
 
 - Live preview: https://axyro-training.netlify.app/
 - Dashboard: https://app.netlify.com/projects/axyro-training/overview

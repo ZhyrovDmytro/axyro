@@ -1,6 +1,6 @@
 # Paid public launch tracker
 
-Last updated: 2026-10-31 (Europe/Prague).
+Last updated: 2026-11-01 (Europe/Prague).
 
 This is the shared checklist for launching Axyro as a paid public web app.
 Current verdict: **not ready to accept public payments**. Core membership code
@@ -94,8 +94,15 @@ No owners or target dates have been assigned yet.
     A full timed workout completion, real devices, provider flows and rollback
     remain unverified. One MutationObserver console exception was observed;
     source was not attributed (no corresponding app source reference found).
-  - L03 remains partial: separate staging/production environments, custom domain
-    decision, provider runtime secrets and remaining deployed checks are pending.
+  - 2026-11-01: owner purchased `axyro.app` through Cloudflare. Added it as the
+    Netlify primary domain with `www` redirect; saved both DNS-only CNAME records.
+    Netlify confirms Let's Encrypt HTTPS for both hostnames. Saved canonical
+    `APP_URL=https://axyro.app` and redeployed `ab1875e` successfully as
+    `6ae73419c9b447d39154fc25`. Browser verified HTTPS homepage and free-workout
+    navigation/start/pause and the `www` redirect. See
+    [domain details](NETLIFY_DEPLOYMENT.md).
+  - L03 remains partial: separate staging/production environments, remaining
+    provider runtime secrets and deployed checks are pending.
 
 - [ ] **L04 — Production database and backups** · Partial
   - Baseline: four SQL migrations exist in `supabase/migrations`; hosted setup
@@ -119,6 +126,16 @@ No owners or target dates have been assigned yet.
     backup/restore work remain pending. See [Supabase setup](SUPABASE_SETUP.md).
 
 - [ ] **L05 — Production authentication and email** · Partial
+  - 2026-11-01: saved Auth Site URL `https://axyro.app` and added the exact
+    `/auth/callback` redirect, preserving the previous Netlify callback. Operator
+    signed into Resend; added `auth.axyro.app` in Ireland and its three required
+    DNS records in Cloudflare. Resend confirms the domain is verified and ready
+    to send. Operator approved a domain-limited sending key and Supabase storage.
+    Enabled SMTP with the approved replacement key; verified enabled settings and
+    stored password after reload. Revoked the unused first key with explicit
+    approval; one domain-limited sending key remains. No test email has been sent;
+    real signup/confirmation, recovery and remaining L05 flows are still open.
+    See [email setup](SUPABASE_SETUP.md).
   - 2026-10-31: operator confirmed no domain is owned yet and requested a free
     email-provider recommendation. Recommended Resend's free tier (3,000 emails
     per month, 100 per day), using its documented Supabase SMTP integration.
@@ -319,3 +336,4 @@ business and markets. Recheck current requirements when completing legal tasks.
 | 2026-10-31 | L03 / L19 | Netlify published `c31a43d` successfully: deploy `6ae5f8544363e1e407c55047`, https://axyro-training.netlify.app. Public landing/settings/workout/preview/player and read-only auth/billing endpoints returned 200; live player start/pause verified. Prior published `6865c70` remains available through Netlify deploy history for rollback. Real-device, live payment and full provider flows remain unverified. |
 | 2026-10-31 | L19 | Added CI quality/regression workflows, guest-only local production and deployed staging smoke, and release/rollback instructions. Verified 410 unit tests, 104 browser regressions, two local production smoke tests and two deployed preview smoke tests; types, zero-warning lint and webpack build pass. Hosted Actions, branch enforcement and rollback rehearsal remain open. |
 | 2026-10-31 | L05 | Recommended Resend free SMTP; operator has no domain yet. Sending-domain verification and real email lifecycle checks remain pending. |
+| 2026-11-01 | L03 / L05 | Connected Cloudflare-registered axyro.app to Netlify with HTTPS and www redirect; saved canonical app/Auth URLs and exact callback. Deploy 6ae73419c9b447d39154fc25 published ab1875e. Verified homepage and player start/pause. Resend verified auth.axyro.app in Ireland; enabled Supabase SMTP with one approved domain-limited sending key and verified persistence after reload. Unused first key revoked. Real signup/email confirmation and recovery remain unverified. |

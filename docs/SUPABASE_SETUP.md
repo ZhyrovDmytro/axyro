@@ -45,11 +45,13 @@ The application now supports Supabase's modern API keys while retaining legacy
 environment aliases. Tests cover modern public/admin requests, user JWTs and
 legacy behavior. See the [official migration guide](https://supabase.com/docs/guides/getting-started/migrating-to-new-api-keys).
 
-Set Auth Site URL to `https://axyro-training.netlify.app` and allow its
-`/auth/callback` redirect. Both URLs are now saved and verified in the dashboard.
+Auth Site URL is now `https://axyro.app` (2026-11-01). The exact redirect
+`https://axyro.app/auth/callback` was added; the existing
+`https://axyro-training.netlify.app/auth/callback` remains allowed for continuity.
 Email signup and confirmation are enabled; anonymous sign-in is disabled.
-Custom SMTP and Google OAuth are currently disabled. Configure SMTP and Google OAuth as
-described in [authentication operations](AUTHENTICATION.md), then redeploy and
+Custom SMTP is now enabled through Resend (2026-11-01); Google OAuth remains
+disabled. Configure Google OAuth as described in
+[authentication operations](AUTHENTICATION.md), then
 test actual signup, recovery, account deletion and two-user data isolation.
 Account/provider setup is not complete merely because tables exist.
 
@@ -69,7 +71,26 @@ origin/security checks were relaxed.
 
 Successful signup/email confirmation, password recovery, two-user data isolation,
 privileged account deletion and Google OAuth still need live verification.
-Custom SMTP is the next operational dependency for public email signup.
+Custom SMTP was enabled on 2026-11-01; real email delivery remains to be verified.
+
+## Custom email domain — 2026-11-01
+
+The operator created a Resend account. Added `auth.axyro.app` in Ireland
+(`eu-west-1`) for transactional authentication email, with receiving and tracking
+unconfigured. Cloudflare contains the provider-issued DKIM TXT record at
+`resend._domainkey.auth` plus DNS-only CNAME records `rsend.auth` to
+`rsend-euw1.forge.rmta.net` and `send.auth` to `send.forge.rmta.net`. Resend
+reports the domain verified and ready to send, with Forge enabled.
+
+Saved and verified after reloading the dashboard, custom SMTP: sender
+`Axyro <noreply@auth.axyro.app>`, host `smtp.resend.com`, port `465`, username
+`resend`. The operator approved creating and storing a sending-only key limited
+to `auth.axyro.app`. The active key is named `Axyro Supabase Auth SMTP replacement`;
+the unused first key was revoked with explicit approval. Exactly one sending key
+remains. The dashboard confirms SMTP enabled and a stored password after reload.
+Keep credentials out of chat, Git, reports and screenshots. No test message has
+been sent yet; real signup/confirmation and recovery remain open under L05.
+A monitored support inbox/forwarding address remains separate work.
 
 Free projects can pause after inactivity. Automatic backups are not included;
 define and test a backup/restore procedure before accepting paying customers.

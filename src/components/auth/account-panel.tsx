@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { authRequest, useAuth } from "./auth-provider";
+import { PasswordField } from "./password-field";
 import { useEntitlement } from "@/components/membership/entitlement-provider";
 import { removeUserStorage } from "@/services/persistence/user-storage";
 
@@ -134,6 +135,7 @@ export function AccountPanel() {
               Name
               <input
                 name="displayName"
+                autoComplete="name"
                 defaultValue={user.displayName}
                 maxLength={100}
                 required
@@ -144,7 +146,7 @@ export function AccountPanel() {
               <input type="email" value={user.email} readOnly />
             </label>
             <button
-              className="button button--secondary"
+              className="button button--primary"
               disabled={busy || user.isDevelopmentAdmin}
             >
               Save name
@@ -200,38 +202,24 @@ export function AccountPanel() {
               <summary>Change password</summary>
               <p>Use 10–128 characters for your new password.</p>
               <form className="account-form" onSubmit={changePassword}>
-                <label>
-                  Current password
-                  <input
-                    name="currentPassword"
-                    type="password"
-                    autoComplete="current-password"
-                    required
-                  />
-                </label>
-                <label>
-                  New password
-                  <input
-                    name="password"
-                    type="password"
-                    autoComplete="new-password"
-                    minLength={10}
-                    maxLength={128}
-                    required
-                  />
-                </label>
-                <label>
-                  Confirm new password
-                  <input
-                    name="confirmPassword"
-                    type="password"
-                    autoComplete="new-password"
-                    minLength={10}
-                    maxLength={128}
-                    required
-                  />
-                </label>
-                <button className="button button--secondary" disabled={busy}>
+                <PasswordField
+                  label="Current password"
+                  name="currentPassword"
+                  autoComplete="current-password"
+                />
+                <PasswordField
+                  label="New password"
+                  name="password"
+                  autoComplete="new-password"
+                  minLength={10}
+                />
+                <PasswordField
+                  label="Confirm new password"
+                  name="confirmPassword"
+                  autoComplete="new-password"
+                  minLength={10}
+                />
+                <button className="button button--primary" disabled={busy}>
                   Update password
                 </button>
               </form>

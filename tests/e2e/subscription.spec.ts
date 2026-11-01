@@ -11,6 +11,76 @@ const account = {
   providers: ["email"],
   isDevelopmentAdmin: false,
 };
+
+test("membership currency preserves billing period and submits the selected price", async ({
+  page,
+}) => {
+  await mockServices(page);
+  await page.route("**/api/billing/products", (route) =>
+    route.fulfill({
+      json: {
+        products: [
+          {
+            id: "eur_month",
+            amount: 699,
+            currency: "eur",
+            interval: "month",
+            intervalCount: 1,
+          },
+          {
+            id: "eur_year",
+            amount: 5999,
+            currency: "eur",
+            interval: "year",
+            intervalCount: 1,
+          },
+          {
+            id: "usd_month",
+            amount: 799,
+            currency: "usd",
+            interval: "month",
+            intervalCount: 1,
+          },
+          {
+            id: "usd_year",
+            amount: 6999,
+            currency: "usd",
+            interval: "year",
+            intervalCount: 1,
+          },
+        ],
+      },
+    }),
+  );
+  let submittedPrice = "";
+  await page.route("**/api/billing/checkout", async (route) => {
+    submittedPrice = route.request().postDataJSON().priceId;
+    await route.fulfill({
+      status: 503,
+      json: { error: "Test checkout stopped" },
+    });
+  });
+  await page.goto("/upgrade?context=workout");
+  await expect(page.getByLabel("Currency", { exact: true })).toHaveValue("usd");
+  await expect(page.getByRole("radio")).toHaveCount(2);
+  await expect(page.getByRole("radio", { name: /Yearly/ })).toBeChecked();
+  await expect(
+    page.getByRole("radio", { name: /Yearly/ }),
+  ).toHaveAccessibleName(/69.99/);
+  await page.getByRole("radio", { name: /Monthly/ }).check();
+  await page.getByLabel("Currency", { exact: true }).selectOption("eur");
+  await expect(page.getByRole("radio", { name: /Monthly/ })).toBeChecked();
+  await expect(
+    page.getByRole("radio", { name: /Monthly/ }),
+  ).toHaveAccessibleName(/6.99/);
+  await page.getByRole("button", { name: "Start Pro", exact: true }).click();
+  await expect(
+    page
+      .getByRole("region", { name: "Unlock every padel workout" })
+      .getByRole("alert"),
+  ).toHaveText("Test checkout stopped");
+  expect(submittedPrice).toBe("eur_month");
+});
 async function mockServices(page: Page) {
   let user: typeof account | null = account;
   let pro = false;
@@ -131,6 +201,7 @@ test("Free workout to Pro checkout continues directly into personal plan and sig
     }),
   ).toBeVisible();
   expect(state.generations()).toBe(0);
+  await expect(page.getByLabel("Currency", { exact: true })).toHaveCount(0);
   await page
     .getByRole("button", { name: "Unlock My Plan", exact: true })
     .click();

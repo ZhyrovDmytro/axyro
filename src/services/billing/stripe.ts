@@ -2,7 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 
 export function priceIds() {
-  return [process.env.STRIPE_MONTHLY_PRICE_ID, process.env.STRIPE_YEARLY_PRICE_ID].filter((id): id is string => !!id);
+  return [process.env.STRIPE_USD_MONTHLY_PRICE_ID, process.env.STRIPE_USD_YEARLY_PRICE_ID, process.env.STRIPE_MONTHLY_PRICE_ID, process.env.STRIPE_YEARLY_PRICE_ID].filter((id): id is string => !!id);
 }
 export async function stripeRequest(path: string, body?: URLSearchParams, idempotencyKey?: string): Promise<unknown> {
   if (!process.env.STRIPE_SECRET_KEY) throw new Error("Billing is not configured.");

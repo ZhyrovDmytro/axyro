@@ -27,6 +27,7 @@ export function AuthForm({
       : "/plan/setup";
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (busy) return;
     const data = new FormData(event.currentTarget);
     const password = String(data.get("password") ?? "");
     if (
@@ -59,9 +60,15 @@ export function AuthForm({
         );
         return;
       }
+      if (mode === "password") {
+        setMessage(
+          "Your password has been updated. You can continue to your account.",
+        );
+        return;
+      }
       window.localStorage.setItem("axyro:identity-event", String(Date.now()));
       await refresh();
-      router.push(mode === "password" ? "/account" : target);
+      router.push(target);
       router.refresh();
     } catch (error) {
       setError(error instanceof Error ? error.message : "Please try again.");
@@ -69,6 +76,7 @@ export function AuthForm({
       setBusy(false);
     }
   }
+  const passwordUpdated = mode === "password" && Boolean(message);
   const title = {
     signin: "Welcome back",
     signup: "Create your account",
@@ -88,7 +96,7 @@ export function AuthForm({
           <br />
           Win on court.
         </p>
-        <div className="auth-story__image" />
+        <div className={`auth-story__image auth-story__image--${mode}`} />
         <div className="auth-story__caption">
           <p>Your next session starts here.</p>
           <span>Guided home workouts. 5, 10 or 20 minutes.</span>
@@ -103,16 +111,18 @@ export function AuthForm({
             <UiIcon name="arrow-left" /> Back to Axyro
           </Link>
         )}
-        <h1 id="auth-title">{title}</h1>
-        <p className="lede">
-          {mode === "signup"
-            ? "One real workout free forever. A personal plan when you’re ready for Pro."
-            : mode === "recover"
-              ? "We’ll email you a secure link to reset your password."
-              : mode === "password"
-                ? "Choose a password to keep your account secure."
-                : "Your training, ready when you are."}
-        </p>
+        <h1 id="auth-title">{passwordUpdated ? "Password updated" : title}</h1>
+        {!passwordUpdated && (
+          <p className="lede">
+            {mode === "signup"
+              ? "One real workout free forever. A personal plan when you’re ready for Pro."
+              : mode === "recover"
+                ? "We’ll email you a secure link to reset your password."
+                : mode === "password"
+                  ? "Choose a password to keep your account secure."
+                  : "Your training, ready when you are."}
+          </p>
+        )}
         {!configured && (
           <p className="safety-note">
             Account services are temporarily unavailable. You can still try the
@@ -125,128 +135,156 @@ export function AuthForm({
             </Link>
           </p>
         )}
-        {(configured || (developmentAdminEnabled && mode === "signin")) && (
-          <form
-            onSubmit={submit}
-            className="account-form"
-            aria-busy={busy}
-            aria-describedby={error ? "auth-error" : undefined}
-          >
-            {mode === "signup" && (
-              <label>
-                Name
-                <input
-                  name="displayName"
-                  placeholder="Your name"
-                  autoComplete="name"
-                  required
-                  maxLength={100}
-                />
-              </label>
-            )}
-            {mode !== "password" && (
-              <label>
-                {developmentAdminEnabled && mode === "signin"
-                  ? "Email or development login"
-                  : "Email"}
-                <input
-                  name="email"
-                  type={
-                    developmentAdminEnabled && mode === "signin"
-                      ? "text"
-                      : "email"
-                  }
-                  placeholder={
-                    developmentAdminEnabled && mode === "signin"
-                      ? "Email or login"
-                      : "you@example.com"
-                  }
-                  autoCapitalize="none"
-                  spellCheck={false}
-                  autoComplete="email"
-                  required
-                  maxLength={254}
-                />
-              </label>
-            )}
-            {mode !== "recover" && (
-              <>
-                <div className="auth-password-group">
-                  <PasswordField
-                    label="Password"
-                    name="password"
-                    autoComplete={
-                      mode === "signin" ? "current-password" : "new-password"
-                    }
-                    minLength={mode === "signin" ? 1 : 10}
-                    hint={
-                      mode === "signin" ? undefined : "Use 10–128 characters."
-                    }
-                  />
-                  {mode === "signin" && (
-                    <Link
-                      className="text-link auth-forgot"
-                      href="/forgot-password"
-                    >
-                      Forgot password?
-                    </Link>
-                  )}
-                </div>
-                {(mode === "signup" || mode === "password") && (
-                  <PasswordField
-                    label="Confirm password"
-                    name="confirmPassword"
-                    autoComplete="new-password"
-                    minLength={10}
-                  />
-                )}
-              </>
-            )}
-            {error && (
-              <p id="auth-error" role="alert" className="form-error">
-                {error}
-              </p>
-            )}
-            {message && (
-              <p role="status" className="safety-note">
-                {message}
+        {passwordUpdated && (
+          <div className="auth-password-success">
+            <p className="password-feedback" role="status">
+              <UiIcon name="check" />
+              {message}
+            </p>
+            <Link
+              className="button button--primary button--full"
+              href="/account"
+            >
+              Continue to account
+            </Link>
+          </div>
+        )}
+        {!passwordUpdated &&
+          (configured || (developmentAdminEnabled && mode === "signin")) && (
+            <form
+              onSubmit={submit}
+              className="account-form"
+              aria-busy={busy}
+              aria-describedby={error ? "auth-error" : undefined}
+            >
+              <fieldset className="account-form__fields" disabled={busy}>
+                <legend className="sr-only">{title}</legend>
                 {mode === "signup" && (
+                  <label>
+                    Name
+                    <input
+                      name="displayName"
+                      placeholder="Your name"
+                      autoComplete="name"
+                      required
+                      maxLength={100}
+                    />
+                  </label>
+                )}
+                {mode !== "password" && (
+                  <label>
+                    {developmentAdminEnabled && mode === "signin"
+                      ? "Email or development login"
+                      : "Email"}
+                    <input
+                      name="email"
+                      type={
+                        developmentAdminEnabled && mode === "signin"
+                          ? "text"
+                          : "email"
+                      }
+                      placeholder={
+                        developmentAdminEnabled && mode === "signin"
+                          ? "Email or login"
+                          : "you@example.com"
+                      }
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      autoComplete="email"
+                      required
+                      maxLength={254}
+                    />
+                  </label>
+                )}
+                {mode !== "recover" && (
                   <>
-                    {" "}
-                    Already registered?{" "}
-                    <Link
-                      className="text-link"
-                      href={`/signin?next=${encodeURIComponent(target)}`}
-                    >
-                      Sign in
-                    </Link>{" "}
-                    or{" "}
-                    <Link className="text-link" href="/forgot-password">
-                      reset your password
-                    </Link>
-                    .
+                    <div className="auth-password-group">
+                      <PasswordField
+                        label="Password"
+                        name="password"
+                        autoComplete={
+                          mode === "signin"
+                            ? "current-password"
+                            : "new-password"
+                        }
+                        minLength={mode === "signin" ? 1 : 10}
+                        hint={
+                          mode === "signin"
+                            ? undefined
+                            : "Use 10–128 characters."
+                        }
+                      />
+                      {mode === "signin" && (
+                        <Link
+                          className="text-link auth-forgot"
+                          href="/forgot-password"
+                        >
+                          Forgot password?
+                        </Link>
+                      )}
+                    </div>
+                    {(mode === "signup" || mode === "password") && (
+                      <PasswordField
+                        label="Confirm password"
+                        name="confirmPassword"
+                        autoComplete="new-password"
+                        minLength={10}
+                      />
+                    )}
                   </>
                 )}
-              </p>
-            )}
-            <button
-              className="button button--primary button--full"
-              disabled={
-                busy ||
-                (!configured && !(developmentAdminEnabled && mode === "signin"))
-              }
-            >
-              {busy
-                ? "Please wait…"
-                : {
-                    signin: "Sign in",
-                    signup: "Create account",
-                    recover: "Send reset link",
-                    password: "Update password",
-                  }[mode]}
-            </button>
-          </form>
-        )}
+                {error && (
+                  <p id="auth-error" role="alert" className="form-error">
+                    {error}
+                  </p>
+                )}
+                {message && (
+                  <p role="status" className="safety-note">
+                    {message}
+                    {mode === "signup" && (
+                      <>
+                        {" "}
+                        Already registered?{" "}
+                        <Link
+                          className="text-link"
+                          href={`/signin?next=${encodeURIComponent(target)}`}
+                        >
+                          Sign in
+                        </Link>{" "}
+                        or{" "}
+                        <Link className="text-link" href="/forgot-password">
+                          reset your password
+                        </Link>
+                        .
+                      </>
+                    )}
+                  </p>
+                )}
+                <button
+                  className="button button--primary button--full"
+                  disabled={
+                    busy ||
+                    (!configured &&
+                      !(developmentAdminEnabled && mode === "signin"))
+                  }
+                >
+                  {busy && (
+                    <span className="button-spinner" aria-hidden="true" />
+                  )}
+                  {busy
+                    ? mode === "password"
+                      ? "Updating password…"
+                      : "Please wait…"
+                    : {
+                        signin: "Sign in",
+                        signup: "Create account",
+                        recover: "Send reset link",
+                        password: "Update password",
+                      }[mode]}
+                </button>
+              </fieldset>
+            </form>
+          )}
         {(mode === "signin" || mode === "signup") && configured && (
           <div className="auth-social">
             <p className="auth-divider">or continue with</p>

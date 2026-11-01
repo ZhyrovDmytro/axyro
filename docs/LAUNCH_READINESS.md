@@ -126,6 +126,20 @@ No owners or target dates have been assigned yet.
     backup/restore work remain pending. See [Supabase setup](SUPABASE_SETUP.md).
 
 - [ ] **L05 — Production authentication and email** · Partial
+  - 2026-11-01 Google setup: created dedicated Google Cloud project Axyro
+    (`axyro-513421`) and its production web client. The operator approved the
+    support email, Google policy agreement, credential creation/storage and
+    public publishing. Saved only basic identity scopes, enabled Supabase Google
+    and verified persistence after reload. Google reports In production. Live
+    production Google sign-in from a signed-out session succeeded; account reload
+    retained the existing profile and Admin access. New Google-only signup,
+    cross-account isolation and custom consent branding remain unverified.
+  - 2026-11-01 password follow-up: enabled the hosted Password changed security
+    email and verified the switch remained on after reload. Existing template and
+    SMTP configuration were retained. Account and recovery password forms now
+    provide pending/success/error feedback. Verified 412 unit tests, 15 browser
+    tests, phone/desktop accessibility, lint, TypeScript and production build.
+    UI deployment and real inbox delivery remain unverified. L05 stays Partial.
   - 2026-11-01: saved Auth Site URL `https://axyro.app` and added the exact
     `/auth/callback` redirect, preserving the previous Netlify callback. Operator
     signed into Resend; added `auth.axyro.app` in Ireland and its three required
@@ -169,11 +183,38 @@ No owners or target dates have been assigned yet.
 
 - [ ] **L06 — Stripe merchant and subscription setup** · Partial
   - Baseline: billing code exists; local Stripe environment variables were absent.
+  - 2026-11-01: operator selected standard Stripe and confirmed Czech Republic
+    as the business registration country. Prepared Axyro subscription onboarding
+    in test mode. Created sandbox product `prod_VYDabQuFiM7BcG` with verified
+    EUR 6.99/month (`price_1UX79cRrXPiiRoHs2d7Sdmyg`) and EUR 59.99/year
+    (`price_1UX7BQRrXPiiRoHsIAhJSE8s`). These belong to the separate Axyro
+    sandbox, not the live account. Saved sandbox default Customer Portal
+    `bpc_1UX7ChRrXPiiRoHsuyG3chKX` with payment-method updates enabled and
+    cancellation at period end. Live merchant verification/prices, secrets,
+    webhooks and live Customer Portal still require configuration and verification.
+  - Sandbox connection: operator approved reading the existing sandbox key and
+    saving it only in git-ignored `.env.local`, alongside the two sandbox price
+    IDs. Read-only Stripe API checks passed for both prices (active, EUR, exact
+    amounts/intervals, `livemode=false`) and the active default portal with
+    payment-method updates and period-end cancellation. No production billing
+    environment was changed. Local Supabase/auth configuration and webhook
+    delivery are absent, so application checkout/Pro verification remains L08.
   - Complete when: merchant verification/payouts, recurring prices, environment
     keys, webhook subscriptions and Customer Portal are configured for launch.
     Configure cancellation and payment-method management. See [billing](billing.md).
 
 - [ ] **L07 — Pricing, tax and commercial rules** · Open
+  - 2026-11-01 regional pricing: operator approved adding USD 7.99/month and
+    USD 69.99/year alongside the existing EUR prices. Created and API-verified
+    sandbox prices `price_1UX7VLRrXPiiRoHsUAr7Hvy3` (799 USD cents/month) and
+    `price_1UX7VLRrXPiiRoHsl6ffjNz6` (6999 USD cents/year) under the same Pro
+    product. IDs are saved locally. Paywall supports currency selection with
+    USD as default when available, preserving the selected billing period.
+  - 2026-11-01: operator approved EUR 6.99/month and EUR 59.99/year for
+    membership (approximately 28.5% annual saving). Tax treatment, including
+    whether the approved customer prices include applicable tax, remains open.
+    Operator reports not registered for Czech VAT or EU OSS; this does not
+    establish the applicable treatment of future sales.
   - Complete when: price/currency/annual billing decisions, applicable VAT/tax,
     invoices/receipts, refunds, failed payments and cancellation rules are
     documented and reflected in checkout/provider settings. The audited Checkout
@@ -351,3 +392,14 @@ business and markets. Recheck current requirements when completing legal tasks.
 | 2026-11-01 | L05 / L16 | Diagnosed owner sign-in loop: Auth succeeds and profile GET is 200, but owner role PATCH is 401. Production secret held only the key identifier. Operator approved replacement with `axyro_netlify_production` in Netlify production and deletion of previous default secret after tool-output exposure. Replacement saved and previous key deleted. Netlify published 6ae75f417e7909cf594eab3b from 60d7f96; existing confirmed browser session now loads /account with the owner profile and Admin access. Recovery and other L05 checks remain open. |
 
 | 2026-11-01 | L05 / L17 | Replaced the top-left account-loading text with a centered branded status and indeterminate CSS spinner. Reduced-motion users receive a static indicator; request timing and error/retry behavior are unchanged. Desktop and 390px previews checked; TypeScript, targeted ESLint and webpack production build pass. Production deployment remains pending. |
+
+| 2026-11-01 | L05 | Enabled Supabase's built-in password-change notification and verified persistence after reload. Account password feedback is beside the form; recovery has an explicit success screen. Delayed-response regression tests reproduced the original missing feedback. No real password was changed; inbox delivery and production deployment of the UI remain unverified. |
+
+| 2026-11-01 | L05 | Created dedicated Google Cloud project Axyro (`axyro-513421`) without activating billing. Operator approved policy agreement, OAuth credential creation/storage and public publishing. Saved production web client and basic identity scopes; Supabase Google is enabled after reload and Google audience is In production. Verified production Google sign-in from a signed-out session and persisted account access after a new page load. New Google-only signup, isolation and custom consent branding remain unverified. |
+
+| 2026-11-01 | L06 / L07 / L08 | Operator confirmed Czech business location, standard Stripe and EUR 6.99/month / EUR 59.99/year. Created and API-verified both sandbox prices and default portal (payment updates, period-end cancellation). Saved approved sandbox credentials only in ignored local environment. Operator reports no VAT/OSS registration; tax treatment stays open. Live activation is at business-type selection and requires owner verification/bank details. No production billing changes; local auth/database and webhook lifecycle testing remain pending. |
+
+| 2026-11-01 | L06 / L07 / L19 | Added approved USD 7.99/month and USD 69.99/year sandbox prices alongside EUR 6.99/month and EUR 59.99/year. App supports USD/EUR selection with USD default and billing-period preservation; both use the existing Pro entitlement and server price allowlist. Verified 413 unit tests, eight account browser checks and three subscription browser checks, TypeScript, lint and webpack production build. Real local app loaded both currencies from Stripe and switched correctly. No live billing or production deployment changed; merchant activation, tax decisions and real payment/webhook lifecycle verification remain open. |
+
+
+| 2026-11-01 | L01 / L05 / L06 / L07 / L17 / L19 | Prepared account and membership release: distinct account illustrations, password request/completion feedback, USD/EUR selection, responsive paywall and an explicitly inactive optional promo-code input. Verified 413 unit tests, all 119 browser regressions, two local production smoke tests, TypeScript, zero-warning lint and webpack build. Production dependency audit reports 0 vulnerabilities; full audit has 16 moderate development-tooling findings and no high/critical findings. Source secret-pattern scan found no matches. Hosted checks and merge evidence follow; live payment/webhook lifecycle, promo redemption and remaining provider/device checks stay open. |

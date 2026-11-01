@@ -49,10 +49,10 @@ Auth Site URL is now `https://axyro.app` (2026-11-01). The exact redirect
 `https://axyro.app/auth/callback` was added; the existing
 `https://axyro-training.netlify.app/auth/callback` remains allowed for continuity.
 Email signup and confirmation are enabled; anonymous sign-in is disabled.
-Custom SMTP is now enabled through Resend (2026-11-01); Google OAuth remains
-disabled. Configure Google OAuth as described in
-[authentication operations](AUTHENTICATION.md), then
-test actual signup, recovery, account deletion and two-user data isolation.
+Custom SMTP is enabled through Resend (2026-11-01). Google OAuth is now enabled
+for production and verified with an existing account; see Google OAuth below.
+New-user signup, recovery, account deletion and two-user data isolation still
+need their remaining production checks.
 Account/provider setup is not complete merely because tables exist.
 
 ## Deployed connection verification — 2026-10-24
@@ -71,7 +71,7 @@ origin/security checks were relaxed.
 
 On 2026-11-01 the operator reported receiving a real confirmation email and
 successfully signing in with a disposable test address. Password recovery,
-two-user data isolation, privileged account deletion and Google OAuth still need
+two-user data isolation, privileged account deletion and new Google-only signup need
 live verification. Custom SMTP was enabled on 2026-11-01.
 
 ## Custom email domain — 2026-11-01
@@ -123,3 +123,53 @@ When transferring a Dashboard key, reveal and use the complete value; the masked
 prefix is only an identifier. Never include revealed key fields in snapshots,
 logs, screenshots or source control. Verify a deployed privileged operation,
 not just `configured: true`, before considering the backend key verified.
+
+## Password-change notification — 2026-11-01
+
+Enabled Authentication → Emails → Password changed → Enable notification on
+Axyro. Saved and reloaded the page; the switch remained on and Save changes was
+disabled. Existing subject/template and SMTP settings were retained. This uses
+Supabase's built-in `mailer_notifications_password_changed_enabled` notification,
+covering successful account password changes and recovery replacements.
+No test user's password was changed and no test notification was sent. Inbox
+delivery remains unverified. The setting is hosted and is not applied by a
+repository deploy.
+
+## Google OAuth — 2026-11-01
+
+Created the dedicated Google Cloud project **Axyro** (`axyro-513421`) under the
+operator's existing account, without activating billing or a free trial. The
+operator approved the support email, Google API Services User Data Policy
+agreement, OAuth client creation/secret storage and public production publishing.
+
+Google Auth Platform configuration:
+
+- App name: Axyro; audience: External; publishing status: In production.
+- Web client: Axyro production web.
+- Authorized JavaScript origin: `https://axyro.app`.
+- Authorized redirect URI:
+  `https://unrlqkymbdnpmgmmfltb.supabase.co/auth/v1/callback`.
+- Only the non-sensitive `openid`, `userinfo.email` and `userinfo.profile` scopes.
+- Home, privacy and terms URLs point to the corresponding `https://axyro.app`
+  pages. No logo or sensitive/restricted scopes were added.
+
+The client ID and secret were saved in Axyro's Supabase Google provider. Verified
+Google shows ENABLED after a page reload. Skip nonce checks and Allow users without
+an email remain off. The secret was not written to source, local files or chat;
+temporary transfer values were cleared. Google no longer permits retrieving the
+new secret after the creation dialog is closed; use the provider's credential
+rotation workflow when replacement is needed.
+
+Supabase Site URL remains `https://axyro.app`, and the exact production app
+callback `https://axyro.app/auth/callback` was already allowed. The previous
+Netlify callback remains unchanged. Localhost OAuth has not been configured.
+
+Live verification: production Continue with Google reached Google's consent screen
+for basic name/profile picture and email access, then returned to the existing
+Axyro account. Signed out and repeated Google sign-in; a new page load of
+`https://axyro.app/account` remained authenticated and retained the existing
+profile and Admin access. No password was requested or changed.
+
+Google currently displays the Supabase project domain on its consent screen.
+Custom brand verification has not been performed. A new Google-only account and
+cross-account data isolation remain unverified; this does not close all L05 checks.

@@ -95,3 +95,12 @@ A monitored support inbox/forwarding address remains separate work.
 
 Free projects can pause after inactivity. Automatic backups are not included;
 define and test a backup/restore procedure before accepting paying customers.
+
+
+Confirmation email branding (2026-11-01): the hosted Confirm sign up template
+now uses `supabase/templates/confirmation.html`, subject “Welcome to Axyro —
+confirm your email”, and the generated welcome guide. Sender remains
+Axyro <noreply@auth.axyro.app>. Exact persisted HTML was verified after reload;
+new inbox rendering remains to be tested. See [email operations and asset
+provenance](EMAIL_CONFIRMATION.md). Repository deployment does not sync these
+Dashboard settings automatically.

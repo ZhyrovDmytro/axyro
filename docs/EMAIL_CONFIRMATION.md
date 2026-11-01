@@ -36,7 +36,25 @@ does not change how each inbox chooses to display envelope metadata.
 
 ## Deployment and verification
 
-Pending: public image URL verification, desktop/mobile preview and hosted
-template save/reload. Use a public immutable Netlify asset URL if the app's
-production branch does not yet contain this asset. No account tokens in
-preview links. Real Gmail/Apple Mail/Outlook rendering remains unverified.
+2026-11-01: saved the subject and HTML to the hosted Axyro Supabase project's
+Confirm sign up template. Reloaded, selected/copied the editor contents and
+verified exact equality with the source file. Both action and fallback retain
+`{{ .ConfirmationURL }}`. No changes to authentication routes or credentials.
+
+The image uses a publicly verified GitHub raw URL pinned to full asset commit
+`3cb162467b50fa5907f6f45f7ec7bfa318b1cbc0`. This avoids depending on Netlify
+preview-deploy retention before PR #1 merges. Keep this public repository and
+commit accessible. After the asset ships on main, the image can move to
+`https://axyro.app/images/email/welcome-guide-v1.jpg`, after verifying that URL.
+
+Browser previews checked desktop and a 390px phone frame; the public image
+loaded at 1040 × 693. HTML is under 4 KB; JPEG is 75,271 bytes. Static assertions
+verified two confirmation placeholders, no scripts/forms, and Gmail-size
+budget. Button/text remain usable with the image unavailable. The saved
+Supabase preview contains only the new content. No test email was sent during
+this change. Real Gmail/Apple Mail/Outlook rendering remains unverified.
+
+To roll back, paste the earlier simple confirmation body from the template's
+previous operation notes or use Supabase Reset template; retain the verified
+SMTP sender. Dashboard edits are operational settings, not automatically
+applied by a repository deployment.

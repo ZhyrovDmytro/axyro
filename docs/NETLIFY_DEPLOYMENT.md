@@ -28,6 +28,13 @@ the public SUPABASE_URL as secret, so staging excludes only that public identifi
 with `SECRETS_SCAN_OMIT_KEYS=SUPABASE_URL`. Scanning remains enabled for actual
 credentials. See [sandbox verification and test steps](BILLING_SANDBOX_TEST.md).
 
+Verified staging deploy: `6ae8c0c451730a78a9d014d8`, source
+`e58ade54f8addc6b647697f873c9a265a8a067ea`. Canonical-origin handling is shared
+by mutation checks and auth redirects, because Netlify can pass an immutable
+deployment URL to the server. Deployed products, session, mutation protections
+and callback redirects pass. Real signed `invoice.paid` delivery returned 200
+using a zero-value unlinked sandbox probe; an app-user purchase remains unverified.
+
 ## Custom domain — 2026-11-01
 
 - Primary origin: `https://axyro.app`, registered and managed through Cloudflare.

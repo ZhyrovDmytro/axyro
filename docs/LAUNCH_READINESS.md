@@ -268,6 +268,14 @@ No owners or target dates have been assigned yet.
     PKCE cookie scope. Three provider redirect tests failed before the follow-up;
     verified 432 unit tests, 11 account/subscription browser tests, TypeScript,
     zero-warning lint and webpack build.
+    Final staging source `e58ade54f8addc6b647697f873c9a265a8a067ea` is published as
+    `6ae8c0c451730a78a9d014d8`. Deployed checks verify four exact prices,
+    configured auth, disabled admin login, checkout 401 for guests, forged webhook
+    400, same-origin logout 200, cross-origin logout 403 and stable Google/refresh/
+    callback-error redirect origins. Browser USD/EUR selection loads correctly.
+    The operator's real app purchase/Pro/cancellation exercise remains open.
+    Both deployed guest release smoke tests passed against the final e58ade5
+    deployment: public routes and free-player start/pause/resume/skip-to-completion.
   - 2026-11-02: added endpoint tests using real HMAC verification for the seven
     subscribed events, expanded customer references, forged delivery, missing
     signing configuration, unrelated events and retryable reconciliation failure.
@@ -460,3 +468,5 @@ business and markets. Recheck current requirements when completing legal tasks.
 | 2026-11-01 | L01 / L05 / L06 / L07 / L17 / L19 | Prepared account and membership release: distinct account illustrations, password request/completion feedback, USD/EUR selection, responsive paywall and an explicitly inactive optional promo-code input. Verified 413 unit tests, all 119 browser regressions, two local production smoke tests, TypeScript, zero-warning lint and webpack build. Production dependency audit reports 0 vulnerabilities; full audit has 16 moderate development-tooling findings and no high/critical findings. Source secret-pattern scan found no matches. Hosted checks and merge evidence follow; live payment/webhook lifecycle, promo redemption and remaining provider/device checks stay open. |
 
 | 2026-11-02 | L06 / L08 | Verified dedicated Stripe sandbox identity, all four active test prices and default portal settings through the API. No webhook endpoints or hosted Stripe variables exist. Added 12 signed-webhook endpoint tests and sandbox configuration/operator test instructions. All 425 unit tests, TypeScript and zero-warning lint pass. Separate hosted staging import was blocked by automatic approval review pending explicit scope/secret approval; no hosted configuration or live billing changed. L06 remains Partial and L08 Unverified. |
+
+| 2026-11-02 | L03 / L05 / L06 / L08 / L19 | Operator approved separate Free Netlify staging, sandbox secrets and temporary shared Axyro Supabase access for a dedicated regular account. Configured axyro-staging.netlify.app, exact auth callback, four sandbox prices and protected staging-only credentials. Active webhook we_1UXLcrRrXPiiRoHsSibA6eCC delivered real zero-value invoice.paid event evt_1UXLrXRrXPiiRoHsQj93OjNu with HTTP 200; no app subscription row was created. Replaced initial webhook signing configuration after tool-output exposure; old endpoint is disabled. Fixed Netlify immutable-origin handling for mutations and auth redirects, with failing-before-fix regressions. Verified 432 unit tests, 11 final account/subscription browser checks (30 earlier account/subscription/smoke checks), TypeScript, zero-warning lint and webpack build. Source e58ade5 published as 6ae8c0c451730a78a9d014d8; deployed auth/products/protections/redirect checks and both guest release smoke tests pass. Public main/billing unchanged; operator purchase/Pro/cancellation, live merchant and tax work remain open. |

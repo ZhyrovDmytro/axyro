@@ -71,7 +71,24 @@ connection for a new regular test account.
 - No sandbox webhook endpoints existed at initial inspection. The existing public
   Netlify project has no Stripe variables configured.
 
-## Configuration required before testing
+## Deployment verification
+
+Netlify published source `e58ade54f8addc6b647697f873c9a265a8a067ea` as deploy
+`6ae8c0c451730a78a9d014d8`. Deployed checks confirm configured authentication,
+disabled development administrator login, all four exact provider prices,
+unauthenticated checkout HTTP 401, forged webhook HTTP 400, same-origin logout
+HTTP 200 and cross-origin logout HTTP 403. Google callback, refresh and callback
+error redirects all remain on `https://axyro-staging.netlify.app`.
+The browser membership screen loads both USD and EUR prices. The operator's
+real sandbox purchase, Pro entitlement and cancellation test is the remaining
+handoff; L08 remains Unverified until its results are recorded.
+Both guest release smoke tests passed against this published deployment,
+including public pages and free-player start/pause/resume/skip-to-completion.
+
+## Configuration reference
+
+The hosted setup above is complete. This is the repeatable setup procedure,
+not additional work required from the operator before the purchase test.
 
 1. Select and deploy a stable test origin. A separate staging project is
    recommended; creating it and storing hosted credentials require operator

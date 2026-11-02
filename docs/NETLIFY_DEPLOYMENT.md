@@ -4,6 +4,29 @@ Selected 2026-10-24 for the first Axyro staging deployment. Start on Netlify Fre
 do not enable paid upgrades or automatic credit recharge without an operator
 decision. L03 stays open until a deployed URL and the hosting checks are verified.
 
+## Billing staging — 2026-11-02
+
+The operator approved a separate Free Netlify project `axyro-staging`, deployed
+from `ZhyrovDmytro/axyro` main at `https://axyro-staging.netlify.app`.
+It has its own canonical APP_URL, four sandbox prices, protected Stripe API and
+webhook keys, and AI planning disabled. Credentials are populated only in this
+project's Production context, not previews, branch deploys, agent runners or CLI
+local contexts. The public project `axyro-training` has no Stripe credentials.
+
+The operator explicitly approved temporarily sharing the existing Axyro Supabase
+connection to avoid another paid database. This is a separate website, **not an
+isolated database**. Use a new regular test account; sandbox Pro status is also
+visible on the public site for that account. Cancel and remove its sandbox billing
+association before enabling live Stripe. Do not switch stored sandbox customers
+to live keys. The exact staging auth callback was added without changing the
+production Auth Site URL or previous allowlisted callbacks.
+
+All existing hosted migrations and checkout-reservation privileges were verified.
+The new project uses the same Node.js 24/webpack build settings. Bulk import marked
+the public SUPABASE_URL as secret, so staging excludes only that public identifier
+with `SECRETS_SCAN_OMIT_KEYS=SUPABASE_URL`. Scanning remains enabled for actual
+credentials. See [sandbox verification and test steps](BILLING_SANDBOX_TEST.md).
+
 ## Custom domain — 2026-11-01
 
 - Primary origin: `https://axyro.app`, registered and managed through Cloudflare.

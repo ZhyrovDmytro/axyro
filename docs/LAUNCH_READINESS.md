@@ -74,6 +74,15 @@ No owners or target dates have been assigned yet.
     blocker. Hosting remains open under L03.
 
 - [ ] **L03 — Hosting, domain and environments** · Partial
+  - 2026-11-02: operator approved separate Free Netlify staging project
+    `axyro-staging` from the existing Axyro repository, sandbox credential storage,
+    and temporary shared Supabase access for a dedicated regular test account.
+    Test origin is `https://axyro-staging.netlify.app`; the website is separate,
+    but the database is explicitly shared. No paid database or hosting upgrade,
+    project pause, live Stripe setup or production billing environment change.
+    The exact staging auth callback is saved and verified after reload.
+    Credentials are protected and populated only in staging's Production context.
+    See [staging setup](NETLIFY_DEPLOYMENT.md#billing-staging--2026-11-02).
   - Complete when: staging and production are deployed; domain, DNS, HTTPS,
     canonical `APP_URL` and server secrets are configured; deployed routes work.
     No connected deployment was verified during the audit.
@@ -182,6 +191,22 @@ No owners or target dates have been assigned yet.
     See [authentication operations](AUTHENTICATION.md).
 
 - [ ] **L06 — Stripe merchant and subscription setup** · Partial
+  - 2026-11-02 follow-up: created the approved staging webhook with all seven
+    required events and `2025-06-30.basil` snapshot payloads. Active endpoint is
+    `we_1UXLcrRrXPiiRoHsSibA6eCC`. The first endpoint was disabled and signing
+    configuration replaced after browser-tool output unexpectedly included its
+    initial secret. Both sandbox credentials are protected in the staging project.
+    Stripe API creation of a Checkout session and Customer Portal session succeeded
+    for disposable unlinked customer `cus_VYSegHai9vyo8K`, without personal/card
+    details, subscription purchase or money movement. User purchase verification
+    remains L08; live merchant setup remains open.
+  - Staging smoke exposed an origin mismatch: Netlify's immutable deployment URL
+    reached the server while the browser used the stable staging alias. Fixed the
+    shared mutation check to use canonical server-configured APP_URL in production,
+    preserving development behavior and rejecting all other/missing origins.
+    The regression test failed before the fix. Verified 426 unit tests, 30 account,
+    subscription and smoke browser checks, TypeScript, zero-warning lint and
+    webpack build. No database schema or app purchase behavior was added.
   - 2026-11-02: API-verified the existing local sandbox key belongs to dedicated
     **Axyro sandbox** (`acct_1UWlxJRrXPiiRoHs`), separate from the older Test mode
     account. All four EUR/USD prices are active and `livemode=false`; the default

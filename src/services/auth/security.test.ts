@@ -8,6 +8,7 @@ describe("authentication security boundaries", () => {
   afterEach(() => vi.unstubAllEnvs());
   it("accepts the actual loopback host when Next normalizes development URLs", () => {
     vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("APP_URL", "https://axyro.app");
     const request = new Request("http://localhost:3000/api/auth/signin", {
       headers: { origin: "http://127.0.0.1:3000", host: "127.0.0.1:3000" },
     });
@@ -29,6 +30,30 @@ describe("authentication security boundaries", () => {
     expect(developmentAdminEnabled("production")).toBe(false);
     expect(developmentAdminEnabled("development")).toBe(true);
     expect(developmentAdminEnabled("test")).toBe(true);
+  });
+  it("uses the configured public origin behind a production deployment proxy", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("APP_URL", "https://axyro-staging.netlify.app");
+    const url =
+      "https://deploy-id--axyro-staging.netlify.app/api/billing/checkout";
+    expect(() =>
+      assertSameOrigin(
+        new Request(url, {
+          headers: { origin: "https://axyro-staging.netlify.app" },
+        }),
+      ),
+    ).not.toThrow();
+    for (const origin of [
+      "https://evil.test",
+      "https://axyro.app",
+      "https://deploy-id--axyro-staging.netlify.app",
+      "http://axyro-staging.netlify.app",
+    ]) {
+      expect(() =>
+        assertSameOrigin(new Request(url, { headers: { origin } })),
+      ).toThrow();
+    }
+    expect(() => assertSameOrigin(new Request(url))).toThrow();
   });
   it("rejects external and ambiguous callback destinations", () => {
     for (const path of [

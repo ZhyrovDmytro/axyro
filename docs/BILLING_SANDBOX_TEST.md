@@ -1,7 +1,49 @@
 # Sandbox billing handoff
 
 Prepared 2026-11-02 (Europe/Prague). This is the L06/L08 test plan, not approval
-to accept live payments. Hosted sandbox configuration is still pending.
+to accept live payments. The operator approved a separate Free Netlify staging
+site, sandbox secret storage and temporary reuse of the existing Axyro Supabase
+connection for a new regular test account.
+
+## Hosted staging configuration
+
+- Test origin: `https://axyro-staging.netlify.app`, separate Netlify project
+  `axyro-staging`, using GitHub `ZhyrovDmytro/axyro` main.
+- Supabase remains `unrlqkymbdnpmgmmfltb`; no project was created, paused or
+  upgraded. Accounts, training data and subscription rows are shared with
+  production. Test only with a dedicated regular account. Its sandbox Pro status
+  will also be visible on the public app. Before configuring live Stripe,
+  cancel/remove the test subscription association or remove the disposable test
+  account through the staging account-deletion flow while sandbox keys remain
+  configured. Do not switch this user's stored sandbox customer to live keys.
+- Exact staging `/auth/callback` was added and verified after reload. The Auth
+  Site URL remains `https://axyro.app`; confirmation email branding still links
+  to the public app. Existing accounts can sign in on staging.
+- Sandbox Stripe and Supabase credentials are protected in Netlify and populated
+  only in this staging project's Production context. PR previews, branch deploys,
+  agent runners and CLI-local contexts have no credentials. Free plan secret
+  scopes include Builds, Functions and Runtime; Post processing is excluded.
+- `APP_URL` points to staging and AI planning remains disabled. All four sandbox
+  Price IDs are configured in this staging context.
+- Active webhook: `we_1UXLcrRrXPiiRoHsSibA6eCC`, endpoint
+  `https://axyro-staging.netlify.app/api/billing/webhook`, seven documented events,
+  snapshot version `2025-06-30.basil`. The first endpoint
+  `we_1UXLXLRrXPiiRoHslssKE4hC` was disabled and its signing configuration replaced
+  after browser-tool output unexpectedly included the initial secret value.
+- Supabase migrations and checkout reservation exist. Verified RLS on profiles,
+  subscriptions and user training data; only service_role can execute the checkout
+  reservation function, not anon or authenticated.
+- A configured deploy initially failed because the bulk import also marked the
+  public `SUPABASE_URL` as secret and its URL appears in setup documentation.
+  Staging `SECRETS_SCAN_OMIT_KEYS=SUPABASE_URL` excludes only this public identifier;
+  actual credential scanning stays enabled.
+- A deployed smoke check found that Netlify passed its immutable deploy URL as
+  the request URL, causing valid staging Origin headers to fail the shared
+  mutation check. Production checks now use the canonical server-configured
+  APP_URL when present and reject other origins, including the immutable alias.
+  Regression verification: the new test failed before the fix; 426 unit tests,
+  30 account/subscription/smoke browser tests, TypeScript, zero-warning lint and
+  the webpack production build pass. Staging deploy verification follows below.
 
 ## Verified provider configuration
 
@@ -12,7 +54,7 @@ to accept live payments. Hosted sandbox configuration is still pending.
   USD 7.99/month and USD 69.99/year.
 - Default portal `bpc_1UX7ChRrXPiiRoHsuyG3chKX` is active, with payment-method
   updates, invoice history and cancellation at period end enabled.
-- No sandbox webhook endpoints existed at inspection. The existing public
+- No sandbox webhook endpoints existed at initial inspection. The existing public
   Netlify project has no Stripe variables configured.
 
 ## Configuration required before testing

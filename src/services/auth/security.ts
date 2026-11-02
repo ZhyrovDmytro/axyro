@@ -14,7 +14,12 @@ export function safeNext(value: string | null, fallback = "/"): string {
 export function assertSameOrigin(request: Request): void {
   const origin = request.headers.get("origin");
   const target = new URL(request.url);
-  if (origin === target.origin) return;
+  // Deployment proxies can expose an immutable deploy URL instead of the public origin.
+  const expectedOrigin =
+    !developmentAdminEnabled() && process.env.APP_URL
+      ? new URL(process.env.APP_URL).origin
+      : target.origin;
+  if (origin === expectedOrigin) return;
   if (origin && developmentAdminEnabled()) {
     const source = new URL(origin);
     const loopback = ["localhost", "127.0.0.1"];

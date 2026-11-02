@@ -16,7 +16,7 @@ vi.mock("@/services/auth/server", () => ({
       throw new Error("Origin");
   },
 }));
-import { POST } from "./route";
+import { GET, POST } from "./route";
 function request(action: string, body: unknown, origin = "https://axyro.test") {
   return new Request(`https://axyro.test/api/auth/${action}`, {
     method: "POST",
@@ -29,6 +29,42 @@ describe("auth route trust boundaries", () => {
     vi.unstubAllEnvs();
     vi.clearAllMocks();
   });
+  it("uses the canonical callback for Google behind a deployment proxy", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("APP_URL", "https://axyro-staging.netlify.app");
+    const response = await GET(
+      new Request(
+        "https://deploy-id--axyro-staging.netlify.app/api/auth/oauth?provider=google",
+      ),
+      { params: Promise.resolve({ action: "oauth" }) },
+    );
+    const location = new URL(response.headers.get("location")!);
+    expect(location.searchParams.get("redirect_to")).toBe(
+      "https://axyro-staging.netlify.app/auth/callback",
+    );
+  });
+  it.each(["signup", "recover"])(
+    "uses the canonical callback for %s",
+    async (action) => {
+      vi.stubEnv("NODE_ENV", "production");
+      vi.stubEnv("APP_URL", "https://axyro-staging.netlify.app");
+      auth.supabaseRequest.mockResolvedValueOnce({});
+      const response = await POST(
+        request(action, {
+          email: "player@example.com",
+          password: "secure-password-123",
+          confirmPassword: "secure-password-123",
+          displayName: "Player",
+        }),
+        { params: Promise.resolve({ action }) },
+      );
+      expect(response.status).toBe(200);
+      expect(auth.supabaseRequest).toHaveBeenCalledWith(
+        `/auth/v1/${action}?redirect_to=${encodeURIComponent("https://axyro-staging.netlify.app/auth/callback")}`,
+        expect.any(Object),
+      );
+    },
+  );
   it.each(["new", "already registered"])(
     "keeps signup responses generic for %s accounts awaiting no session",
     async (account) => {

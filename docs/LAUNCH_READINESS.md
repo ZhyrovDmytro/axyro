@@ -256,6 +256,18 @@ No owners or target dates have been assigned yet.
     implement applicable tax handling.
 
 - [ ] **L08 — Real payment lifecycle verification** · Unverified
+  - 2026-11-02 infrastructure check: a zero-value invoice for a disposable
+    sandbox customer with no app association, email or payment details generated
+    real event `evt_1UXLrXRrXPiiRoHsQj93OjNu` (`invoice.paid`). Stripe records
+    Delivered, HTTP 200 and `{ "received": true }` from the active staging webhook.
+    This verifies signed delivery, provider reads and the Supabase server write
+    path, but does not verify paid-user access or a purchased subscription.
+    Staging now deploys the task branch; public main/billing remain unchanged.
+    Follow-up canonical-origin handling covers signup/recovery/Google callbacks,
+    session-refresh redirects and callback completion/error redirects to preserve
+    PKCE cookie scope. Three provider redirect tests failed before the follow-up;
+    verified 432 unit tests, 11 account/subscription browser tests, TypeScript,
+    zero-warning lint and webpack build.
   - 2026-11-02: added endpoint tests using real HMAC verification for the seven
     subscribed events, expanded customer references, forged delivery, missing
     signing configuration, unrelated events and retryable reconciliation failure.

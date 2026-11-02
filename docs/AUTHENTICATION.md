@@ -8,6 +8,9 @@ immutable deployment URL to the server while the browser uses the stable public
 hostname. Other origins, missing Origin headers and mismatched schemes are
 rejected. Development keeps its existing loopback behavior. Each hosted project
 must set its own exact APP_URL; staging does not accept the production app origin.
+The same canonical origin is used for signup/recovery/Google callback URLs,
+refresh redirects and callback completion/error redirects so PKCE cookies remain
+on the stable application hostname behind the deployment proxy.
 
 Set server environment variables `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, and `SUPABASE_SECRET_KEY`. Never prefix the secret key with NEXT_PUBLIC. Legacy `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` remain fallback aliases when the corresponding modern variable is unset. Modern keys travel only in the `apikey` header; signed-in requests additionally send the user's JWT as bearer authorization. Legacy JWT keys retain bearer compatibility. Apply the migrations in `supabase/migrations` before enabling account creation. Configure Supabase Site URL for the deployment origin and allow `<origin>/auth/callback` as a redirect. Enable Google in Supabase and configure its Google client ID and secret, with the Supabase-provided OAuth callback in Google Cloud. This is web-only; Apple distribution is not currently targeted.
 

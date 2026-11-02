@@ -7,7 +7,8 @@ decision. L03 stays open until a deployed URL and the hosting checks are verifie
 ## Billing staging — 2026-11-02
 
 The operator approved a separate Free Netlify project `axyro-staging`, deployed
-from `ZhyrovDmytro/axyro` main at `https://axyro-staging.netlify.app`.
+from `ZhyrovDmytro/axyro` branch `codex/sandbox-billing-readiness` at
+`https://axyro-staging.netlify.app`. The public project still deploys main.
 It has its own canonical APP_URL, four sandbox prices, protected Stripe API and
 webhook keys, and AI planning disabled. Credentials are populated only in this
 project's Production context, not previews, branch deploys, agent runners or CLI

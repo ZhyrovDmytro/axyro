@@ -8,7 +8,8 @@ connection for a new regular test account.
 ## Hosted staging configuration
 
 - Test origin: `https://axyro-staging.netlify.app`, separate Netlify project
-  `axyro-staging`, using GitHub `ZhyrovDmytro/axyro` main.
+  `axyro-staging`, using GitHub `ZhyrovDmytro/axyro` branch
+  `codex/sandbox-billing-readiness`. The public site's main branch is unchanged.
 - Supabase remains `unrlqkymbdnpmgmmfltb`; no project was created, paused or
   upgraded. Accounts, training data and subscription rows are shared with
   production. Test only with a dedicated regular account. Its sandbox Pro status
@@ -44,6 +45,19 @@ connection for a new regular test account.
   Regression verification: the new test failed before the fix; 426 unit tests,
   30 account/subscription/smoke browser tests, TypeScript, zero-warning lint and
   the webpack production build pass. Staging deploy verification follows below.
+- Real signed webhook connectivity was verified using a zero-value sandbox
+  invoice for unlinked disposable customer `cus_VYSegHai9vyo8K`, with no email,
+  payment details or app-user association. Stripe event
+  `evt_1UXLrXRrXPiiRoHsQj93OjNu` (`invoice.paid`) was Delivered with HTTP 200 and
+  `{ "received": true }`. Reconciliation reached Stripe and the Supabase server
+  API successfully without creating a subscription row or granting Pro. This is
+  infrastructure verification, not a completed app subscription purchase.
+- Signup/recovery/Google callbacks and callback completion/error redirects now
+  share the canonical application origin, preserving PKCE cookies on the stable
+  hostname. The new provider redirect tests failed before this follow-up fix.
+  Final local verification: 432 unit tests, 11 account/subscription browser checks,
+  TypeScript, zero-warning lint and webpack build pass. Earlier 30-test account,
+  subscription and smoke regression verification also passed for the mutation fix.
 
 ## Verified provider configuration
 

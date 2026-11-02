@@ -12,7 +12,11 @@ import {
   supabaseUrl,
   assertSameOrigin,
 } from "@/services/auth/server";
-import { developmentAdminEnabled, safeNext } from "@/services/auth/security";
+import {
+  applicationOrigin,
+  developmentAdminEnabled,
+  safeNext,
+} from "@/services/auth/security";
 
 const password = z.string().min(10).max(128);
 const email = z.string().email().max(254);
@@ -54,7 +58,7 @@ export async function GET(
     return NextResponse.redirect(
       new URL(
         session ? next : `/signin?next=${encodeURIComponent(next)}`,
-        request.url,
+        applicationOrigin(request),
       ),
     );
   }
@@ -76,14 +80,14 @@ export async function GET(
       const authorize = new URL("/auth/v1/authorize", supabaseUrl());
       authorize.search = new URLSearchParams({
         provider: "google",
-        redirect_to: `${url.origin}/auth/callback`,
+        redirect_to: `${applicationOrigin(request)}/auth/callback`,
         code_challenge: challenge,
         code_challenge_method: "s256",
       }).toString();
       return NextResponse.redirect(authorize);
     } catch {
       return NextResponse.redirect(
-        new URL("/signin?error=configuration", request.url),
+        new URL("/signin?error=configuration", applicationOrigin(request)),
       );
     }
   }
@@ -129,7 +133,7 @@ export async function POST(
         safeNext(input.next ?? null, "/plan/setup"),
       );
       const result = await supabaseRequest(
-        `/auth/v1/signup?redirect_to=${encodeURIComponent(`${new URL(request.url).origin}/auth/callback`)}`,
+        `/auth/v1/signup?redirect_to=${encodeURIComponent(`${applicationOrigin(request)}/auth/callback`)}`,
         {
           method: "POST",
           body: {
@@ -153,7 +157,7 @@ export async function POST(
       const challenge = await beginPkce("/reset-password");
       // Always return the same response; never reveal whether an address exists.
       await supabaseRequest(
-        `/auth/v1/recover?redirect_to=${encodeURIComponent(`${new URL(request.url).origin}/auth/callback`)}`,
+        `/auth/v1/recover?redirect_to=${encodeURIComponent(`${applicationOrigin(request)}/auth/callback`)}`,
         {
           method: "POST",
           body: {

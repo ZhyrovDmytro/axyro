@@ -1,6 +1,6 @@
 # Paid public launch tracker
 
-Last updated: 2026-11-01 (Europe/Prague).
+Last updated: 2026-11-02 (Europe/Prague).
 
 This is the shared checklist for launching Axyro as a paid public web app.
 Current verdict: **not ready to accept public payments**. Core membership code
@@ -182,6 +182,15 @@ No owners or target dates have been assigned yet.
     See [authentication operations](AUTHENTICATION.md).
 
 - [ ] **L06 — Stripe merchant and subscription setup** · Partial
+  - 2026-11-02: API-verified the existing local sandbox key belongs to dedicated
+    **Axyro sandbox** (`acct_1UWlxJRrXPiiRoHs`), separate from the older Test mode
+    account. All four EUR/USD prices are active and `livemode=false`; the default
+    portal is active with payment-method updates, invoice history and period-end
+    cancellation. No sandbox webhook exists. Netlify's existing public project
+    lists no Stripe environment variables. Preparing separate hosted staging;
+    automatic approval review blocked GitHub import pending explicit repository
+    access/project and hosted-secret approval. No hosted credentials or public
+    billing configuration changed. See [sandbox handoff](BILLING_SANDBOX_TEST.md).
   - Baseline: billing code exists; local Stripe environment variables were absent.
   - 2026-11-01: operator selected standard Stripe and confirmed Czech Republic
     as the business registration country. Prepared Axyro subscription onboarding
@@ -222,6 +231,15 @@ No owners or target dates have been assigned yet.
     implement applicable tax handling.
 
 - [ ] **L08 — Real payment lifecycle verification** · Unverified
+  - 2026-11-02: added endpoint tests using real HMAC verification for the seven
+    subscribed events, expanded customer references, forged delivery, missing
+    signing configuration, unrelated events and retryable reconciliation failure.
+    All 12 focused tests pass. These use mocked reconciliation and do not establish
+    deployed webhook delivery or purchase readiness. Owner/Admin accounts already
+    have Pro; the operator test requires a regular account. Hosted database and
+    Stripe account isolation must be resolved before configuring staging.
+    Full local verification: 425 unit tests, TypeScript and zero-warning ESLint
+    pass. No production code was changed; build/browser checks were not rerun.
   - Complete when: real Stripe test-mode purchase → signed webhook → trusted Pro
     access works on staging, including checkout continuation, cancellation,
     failed payment, renewal, expiration, webhook retry, duplicate clicks and
@@ -403,3 +421,5 @@ business and markets. Recheck current requirements when completing legal tasks.
 
 
 | 2026-11-01 | L01 / L05 / L06 / L07 / L17 / L19 | Prepared account and membership release: distinct account illustrations, password request/completion feedback, USD/EUR selection, responsive paywall and an explicitly inactive optional promo-code input. Verified 413 unit tests, all 119 browser regressions, two local production smoke tests, TypeScript, zero-warning lint and webpack build. Production dependency audit reports 0 vulnerabilities; full audit has 16 moderate development-tooling findings and no high/critical findings. Source secret-pattern scan found no matches. Hosted checks and merge evidence follow; live payment/webhook lifecycle, promo redemption and remaining provider/device checks stay open. |
+
+| 2026-11-02 | L06 / L08 | Verified dedicated Stripe sandbox identity, all four active test prices and default portal settings through the API. No webhook endpoints or hosted Stripe variables exist. Added 12 signed-webhook endpoint tests and sandbox configuration/operator test instructions. All 425 unit tests, TypeScript and zero-warning lint pass. Separate hosted staging import was blocked by automatic approval review pending explicit scope/secret approval; no hosted configuration or live billing changed. L06 remains Partial and L08 Unverified. |

@@ -1,3 +1,4 @@
+import { mockFreeMember } from "./helpers/free-member";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
@@ -28,7 +29,7 @@ test("workout cards fit narrow phones and exercise links have touch targets", as
 test("setup restores answers and the current step after refresh and exit", async ({
   page,
 }) => {
-  await guest(page);
+  await mockFreeMember(page);
   await page.goto("/plan/setup");
   await page.getByRole("radio", { name: /Another sport/ }).check();
   await page.getByRole("button", { name: "Continue", exact: true }).click();
@@ -54,7 +55,7 @@ test("setup restores answers and the current step after refresh and exit", async
 test("unfinished selections survive refresh and still require validation", async ({
   page,
 }) => {
-  await guest(page);
+  await mockFreeMember(page);
   await page.goto("/plan/setup");
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   await page
@@ -73,7 +74,7 @@ test("unfinished selections survive refresh and still require validation", async
 test("review names equipment and lets people edit a specific answer", async ({
   page,
 }) => {
-  await guest(page);
+  await mockFreeMember(page);
   await page.goto("/plan/setup");
   await page.getByRole("radio", { name: /Another sport/ }).check();
   for (let step = 0; step < 6; step++) {

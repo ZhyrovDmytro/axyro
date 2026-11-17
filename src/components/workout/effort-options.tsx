@@ -1,4 +1,6 @@
 "use client";
+import { freeExerciseIds } from "@/lib/library-access";
+import { PaywallLink } from "@/components/membership/paywall-modal";
 
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
@@ -216,9 +218,6 @@ export function WorkoutConfigurator({
 
             return (
               <li key={item.id}>
-                <span className="plan-index">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
                 <div className="plan-media">
                   <ExerciseMedia exercise={exercise} compact />
                 </div>
@@ -229,18 +228,25 @@ export function WorkoutConfigurator({
                         Review before training
                       </span>
                     )}
-                    <Link href={`/exercises/${exercise.slug}`}>
-                      {exercise.name}
-                    </Link>
+                    <div className="plan-exercise-heading">
+                      <span className="plan-index">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <PaywallLink
+                        href={`/exercises/${exercise.slug}`}
+                        context="library"
+                        returnTo={`/exercises/${exercise.slug}`}
+                        requirePro={!freeExerciseIds.has(exercise.id)}
+                      >
+                        {exercise.name}
+                      </PaywallLink>
+                    </div>
                     <p>{exercise.shortDescription}</p>
                   </div>
                   <div className="plan-timing">
                     <span className="plan-timing-value">
                       <small>Rounds</small>
                       <strong>{item.sets}</strong>
-                      <span>
-                        {isDailyWorkout ? "Guided interval" : "Unchanged"}
-                      </span>
                     </span>
                     <TimingValue
                       label="Work"

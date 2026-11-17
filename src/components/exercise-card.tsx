@@ -1,7 +1,9 @@
 "use client";
+import { freeExerciseIds } from "@/lib/library-access";
 import { isHomeExercise } from "@/domain/content/catalog-quality";
-import Link from "next/link";
+import { PaywallLink } from "@/components/membership/paywall-modal";
 
+import { useEntitlement } from "@/components/membership/entitlement-provider";
 import { ExerciseMedia } from "./exercise-media";
 import { UiIcon } from "./ui-icon";
 import { formatDumbbellAvailability, titleCase } from "@/lib/format";
@@ -18,12 +20,20 @@ type ExerciseCardProps = {
 };
 
 export function ExerciseCard({ exercise, profile, sport }: ExerciseCardProps) {
+  const { hasPro } = useEntitlement();
+  const locked = !hasPro && !freeExerciseIds.has(exercise.id);
   const href = sport
     ? "/exercises/" + exercise.slug + "?sport=" + sport
     : "/exercises/" + exercise.slug;
 
   return (
-    <Link className="exercise-card" href={href}>
+    <PaywallLink
+      className="exercise-card"
+      href={href}
+      context="library"
+      returnTo={href}
+      requirePro={!freeExerciseIds.has(exercise.id)}
+    >
       <ExerciseMedia exercise={exercise} compact />
       <div className="exercise-card-copy">
         <div className="tag-row" aria-label="Exercise categories">
@@ -31,6 +41,7 @@ export function ExerciseCard({ exercise, profile, sport }: ExerciseCardProps) {
             {titleCase(exercise.difficulty)}
           </span>
           <span className="pill">{titleCase(exercise.roles[0])}</span>
+          {locked && <span className="membership-lock">Pro</span>}
         </div>
         <h2>{exercise.name}</h2>
         <p>{exercise.shortDescription}</p>
@@ -50,10 +61,11 @@ export function ExerciseCard({ exercise, profile, sport }: ExerciseCardProps) {
             )}
           </span>
           <span className="text-link">
-            View guide <UiIcon name="arrow-right" />
+            {locked ? "Unlock guide" : "View guide"}{" "}
+            <UiIcon name="arrow-right" />
           </span>
         </div>
       </div>
-    </Link>
+    </PaywallLink>
   );
 }

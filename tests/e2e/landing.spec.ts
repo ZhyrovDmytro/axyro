@@ -8,11 +8,11 @@ for (const width of [320, 1280]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/");
     const workflow = page.getByRole("region", {
-      name: "A plan with your name on it.",
+      name: "60 days of training around your schedule",
     });
     await expect(workflow.getByRole("listitem")).toHaveCount(3);
     const closing = page.getByRole("region", {
-      name: "Your next match. Better prepared.",
+      name: "Prepare for your next match",
     });
     await expect(
       closing.getByRole("link", { name: "Create my plan", exact: true }),
@@ -73,7 +73,7 @@ test("guest landing offers a working free workout and accessible preview", async
 }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "Train anywhere. Win on court.",
+    "Home training for your next padel match",
   );
   await expect(
     page.getByRole("navigation", { name: "Primary navigation" }),
@@ -100,7 +100,9 @@ test("guest landing offers a working free workout and accessible preview", async
     page.getByRole("button", { name: "Pause preview" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Pause preview" }).click();
-  await page.locator("summary", { hasText: "Can I try Axyro without an account?" }).click();
+  await page
+    .locator("summary", { hasText: "Can I try Axyro without an account?" })
+    .click();
   await expect(
     page.getByText("Yes. One complete starter workout", { exact: false }),
   ).toBeVisible();
@@ -135,7 +137,7 @@ test("signed-in members retain the existing home", async ({ page }) => {
     page.getByRole("navigation", { name: "Primary navigation" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Your daily 10. Make it count." }),
+    page.getByRole("heading", { name: "Train at home for padel" }),
   ).toBeVisible();
 });
 
@@ -147,7 +149,7 @@ test("scroll chapters update the illustrative player with reduced motion", async
   await expect(
     page.getByRole("button", { name: "Play movement" }),
   ).toBeVisible();
-  const rest = page.getByRole("heading", { name: "Rest is part of the work." });
+  const rest = page.getByRole("heading", { name: "Recover between intervals" });
   await rest.scrollIntoViewIfNeeded();
   await expect(page.getByText("Take a breath", { exact: true })).toBeVisible();
   await expect(page.getByText("Next movement", { exact: true })).toBeVisible();
@@ -191,7 +193,7 @@ test("padel landing previews the library and customizable planned workouts", asy
 }) => {
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: /Know the movement/ }),
+    page.getByRole("heading", { name: /Learn each movement/ }),
   ).toBeVisible();
   const library = page.locator("#exercise-library");
   await expect(library.locator("article")).toHaveCount(6);
@@ -320,62 +322,6 @@ test("Fancy preview selection is keyboard accessible and holds the selected post
   expect(await plan.evaluate((el) => getComputedStyle(el).transform)).toBe(
     "none",
   );
-});
-
-test("hero supporting words rotate without shifting layout and respect reduced motion", async ({
-  page,
-}) => {
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.goto("/");
-  const quality = page.locator('[class*="qualityWords"]');
-  const words = quality.locator(":scope > span");
-  await expect(words).toHaveText([
-    "power.",
-    "control.",
-    "confidence.",
-    "endurance.",
-    "speed.",
-    "stability.",
-  ]);
-  await expect(words.first()).not.toHaveCSS("animation-name", "none");
-  const initialWidth = await quality.evaluate(
-    (element) => element.getBoundingClientRect().width,
-  );
-  for (let index = 0; index < 6; index += 1) {
-    await words.evaluateAll((elements, time) => {
-      elements.forEach((element) =>
-        element.getAnimations().forEach((animation) => {
-          animation.pause();
-          animation.currentTime = time;
-        }),
-      );
-    }, index * 1400);
-    const visibleWords = await quality.evaluate((element) => {
-      const bounds = element.getBoundingClientRect();
-      return Array.from(element.children)
-        .filter((word) => {
-          const rect = word.getBoundingClientRect();
-          return rect.top >= bounds.top - 1 && rect.bottom <= bounds.bottom + 1;
-        })
-        .map((word) => word.textContent);
-    });
-    expect(visibleWords).toEqual([await words.nth(index).textContent()]);
-    expect(
-      await quality.evaluate(
-        (element) => element.getBoundingClientRect().width,
-      ),
-    ).toBe(initialWidth);
-  }
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(words.first()).toHaveCSS("animation-name", "none");
-  await expect(words.first()).toBeVisible();
-  await expect(words.nth(1)).toBeHidden();
-  await expect(
-    page.getByText(
-      "Build your power, control, confidence, endurance, speed and stability.",
-      { exact: true },
-    ),
-  ).toHaveClass("sr-only");
 });
 
 for (const width of [320, 1280]) {

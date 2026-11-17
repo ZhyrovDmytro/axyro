@@ -2,6 +2,14 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import {
+  enforceAuthRateLimit,
+  enforceRateLimit,
+} from "@/services/http/rate-limit";
+import {
+  readRequestText,
+  RequestBodyTooLargeError,
+} from "@/services/http/request-body";
+import {
   authConfigured,
   beginPkce,
   clearSession,
@@ -12,7 +20,11 @@ import {
   supabaseUrl,
   assertSameOrigin,
 } from "@/services/auth/server";
-import { developmentAdminEnabled, safeNext } from "@/services/auth/security";
+import {
+  applicationOrigin,
+  developmentAdminEnabled,
+  safeNext,
+} from "@/services/auth/security";
 
 const password = z.string().min(10).max(128);
 const email = z.string().email().max(254);
@@ -25,15 +37,15 @@ const registration = z
     email,
     password,
     displayName: z.string().trim().min(1).max(100),
-    confirmPassword: z.string(),
-    next: z.string().optional(),
+    confirmPassword: z.string().max(128),
+    next: z.string().max(1000).optional(),
   })
   .refine((value) => value.password === value.confirmPassword);
 const passwordChange = z
   .object({
     password,
-    confirmPassword: z.string(),
-    currentPassword: z.string().optional(),
+    confirmPassword: z.string().max(128),
+    currentPassword: z.string().max(128).optional(),
   })
   .refine((value) => value.password === value.confirmPassword);
 function json(value: unknown, status = 200) {
@@ -54,7 +66,7 @@ export async function GET(
     return NextResponse.redirect(
       new URL(
         session ? next : `/signin?next=${encodeURIComponent(next)}`,
-        request.url,
+        applicationOrigin(request),
       ),
     );
   }
@@ -76,14 +88,14 @@ export async function GET(
       const authorize = new URL("/auth/v1/authorize", supabaseUrl());
       authorize.search = new URLSearchParams({
         provider: "google",
-        redirect_to: `${url.origin}/auth/callback`,
+        redirect_to: `${applicationOrigin(request)}/auth/callback`,
         code_challenge: challenge,
         code_challenge_method: "s256",
       }).toString();
       return NextResponse.redirect(authorize);
     } catch {
       return NextResponse.redirect(
-        new URL("/signin?error=configuration", request.url),
+        new URL("/signin?error=configuration", applicationOrigin(request)),
       );
     }
   }
@@ -99,11 +111,10 @@ export async function POST(
   } catch {
     return json({ error: "Request origin is not allowed" }, 403);
   }
-  if (Number(request.headers.get("content-length") ?? 0) > 16384)
-    return json({ error: "Request too large" }, 413);
   const { action } = await context.params;
   try {
-    const body: unknown = await request.json().catch(() => ({}));
+    const text = await readRequestText(request, 16384);
+    const body: unknown = text ? JSON.parse(text) : {};
     if (action === "signin") {
       const input = credentials.parse(body);
       if (
@@ -115,6 +126,12 @@ export async function POST(
         return json({ user: (await getAuthSession())?.user });
       }
       email.parse(input.email);
+      const limited = await enforceAuthRateLimit(
+        request,
+        "auth-signin",
+        input.email,
+      );
+      if (limited) return limited;
       await setProviderSession(
         await supabaseRequest("/auth/v1/token?grant_type=password", {
           method: "POST",
@@ -125,11 +142,17 @@ export async function POST(
     }
     if (action === "signup") {
       const input = registration.parse(body);
+      const limited = await enforceAuthRateLimit(
+        request,
+        "auth-signup",
+        input.email,
+      );
+      if (limited) return limited;
       const challenge = await beginPkce(
         safeNext(input.next ?? null, "/plan/setup"),
       );
       const result = await supabaseRequest(
-        `/auth/v1/signup?redirect_to=${encodeURIComponent(`${new URL(request.url).origin}/auth/callback`)}`,
+        `/auth/v1/signup?redirect_to=${encodeURIComponent(`${applicationOrigin(request)}/auth/callback`)}`,
         {
           method: "POST",
           body: {
@@ -150,10 +173,16 @@ export async function POST(
     }
     if (action === "recover") {
       const input = z.object({ email }).parse(body);
-      const challenge = await beginPkce("/reset-password");
+      const limited = await enforceAuthRateLimit(
+        request,
+        "auth-recover",
+        input.email,
+      );
+      if (limited) return limited;
+      const challenge = await beginPkce("/reset-password", "recovery");
       // Always return the same response; never reveal whether an address exists.
       await supabaseRequest(
-        `/auth/v1/recover?redirect_to=${encodeURIComponent(`${new URL(request.url).origin}/auth/callback`)}`,
+        `/auth/v1/recover?redirect_to=${encodeURIComponent(`${applicationOrigin(request)}/auth/callback`)}`,
         {
           method: "POST",
           body: {
@@ -181,6 +210,8 @@ export async function POST(
     if (!session) return json({ error: "Sign in to continue" }, 401);
     if (action === "password") {
       const input = passwordChange.parse(body);
+      const limited = await enforceRateLimit("auth-password", session.user.id);
+      if (limited) return limited;
       if (
         session.user.isDevelopmentAdmin ||
         !session.user.providers.includes("email")
@@ -226,6 +257,8 @@ export async function POST(
     }
     if (action === "delete") {
       z.object({ confirmation: z.literal("DELETE") }).parse(body);
+      const limited = await enforceRateLimit("auth-delete", session.user.id);
+      if (limited) return limited;
       if (!session.user.isDevelopmentAdmin) {
         const { cancelBillingForUser } =
           await import("@/services/billing/server");
@@ -240,6 +273,8 @@ export async function POST(
     }
     return json({ error: "Not found" }, 404);
   } catch (error) {
+    if (error instanceof RequestBodyTooLargeError)
+      return json({ error: "Request too large" }, 413);
     if (error instanceof z.ZodError)
       return json(
         {

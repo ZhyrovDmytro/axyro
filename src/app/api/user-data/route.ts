@@ -1,5 +1,9 @@
 import { z } from "zod";
 import {
+  readRequestText,
+  RequestBodyTooLargeError,
+} from "@/services/http/request-body";
+import {
   assertSameOrigin,
   getAuthSession,
   supabaseRequest,
@@ -59,12 +63,7 @@ export async function PUT(request: Request) {
       { status: 401, headers },
     );
   try {
-    const text = await request.text();
-    if (text.length > 4_000_000)
-      return Response.json(
-        { error: "Training data is too large" },
-        { status: 413, headers },
-      );
+    const text = await readRequestText(request, 4_000_000);
     const input = z
       .object({
         userId: z.string().uuid(),
@@ -115,7 +114,12 @@ export async function PUT(request: Request) {
         { status: 409, headers },
       );
     return Response.json({ revision: input.revision + 1 }, { headers });
-  } catch {
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError)
+      return Response.json(
+        { error: "Training data is too large" },
+        { status: 413, headers },
+      );
     return Response.json(
       { error: "Could not save training data" },
       { status: 400, headers },

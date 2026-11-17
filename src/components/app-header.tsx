@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/auth-provider";
+import { PaywallLink } from "@/components/membership/paywall-modal";
 import { UiIcon } from "@/components/ui-icon";
 
 const primaryLinks = [
@@ -43,15 +44,21 @@ export function AppHeader() {
               ? pathname === "/"
               : pathname === link.href || pathname.startsWith(`${link.href}/`);
 
-          return (
-            <Link
-              className="nav-link"
-              href={link.href}
+          const props = {
+            className: "nav-link",
+            href: link.href,
+            "aria-current": active ? ("page" as const) : undefined,
+            children: link.label,
+          };
+          return link.href === "/plan" || link.href === "/activity" ? (
+            <PaywallLink
+              {...props}
               key={link.href}
-              aria-current={active ? "page" : undefined}
-            >
-              {link.label}
-            </Link>
+              context={link.href === "/activity" ? "progress" : "plan"}
+              returnTo={link.href}
+            />
+          ) : (
+            <Link {...props} key={link.href} />
           );
         })}
       </nav>

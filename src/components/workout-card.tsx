@@ -1,6 +1,7 @@
 "use client";
 import { useEntitlement } from "@/components/membership/entitlement-provider";
 import Link from "next/link";
+import { PaywallLink } from "@/components/membership/paywall-modal";
 
 import { ExerciseMedia } from "@/components/exercise-media";
 import { UiIcon } from "@/components/ui-icon";
@@ -21,11 +22,8 @@ export function WorkoutCard({ workout, featured = false }: WorkoutCardProps) {
     ...new Set(exerciseList.flatMap((exercise) => exercise.equipment)),
   ];
 
-  return (
-    <Link
-      className={`workout-card${featured ? " workout-card--featured" : ""}`}
-      href={`/workouts/${workout.slug}`}
-    >
+  const content = (
+    <>
       {exerciseList[0] && (
         <div className="workout-card__media">
           <ExerciseMedia
@@ -67,6 +65,16 @@ export function WorkoutCard({ workout, featured = false }: WorkoutCardProps) {
         </span>
         <UiIcon name="arrow-up-right" />
       </div>
-    </Link>
+    </>
+  );
+  const props = {
+    className: `workout-card${featured ? " workout-card--featured" : ""}`,
+    href: `/workouts/${workout.slug}`,
+    children: content,
+  };
+  return workout.access === "free" ? (
+    <Link {...props} />
+  ) : (
+    <PaywallLink {...props} context="workout" returnTo={props.href} />
   );
 }

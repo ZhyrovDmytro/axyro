@@ -34,7 +34,7 @@ import type {
   ProgressionPhase,
   SessionAdaptation,
 } from "@/domain/training-plan/training-plan.types";
-import type { FeedbackAdaptationProposal } from "@/domain/training-plan/feedback-adaptation";
+import { WorkoutFeedbackForm } from "@/components/feedback/workout-feedback-form";
 import {
   getSequenceDurationSeconds,
   intensityPresets,
@@ -52,11 +52,7 @@ import { useWorkoutMediaCache } from "@/hooks/use-workout-media-cache";
 import { useUserPreferences } from "@/hooks/use-user-preferences";
 import { useWorkoutActivity } from "@/hooks/use-workout-activity";
 import { titleCase } from "@/lib/format";
-import type {
-  FeedbackAffectedArea,
-  WorkoutFeedback,
-  WorkoutFeedbackEvent,
-} from "@/services/persistence/workout-activity-repository";
+import type {} from "@/services/persistence/workout-activity-repository";
 import { createBrowserWorkoutActivityRepository } from "@/services/persistence/local-workout-activity-repository";
 import { createBrowserWorkoutSessionRepository } from "@/services/persistence/local-workout-session-repository";
 import type {
@@ -89,10 +85,6 @@ type WorkoutPlayerProps = {
     todayAdaptations: SessionAdaptation[];
     planId: string;
   };
-  onFeedbackRecorded?: (
-    event: WorkoutFeedbackEvent,
-  ) => FeedbackAdaptationProposal | null;
-  onApplyFeedbackAdaptation?: (proposal: FeedbackAdaptationProposal) => void;
 };
 
 const guidanceCadenceMultipliers = {
@@ -123,81 +115,6 @@ function standaloneSessionId(workoutId: string) {
       ? crypto.randomUUID()
       : `${Date.now()}-${Math.round(Math.random() * 1_000_000)}`;
   return `standalone-${workoutId}-${suffix}`;
-}
-
-const feedbackOptions: Array<{
-  value: WorkoutFeedback;
-  label: string;
-  description: string;
-}> = [
-  {
-    value: "too-easy",
-    label: "Too easy",
-    description: "I had plenty left",
-  },
-  {
-    value: "just-right",
-    label: "Just right",
-    description: "Challenging but manageable",
-  },
-  {
-    value: "too-hard",
-    label: "Too hard",
-    description: "I struggled to finish",
-  },
-  {
-    value: "pain-or-discomfort",
-    label: "Pain or discomfort",
-    description: "Something did not feel right",
-  },
-];
-
-const affectedAreaOptions: Array<{
-  value: FeedbackAffectedArea;
-  label: string;
-}> = [
-  { value: "shoulder", label: "Shoulder" },
-  { value: "elbow-forearm", label: "Elbow / forearm" },
-  { value: "wrist-hand", label: "Wrist / hand" },
-  { value: "neck-upper-back", label: "Neck / upper back" },
-  { value: "lower-back", label: "Lower back" },
-  { value: "hip-groin", label: "Hip / groin" },
-  { value: "knee", label: "Knee" },
-  { value: "calf-achilles", label: "Calf / Achilles" },
-  { value: "ankle-foot", label: "Ankle / foot" },
-  { value: "other", label: "Other" },
-];
-
-function adaptationCopy(proposal: FeedbackAdaptationProposal) {
-  if (proposal.rating === "pain-or-discomfort") {
-    const area = proposal.affectedArea
-      ? titleCase(proposal.affectedArea)
-      : "affected";
-    return {
-      title: `We’ll pause progression for your ${area.toLowerCase()}`,
-      detail: `Exercises involving your ${area.toLowerCase()} won’t automatically get harder until you review them.`,
-    };
-  }
-  if (proposal.rating === "too-easy") {
-    return {
-      title: "Next workout: a little more challenge",
-      detail:
-        proposal.type === "increase_work_duration"
-          ? "Your last session felt easy, so we’ll add 5 seconds to one selected work interval."
-          : proposal.type === "decrease_recovery"
-            ? "Your last session felt easy, so we’ll slightly reduce one recovery interval."
-            : "Your last session felt easy, so we’ll add one appropriate round.",
-    };
-  }
-  return {
-    title: "Next workout: slightly lighter",
-    detail:
-      proposal.type === "increase_recovery"
-        ? "Your last session felt hard, so we’ll give you a little more recovery."
-        : proposal.type === "remove_round"
-          ? "Your last session felt hard, so we’ll remove one added round."
-          : "Your last session felt hard, so we’ll shorten one selected work interval.",
-  };
 }
 
 function phaseLabel(step: SessionStep): string {
@@ -334,8 +251,6 @@ function WorkoutPlayerRuntime({
   completionHref,
   onComplete,
   activityContext,
-  onFeedbackRecorded,
-  onApplyFeedbackAdaptation,
   continuity,
 }: WorkoutPlayerProps & { continuity: ActiveSessionLoadResult }) {
   const router = useRouter();
@@ -388,7 +303,6 @@ function WorkoutPlayerRuntime({
   const [actualDurationSeconds, setActualDurationSeconds] = useState<
     number | undefined
   >();
-  const [feedback, setFeedback] = useState<WorkoutFeedback | null>(null);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [completedSetKeys, setCompletedSetKeys] = useState<Set<string>>(
     new Set(restored?.completedSetKeys ?? []),
@@ -402,11 +316,6 @@ function WorkoutPlayerRuntime({
   const [techniqueStepIndex, setTechniqueStepIndex] = useState<number | null>(
     null,
   );
-  const [adaptationProposal, setAdaptationProposal] =
-    useState<FeedbackAdaptationProposal | null>(null);
-  const [adaptationDecision, setAdaptationDecision] = useState<
-    "applied" | "kept" | null
-  >(null);
   const step = selectCurrentStep(state);
   const showTechnique = techniqueStepIndex === state.currentIndex;
   const progress = selectProgressPercent(state);
@@ -498,7 +407,7 @@ function WorkoutPlayerRuntime({
       Math.max(1, Math.round(activeDurationMs(now) / 1000)),
     );
   };
-  const { recordFeedback, recordFeedbackDecision } = useWorkoutActivity({
+  const { recordFeedback } = useWorkoutActivity({
     activityId: activityContext?.activityId,
     sessionId,
     workoutId: workout.id,
@@ -507,6 +416,7 @@ function WorkoutPlayerRuntime({
     completed: step.type === "completed",
     actualDurationSeconds,
     startedAt,
+    resumedAfterInterruption: Boolean(restored),
   });
   const { remainingMs, remainingSeconds } = usePhaseTimer({
     phaseKey: state.currentIndex,
@@ -820,26 +730,6 @@ function WorkoutPlayerRuntime({
   }
 
   if (step.type === "completed") {
-    const proposalCopy = adaptationProposal
-      ? adaptationCopy(adaptationProposal)
-      : null;
-    const submitFeedback = (
-      value: WorkoutFeedback,
-      affectedArea?: FeedbackAffectedArea,
-    ) => {
-      if (feedbackSubmitted) return;
-      const event = recordFeedback(value, affectedArea);
-      if (!event) return;
-      setFeedback(value);
-      setFeedbackSubmitted(true);
-      const proposal = onFeedbackRecorded?.(event) ?? null;
-      setAdaptationProposal(proposal);
-      if (value === "pain-or-discomfort" && proposal) {
-        onApplyFeedbackAdaptation?.(proposal);
-        recordFeedbackDecision(proposal.feedbackEventId, "applied");
-        setAdaptationDecision("applied");
-      }
-    };
     return (
       <main className="completion-screen">
         <div className="completion-mark" aria-hidden="true">
@@ -867,130 +757,29 @@ function WorkoutPlayerRuntime({
             <dd>{plannedMinutes} min</dd>
           </div>
         </dl>
-        <Link
-          className="button button--primary button--full completion-primary-action"
-          href={completionHref ?? "/"}
-        >
-          Done
-        </Link>
-        <section
-          className="completion-reflection"
-          aria-labelledby="completion-reflection-heading"
-        >
-          <header>
-            <h2 id="completion-reflection-heading">
-              How did that workout feel?
-            </h2>
-            <small>Optional · helps tune future sessions</small>
-          </header>
-          <fieldset className="workout-check-in">
-            <legend className="sr-only">How did that workout feel?</legend>
-            <div className="workout-check-in__options">
-              {feedbackOptions.map((option) => (
-                <button
-                  aria-pressed={feedback === option.value}
-                  className="workout-check-in__option"
-                  disabled={feedbackSubmitted}
-                  key={option.value}
-                  onClick={() => {
-                    if (option.value === "pain-or-discomfort") {
-                      setFeedback(option.value);
-                    } else {
-                      submitFeedback(option.value);
-                    }
-                  }}
-                  type="button"
-                >
-                  <strong>{option.label}</strong>
-                  <span>{option.description}</span>
-                </button>
-              ))}
-            </div>
-            {feedback === "pain-or-discomfort" && !feedbackSubmitted && (
-              <div className="pain-area-check-in">
-                <strong>Where did you feel discomfort?</strong>
-                <div>
-                  {affectedAreaOptions.map((area) => (
-                    <button
-                      key={area.value}
-                      onClick={() =>
-                        submitFeedback("pain-or-discomfort", area.value)
-                      }
-                      type="button"
-                    >
-                      {area.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            <p aria-live="polite" className="workout-check-in__status">
-              {feedback === "pain-or-discomfort" && feedbackSubmitted
-                ? "Do not push through pain. New, severe, worsening or persistent pain should be checked by a qualified clinician."
-                : feedbackSubmitted
-                  ? "Saved. Your feedback stays with this completed session."
-                  : "Choose the answer that best matches the full session."}
-            </p>
-          </fieldset>
-          {proposalCopy && (
-            <section
-              className={`adaptation-proposal${adaptationProposal?.rating === "pain-or-discomfort" ? " adaptation-proposal--pain" : ""}`}
-              aria-live="polite"
-            >
-              <span className="adaptation-proposal__label">
-                Adjusted for you
-              </span>
-              <h2>{proposalCopy.title}</h2>
-              <p>{proposalCopy.detail}</p>
-              {adaptationProposal?.rating === "pain-or-discomfort" ? (
-                <Link
-                  className="button button--secondary button--full"
-                  href={completionHref ?? "/plan"}
-                >
-                  Review exercises
-                </Link>
-              ) : adaptationDecision ? (
-                <strong className="adaptation-proposal__status">
-                  {adaptationDecision === "applied"
-                    ? "Change applied to your next comparable session."
-                    : "Current level kept. Your feedback is still saved."}
-                </strong>
-              ) : (
-                <div className="button-row">
-                  <button
-                    className="button button--primary"
-                    onClick={() => {
-                      if (!adaptationProposal) return;
-                      onApplyFeedbackAdaptation?.(adaptationProposal);
-                      recordFeedbackDecision(
-                        adaptationProposal.feedbackEventId,
-                        "applied",
-                      );
-                      setAdaptationDecision("applied");
-                    }}
-                    type="button"
-                  >
-                    Apply change
-                  </button>
-                  <button
-                    className="button button--secondary"
-                    onClick={() => {
-                      if (!adaptationProposal) return;
-                      recordFeedbackDecision(
-                        adaptationProposal.feedbackEventId,
-                        "kept",
-                      );
-                      setAdaptationDecision("kept");
-                    }}
-                    type="button"
-                  >
-                    Keep current level
-                  </button>
-                </div>
-              )}
-            </section>
-          )}
-        </section>
+        <WorkoutFeedbackForm
+          exercises={[
+            ...new Map(
+              exercises.map((exercise) => [
+                exercise.id,
+                { id: exercise.id, name: exercise.name },
+              ]),
+            ).values(),
+          ]}
+          onSave={(answer) => {
+            const result = recordFeedback(answer);
+            if (result) setFeedbackSubmitted(true);
+            return result;
+          }}
+        />
+        {feedbackSubmitted && (
+          <Link
+            className="button button--primary button--full completion-primary-action"
+            href={completionHref ?? "/"}
+          >
+            Done
+          </Link>
+        )}
         <section
           className="completion-secondary-actions"
           aria-labelledby="completion-options-heading"

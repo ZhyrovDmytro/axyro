@@ -1,22 +1,22 @@
 # Exercise movement references
 
-The exercise library uses a start and finish image for each movement when a
-usable pair is available. The two images alternate every second in library and
-detail views. A single exercise-specific reference is used only when the source
-does not provide distinct positions.
+The current exercise catalog uses GIF/video demonstrations. On 2026-11-14,
+the operator confirmed that the current exercise GIFs are generated production
+media and need no replacement. Preserve these assets and their paths.
 
-These assets are temporary development references for reviewing exercise form.
-Replace them with Axyro-owned production assets before release.
+The start/finish position images below are legacy references. The UI uses them
+only when an exercise has no primary media; they are not the current GIF
+demonstrations. Historical source notes below do not impose a replacement
+requirement on the current exercise GIFs.
 
-## Imported position sequences
+## Legacy imported position sequences
 
 - [Workout Guide](https://github.com/bryllim/workout-guide) supplied matched
   frame sequences for common movements such as squats, lunges, rows, hinges,
   planks, raises, shuffles, and mobility drills. The first and final useful
   frames were copied into `public/images/exercises/positions/`.
 - [free-exercise-db](https://github.com/yuhonas/free-exercise-db) supplied the
-  paired references for wall first-step drive, dumbbell scaption raise, and the
-  standing single-arm dumbbell overhead press.
+  paired references for the standing single-arm dumbbell overhead press.
 - [RepDB exercise dataset](https://github.com/RepDB/exercise-dataset) supplied
   the single movement references used as compact/fallback imagery for
   thread-the-needle and the suitcase carry variations.

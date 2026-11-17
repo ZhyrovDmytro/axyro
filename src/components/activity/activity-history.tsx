@@ -1,8 +1,10 @@
 "use client";
+import { PaywallLink } from "@/components/membership/paywall-modal";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
+import { feedbackDifficultyLabel } from "@/components/feedback/workout-feedback-form";
 import { UiIcon } from "@/components/ui-icon";
 import { ActivityStatus } from "./activity-status";
 import { formatPlanDate, toDateKey } from "@/domain/training-plan/date";
@@ -10,15 +12,8 @@ import { useTrainingPlan } from "@/hooks/use-training-plan";
 import { createBrowserWorkoutActivityRepository } from "@/services/persistence/local-workout-activity-repository";
 import type {
   SessionActivity,
-  WorkoutFeedback,
+  WorkoutFeedbackEvent,
 } from "@/services/persistence/workout-activity-repository";
-
-const feedbackLabels: Record<WorkoutFeedback, string> = {
-  "too-easy": "Too easy",
-  "just-right": "Just right",
-  "too-hard": "Too hard",
-  "pain-or-discomfort": "Pain or discomfort",
-};
 
 function plannedSeconds(activity: SessionActivity) {
   return activity.plannedSnapshot?.targetDurationSeconds;
@@ -36,7 +31,9 @@ function actualDuration(seconds: number) {
 export function ActivityHistory() {
   useTrainingPlan();
   const [activities, setActivities] = useState<SessionActivity[] | null>(null);
-  const [feedback, setFeedback] = useState<Record<string, WorkoutFeedback>>({});
+  const [feedback, setFeedback] = useState<
+    Record<string, WorkoutFeedbackEvent>
+  >({});
   const today = toDateKey(new Date());
 
   useEffect(() => {
@@ -52,7 +49,7 @@ export function ActivityHistory() {
             const event = activity.completionId
               ? repository.getFeedbackForCompletion(activity.completionId)
               : null;
-            return event ? [[activity.id, event.rating]] : [];
+            return event ? [[activity.id, event]] : [];
           }),
         ),
       );
@@ -90,9 +87,14 @@ export function ActivityHistory() {
           <p>
             Complete, skip, or pass a planned training day to build your record.
           </p>
-          <Link className="button button--primary" href="/plan">
+          <PaywallLink
+            className="button button--primary"
+            href="/plan"
+            context="plan"
+            returnTo="/plan"
+          >
             View plan
-          </Link>
+          </PaywallLink>
         </section>
       ) : (
         <div className="activity-groups">
@@ -130,7 +132,9 @@ export function ActivityHistory() {
                             : ""}
                         </p>
                         {feedback[activity.id] && (
-                          <small>{feedbackLabels[feedback[activity.id]]}</small>
+                          <small>
+                            {feedbackDifficultyLabel(feedback[activity.id])}
+                          </small>
                         )}
                       </div>
                       <UiIcon name="arrow-right" />

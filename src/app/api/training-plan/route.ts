@@ -1,5 +1,10 @@
 import { getBillingAccess } from "@/services/billing/server";
 import { assertSameOrigin } from "@/services/auth/server";
+import { enforceRateLimit } from "@/services/http/rate-limit";
+import {
+  readRequestText,
+  RequestBodyTooLargeError,
+} from "@/services/http/request-body";
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 
@@ -10,7 +15,10 @@ import {
   modelPlanIntentSchemaForCandidates,
   type AiPlanRequest,
 } from "@/domain/training-plan/ai-planner.schema";
-import { generateTrainingPlan, UnsupportedPlanDurationError } from "@/domain/training-plan/generate-training-plan";
+import {
+  generateTrainingPlan,
+  UnsupportedPlanDurationError,
+} from "@/domain/training-plan/generate-training-plan";
 import {
   compileModelPlanIntent,
   modelCandidatesForProfile,
@@ -38,7 +46,13 @@ function deterministicResponse(
     );
   } catch (error) {
     if (error instanceof UnsupportedPlanDurationError) {
-      return Response.json({ code: "unsupported-plan", error: "No compatible plan fits these answers." }, { status: 422 });
+      return Response.json(
+        {
+          code: "unsupported-plan",
+          error: "No compatible plan fits these answers.",
+        },
+        { status: 422 },
+      );
     }
     throw error;
   }
@@ -142,16 +156,37 @@ async function requestIntent({
 export async function POST(rawRequest: Request) {
   try {
     assertSameOrigin(rawRequest);
-    const access = await getBillingAccess();
-    if (!access.user) return Response.json({ error: "Sign in to create your plan." }, { status: 401 });
-    if (!access.hasPro) return Response.json({ error: "Pro is required to create a personalized plan." }, { status: 403 });
   } catch {
-    return Response.json({ error: "Unable to verify plan access." }, { status: 503 });
+    return Response.json({ error: "Invalid origin." }, { status: 403 });
+  }
+  try {
+    const access = await getBillingAccess();
+    if (!access.user)
+      return Response.json(
+        { error: "Sign in to create your plan." },
+        { status: 401 },
+      );
+    if (!access.hasPro)
+      return Response.json(
+        { error: "Pro is required to create a personalized plan." },
+        { status: 403 },
+      );
+    const limited = await enforceRateLimit("planner", access.user.id);
+    if (limited) return limited;
+  } catch {
+    return Response.json(
+      { error: "Unable to verify plan access." },
+      { status: 503 },
+    );
   }
   let request: AiPlanRequest;
   try {
-    request = aiPlanRequestSchema.parse(await rawRequest.json());
-  } catch {
+    request = aiPlanRequestSchema.parse(
+      JSON.parse(await readRequestText(rawRequest, 32768)),
+    );
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError)
+      return Response.json({ error: "Request too large." }, { status: 413 });
     return Response.json(
       { error: "Invalid training-plan request." },
       { status: 400 },
@@ -166,7 +201,11 @@ export async function POST(rawRequest: Request) {
   }
 
   const model = process.env.OPENAI_PLANNER_MODEL ?? "gpt-4o-mini";
-  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const client = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+    timeout: 20000,
+    maxRetries: 0,
+  });
   let repairErrors: string | undefined;
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {

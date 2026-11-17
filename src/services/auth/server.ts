@@ -118,6 +118,7 @@ export async function clearSession() {
     DEV,
     "axyro-pkce",
     "axyro-auth-next",
+    "axyro-auth-flow",
     "axyro-password-recovery",
   ])
     jar.delete(name);
@@ -168,25 +169,7 @@ async function userFromToken(token: string): Promise<AuthUser> {
         { token },
       ),
     );
-  let profile = profiles[0];
-  if (
-    identity.email?.toLowerCase() === "dmytrozhyrov@gmail.com" &&
-    identity.email_confirmed_at &&
-    profile?.role !== "admin"
-  ) {
-    // Persist the owner grant so database plan-write guards agree with app access.
-    [profile] = z
-      .array(profileSchema)
-      .length(1)
-      .parse(
-        await supabaseRequest(`/rest/v1/profiles?user_id=eq.${identity.id}`, {
-          admin: true,
-          method: "PATCH",
-          body: { role: "admin" },
-          prefer: "return=representation",
-        }),
-      );
-  }
+  const profile = profiles[0];
   return {
     id: identity.id,
     email: identity.email ?? "",
@@ -241,11 +224,15 @@ export async function getAuthSession(
     }
   }
 }
-export async function beginPkce(next: string) {
+export async function beginPkce(
+  next: string,
+  purpose: "signin" | "recovery" = "signin",
+) {
   const verifier = randomBytes(48).toString("base64url");
   const { createHash } = await import("node:crypto");
   const jar = await cookies();
   jar.set("axyro-pkce", verifier, { ...cookieOptions, maxAge: 600 });
   jar.set("axyro-auth-next", next, { ...cookieOptions, maxAge: 600 });
+  jar.set("axyro-auth-flow", purpose, { ...cookieOptions, maxAge: 600 });
   return createHash("sha256").update(verifier).digest("base64url");
 }

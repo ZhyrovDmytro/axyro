@@ -1,4 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { enforceAuthRateLimit } from "@/services/http/rate-limit";
+vi.mock("@/services/http/rate-limit", () => ({
+  enforceRateLimit: vi.fn(async (): Promise<Response | null> => null),
+  enforceAuthRateLimit: vi.fn(async (): Promise<Response | null> => null),
+}));
 const auth = vi.hoisted(() => ({
   setDevelopmentSession: vi.fn(),
   setProviderSession: vi.fn(),
@@ -16,7 +21,7 @@ vi.mock("@/services/auth/server", () => ({
       throw new Error("Origin");
   },
 }));
-import { POST } from "./route";
+import { GET, POST } from "./route";
 function request(action: string, body: unknown, origin = "https://axyro.test") {
   return new Request(`https://axyro.test/api/auth/${action}`, {
     method: "POST",
@@ -25,10 +30,81 @@ function request(action: string, body: unknown, origin = "https://axyro.test") {
   });
 }
 describe("auth route trust boundaries", () => {
+  it.each(["signin", "signup", "recover"])(
+    "stops rate-limited %s before reaching the provider",
+    async (action) => {
+      vi.mocked(enforceAuthRateLimit).mockResolvedValueOnce(
+        new Response(null, { status: 429 }),
+      );
+      const response = await POST(
+        request(action, {
+          email: "player@example.com",
+          password: "secure-password-123",
+          confirmPassword: "secure-password-123",
+          displayName: "Player",
+        }),
+        { params: Promise.resolve({ action }) },
+      );
+      expect(response.status).toBe(429);
+      expect(enforceAuthRateLimit).toHaveBeenCalledWith(
+        expect.any(Request),
+        `auth-${action}`,
+        "player@example.com",
+      );
+      expect(auth.supabaseRequest).not.toHaveBeenCalled();
+      expect(auth.setProviderSession).not.toHaveBeenCalled();
+    },
+  );
+  it("rejects oversized bodies without Content-Length before contacting Auth", async () => {
+    const response = await POST(
+      request("signin", { data: "x".repeat(16385) }),
+      {
+        params: Promise.resolve({ action: "signin" }),
+      },
+    );
+    expect(response.status).toBe(413);
+    expect(auth.supabaseRequest).not.toHaveBeenCalled();
+  });
   afterEach(() => {
     vi.unstubAllEnvs();
     vi.clearAllMocks();
   });
+  it("uses the canonical callback for Google behind a deployment proxy", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("APP_URL", "https://axyro-staging.netlify.app");
+    const response = await GET(
+      new Request(
+        "https://deploy-id--axyro-staging.netlify.app/api/auth/oauth?provider=google",
+      ),
+      { params: Promise.resolve({ action: "oauth" }) },
+    );
+    const location = new URL(response.headers.get("location")!);
+    expect(location.searchParams.get("redirect_to")).toBe(
+      "https://axyro-staging.netlify.app/auth/callback",
+    );
+  });
+  it.each(["signup", "recover"])(
+    "uses the canonical callback for %s",
+    async (action) => {
+      vi.stubEnv("NODE_ENV", "production");
+      vi.stubEnv("APP_URL", "https://axyro-staging.netlify.app");
+      auth.supabaseRequest.mockResolvedValueOnce({});
+      const response = await POST(
+        request(action, {
+          email: "player@example.com",
+          password: "secure-password-123",
+          confirmPassword: "secure-password-123",
+          displayName: "Player",
+        }),
+        { params: Promise.resolve({ action }) },
+      );
+      expect(response.status).toBe(200);
+      expect(auth.supabaseRequest).toHaveBeenCalledWith(
+        `/auth/v1/${action}?redirect_to=${encodeURIComponent("https://axyro-staging.netlify.app/auth/callback")}`,
+        expect.any(Object),
+      );
+    },
+  );
   it.each(["new", "already registered"])(
     "keeps signup responses generic for %s accounts awaiting no session",
     async (account) => {

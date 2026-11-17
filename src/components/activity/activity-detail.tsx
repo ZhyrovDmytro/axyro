@@ -1,8 +1,9 @@
 "use client";
+import { PaywallLink } from "@/components/membership/paywall-modal";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { WorkoutFeedbackForm } from "@/components/feedback/workout-feedback-form";
 import { UiIcon } from "@/components/ui-icon";
 import { ActivityStatus } from "./activity-status";
 import { formatPlanDate, toDateKey } from "@/domain/training-plan/date";
@@ -14,13 +15,6 @@ import type {
   WorkoutFeedbackEvent,
   WorkoutSessionSnapshot,
 } from "@/services/persistence/workout-activity-repository";
-
-const feedbackLabels = {
-  "too-easy": "Too easy",
-  "just-right": "Just right",
-  "too-hard": "Too hard",
-  "pain-or-discomfort": "Pain or discomfort",
-} as const;
 
 function duration(seconds: number) {
   const whole = Math.max(0, Math.round(seconds));
@@ -75,9 +69,14 @@ export function ActivityDetail({ activityId }: { activityId: string }) {
     return (
       <main className="page-shell activity-page">
         <h1>Activity not found.</h1>
-        <Link className="button button--primary" href="/activity">
+        <PaywallLink
+          className="button button--primary"
+          href="/activity"
+          context="progress"
+          returnTo="/activity"
+        >
           Back to Activity
-        </Link>
+        </PaywallLink>
       </main>
     );
   }
@@ -97,9 +96,14 @@ export function ActivityDetail({ activityId }: { activityId: string }) {
 
   return (
     <main className="page-shell page-shell--inner activity-detail-page">
-      <Link className="back-link" href="/activity">
+      <PaywallLink
+        className="back-link"
+        href="/activity"
+        context="progress"
+        returnTo="/activity"
+      >
         <UiIcon name="arrow-left" /> Activity
-      </Link>
+      </PaywallLink>
       <header className="activity-detail-hero">
         <p className="kicker">{formatPlanDate(activity.scheduledDate)}</p>
         <h1>{snapshot?.workoutName ?? "Workout"}</h1>
@@ -221,11 +225,33 @@ export function ActivityDetail({ activityId }: { activityId: string }) {
         </div>
       )}
 
-      {feedback && (
-        <section className="activity-detail-panel">
-          <p className="kicker">How did it feel?</p>
-          <h2>{feedbackLabels[feedback.rating]}</h2>
-        </section>
+      {activity.status === "completed" && activity.completionId && (
+        <div className="activity-detail-panel">
+          <WorkoutFeedbackForm
+            key={activity.id}
+            initialFeedback={feedback}
+            exercises={[
+              ...new Map(
+                (snapshot?.items ?? []).map((item) => [
+                  item.exerciseId,
+                  {
+                    id: item.exerciseId,
+                    name: item.exerciseName ?? item.exerciseId,
+                  },
+                ]),
+              ).values(),
+            ]}
+            onSave={(answer) => {
+              const event =
+                createBrowserWorkoutActivityRepository().saveFeedbackEvent({
+                  ...answer,
+                  completionId: activity.completionId!,
+                });
+              if (event) setFeedback(event);
+              return event;
+            }}
+          />
+        </div>
       )}
     </main>
   );

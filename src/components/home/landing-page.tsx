@@ -1,4 +1,5 @@
 "use client";
+import { PaywallLink } from "@/components/membership/paywall-modal";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -8,7 +9,6 @@ import { exercises } from "@/content/exercises";
 import { starterWorkouts } from "@/content/workouts";
 import { FREE_WORKOUT_ID } from "@/domain/access/entitlements";
 import { LibraryAndEditor } from "./padel-story";
-import { HeroQualities } from "./hero-qualities";
 import { PlanStory } from "./plan-story";
 import styles from "./landing-page.module.css";
 
@@ -31,7 +31,7 @@ const playerMovement = exercises.find(
 )!;
 const chapters = [
   {
-    title: "See it. Then move.",
+    title: "Follow each movement",
     body: "A clear movement reference and simple cues take the guesswork out of every exercise. Set your phone down and follow along.",
     phase: "Move with control",
     time: "00:30",
@@ -39,7 +39,7 @@ const chapters = [
     icon: "play",
   },
   {
-    title: "Find your rhythm.",
+    title: "Choose your audio guidance",
     body: "Optional countdown tones signal interval changes. Follow the visual tempo, turn audio on, or train quietly. You’re in control.",
     phase: "Follow your cadence",
     time: "00:15",
@@ -47,7 +47,7 @@ const chapters = [
     icon: "volume",
   },
   {
-    title: "Rest is part of the work.",
+    title: "Recover between intervals",
     body: "Work, side switches and recovery flow automatically. No timer juggling. Pause whenever you need, then pick up where you left off.",
     phase: "Take a breath",
     time: "00:20",
@@ -66,7 +66,7 @@ const questions = [
   ],
   [
     "Do I need a gym or equipment?",
-    "Axyro is built for home training, using bodyweight and optional light dumbbells. Each workout lists what you need before you start.",
+    "Axyro is built for home training, using bodyweight and optional light dumbbells. Each workout lists what you need before you start",
   ],
   [
     "What if I only have five minutes?",
@@ -84,9 +84,15 @@ const questions = [
 
 function PlanLink() {
   return (
-    <Link href="/plan/setup" className={styles.cta}>
+    <PaywallLink
+      href="/plan/setup"
+      context="plan"
+      returnTo="/plan/setup"
+      requirePro={false}
+      className={styles.cta}
+    >
       Create my plan <UiIcon name="arrow-right" />
-    </Link>
+    </PaywallLink>
   );
 }
 
@@ -156,25 +162,19 @@ export function LandingPage() {
         <section className={styles.hero}>
           <div className={styles.heroCopy}>
             <h1 className={styles.heroHeadline}>
-              <span className={styles.headlineLine}>Train </span>
-              <span className={styles.headlineLine}>anywhere. </span>
-              <span className={styles.headlineLine}>
-                Win on <em>court.</em>
-              </span>
+              Home training for your next padel match
             </h1>
-            <HeroQualities />
             <p>
-              Arrive on court ready to play. Build a personalized 60-day padel
-              training plan with Axyro Pro. Develop movement, strength and
-              control at home—in sessions that fit around your matches.
+              Build movement, strength and control in 5, 10 or 20 minutes. Axyro
+              Pro shapes your 60-day plan around your goals, equipment and match
+              schedule.
             </p>
-            <PlanLink />
-            <span className={styles.reassurance}>
-              Personalized training, full library access. With Axyro Pro.
-            </span>
-            <Link href={starterHref} className={styles.freeLink}>
-              Try a free workout first <UiIcon name="arrow-right" />
-            </Link>
+            <div className={styles.actions}>
+              <PlanLink />
+              <Link href={starterHref} className={styles.freeLink}>
+                Try a free workout first <UiIcon name="arrow-right" />
+              </Link>
+            </div>
           </div>
           <div className={styles.heroStage} ref={heroRef}>
             <div className={styles.stageTop}>
@@ -260,14 +260,6 @@ export function LandingPage() {
                 </button>
               ))}
             </div>
-            <div className={styles.floatingNote}>
-              <UiIcon name="check" />
-              <span>
-                Your next step?
-                <br />
-                <strong>Already taken care of.</strong>
-              </span>
-            </div>
           </div>
         </section>
         <div className={styles.promiseStrip}>
@@ -286,15 +278,11 @@ export function LandingPage() {
         </div>
         <section className={styles.story} id="how-it-works">
           <div className={styles.sectionIntro}>
-            <h2>
-              Your workout.
-              <br />
-              With the thinking taken out.
-            </h2>
+            <h2>Guidance through every session</h2>
             <p>
-              Less watching the clock.
+              Follow the movement, timing and recovery
               <br />
-              More being in the movement.
+              from your phone.
             </p>
           </div>
           <div className={styles.storyGrid} ref={storyRef}>
@@ -334,7 +322,7 @@ export function LandingPage() {
                 )}
                 <div className={styles.restCopy}>
                   <UiIcon name="pause" />
-                  <strong>Room to recover.</strong>
+                  <strong>Recovery</strong>
                 </div>
               </div>
               <div className={styles.playerReadout}>
@@ -381,9 +369,9 @@ export function LandingPage() {
         <section className={styles.faq} id="questions">
           <div>
             <h2>
-              A few things
+              Questions
               <br />
-              before you start.
+              before you start
             </h2>
             <Link className={styles.planLink} href="/exercises">
               Explore the movement library <UiIcon name="arrow-right" />
@@ -411,22 +399,17 @@ export function LandingPage() {
             />
           </div>
           <div className={styles.closingCopy}>
-            <h2 id="start-training-heading">
-              Your next match.
-              <br />
-              <span>Better prepared.</span>
-            </h2>
+            <h2 id="start-training-heading">Prepare for your next match</h2>
             <p>
               Build the work behind your next point. Start your personalized
               padel plan.
             </p>
-            <PlanLink />
-            <span className={styles.reassurance}>
-              Your goals. Your schedule. Axyro Pro.
-            </span>
-            <Link href={starterHref} className={styles.freeLink}>
-              Try a free workout first <UiIcon name="arrow-right" />
-            </Link>
+            <div className={styles.actions}>
+              <PlanLink />
+              <Link href={starterHref} className={styles.freeLink}>
+                Try a free workout first <UiIcon name="arrow-right" />
+              </Link>
+            </div>
           </div>
         </section>
       </main>

@@ -1312,7 +1312,8 @@ export function changePlanSessionDuration(
   const profile = { ...plan.profile, sessionDurationMinutes: minutes };
   if (
     !plan.sessions.some(
-      (session) => session.status === "scheduled" && session.scheduledDate >= today,
+      (session) =>
+        session.status === "scheduled" && session.scheduledDate >= today,
     )
   ) {
     return { ...plan, profile };
@@ -1646,7 +1647,9 @@ export function generateTrainingPlan(
     generatedAt: new Date().toISOString(),
   };
   const feedbackProposal = deriveAdaptation({
-    recentFeedback,
+    recentFeedback: recentFeedback.filter(
+      (event) => event.rating === "pain-or-discomfort",
+    ),
     upcomingSessions: plan.sessions,
     exerciseCatalog: eligibleExercises,
   });
@@ -1659,7 +1662,7 @@ export function generateTrainingPlan(
   );
   const scheduledPlan =
     profile.matches.length > 0
-      ? rebalancePlanAroundGames(finalizedPlan)
+      ? rebalancePlanAroundGames(finalizedPlan, finalizedPlan.startDate)
       : finalizedPlan;
   return assertPlanDurationFidelity({
     ...scheduledPlan,
@@ -1702,6 +1705,7 @@ function gameRecoveryDays(plan: TrainingPlan) {
 export function describePlanRebalance(
   before: TrainingPlan,
   after: TrainingPlan,
+  today = toDateKey(new Date()),
 ): string {
   const moved = after.sessions.filter((session) =>
     before.sessions.some(
@@ -1724,10 +1728,23 @@ export function describePlanRebalance(
       "A workout is already in progress on a match or recovery day. Rebalancing only moves workouts that have not started.",
     );
   }
-  if (remaining.some((session) => session.status === "scheduled")) {
+  if (
+    remaining.some(
+      (session) =>
+        session.status === "scheduled" && session.scheduledDate >= today,
+    )
+  ) {
     messages.push(
-      "Some workouts have no free date within four days. Use Move training to choose another date.",
+      "Some workouts have no free future date before the plan ends. Use Move training to choose another date.",
     );
+  }
+  if (
+    remaining.some(
+      (session) =>
+        session.status === "scheduled" && session.scheduledDate < today,
+    )
+  ) {
+    messages.push("Past workouts stay on their original dates.");
   }
   if (
     remaining.some(
@@ -1757,7 +1774,10 @@ export function isPlanRebalanceNeeded(plan: TrainingPlan): boolean {
   );
 }
 
-export function rebalancePlanAroundGames(plan: TrainingPlan): TrainingPlan {
+export function rebalancePlanAroundGames(
+  plan: TrainingPlan,
+  today = toDateKey(new Date()),
+): TrainingPlan {
   const gameDays = gameRecoveryDays(plan);
   const occupied = new Set(
     plan.sessions.map((session) => session.scheduledDate),
@@ -1765,23 +1785,20 @@ export function rebalancePlanAroundGames(plan: TrainingPlan): TrainingPlan {
   const sessions = plan.sessions.map((session) => {
     if (
       session.status !== "scheduled" ||
+      session.scheduledDate < today ||
       !gameDays.has(session.scheduledDate)
     ) {
       return session;
     }
-    for (let distance = 1; distance <= 4; distance += 1) {
-      for (const direction of [1, -1]) {
-        const candidate = addDays(session.scheduledDate, distance * direction);
-        if (
-          candidate >= plan.startDate &&
-          candidate <= plan.endDate &&
-          !gameDays.has(candidate) &&
-          !occupied.has(candidate)
-        ) {
-          occupied.delete(session.scheduledDate);
-          occupied.add(candidate);
-          return { ...session, scheduledDate: candidate };
-        }
+    for (
+      let candidate = addDays(session.scheduledDate, 1);
+      candidate <= plan.endDate;
+      candidate = addDays(candidate, 1)
+    ) {
+      if (!gameDays.has(candidate) && !occupied.has(candidate)) {
+        occupied.delete(session.scheduledDate);
+        occupied.add(candidate);
+        return { ...session, scheduledDate: candidate };
       }
     }
     return session;

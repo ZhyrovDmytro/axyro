@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { generateTrainingPlan } from "../../src/domain/training-plan/generate-training-plan";
 import { representativeAthleteProfiles } from "../../src/domain/training-plan/evaluation-profiles";
@@ -24,6 +25,9 @@ test("calendar shows persisted completed and skipped training alongside matches"
   );
   plan.sessions[0].scheduledDate = today;
   plan.sessions[1].scheduledDate = addDays(today, 1);
+  plan.sessions = plan.sessions.filter(
+    (session) => session.scheduledDate !== addDays(today, 2),
+  );
   plan.games = [
     {
       id: "future-match",
@@ -103,13 +107,63 @@ test("calendar shows persisted completed and skipped training alongside matches"
     name: /Skipped, training:/,
   });
   await expect(done).toHaveClass(/calendar-day--completed/);
+  await expect(done).toHaveCSS("background-image", "none");
+  const matchDay = calendar.getByRole("gridcell", { name: /Future match/ });
+  const stripes = await Promise.all(
+    [done, skipped, matchDay].map((day) =>
+      day.evaluate((el) => {
+        const stripe = getComputedStyle(el, "::before");
+        return {
+          background: stripe.backgroundImage,
+          color: stripe.backgroundColor,
+          width: stripe.width,
+        };
+      }),
+    ),
+  );
+  expect(stripes[0].background).toBe(
+    "linear-gradient(rgb(255, 107, 36) 0%, rgb(255, 107, 36) 50%, rgb(120, 185, 235) 50%, rgb(120, 185, 235) 100%)",
+  );
+  expect(stripes[1].color).toBe("rgb(255, 107, 36)");
+  expect(stripes[2].color).toBe("rgb(120, 185, 235)");
+  expect(stripes.map((stripe) => stripe.width)).toEqual(["2px", "2px", "2px"]);
   await expect(done.locator(".calendar-status-compact")).toBeVisible();
   await expect(done.getByText("Match", { exact: true })).toBeVisible();
   await expect(skipped).toHaveClass(/calendar-day--skipped/);
   await expect(skipped.locator(".calendar-status-compact")).toBeVisible();
   await expect(done.locator(".calendar-status-compact")).toHaveText("Done");
   await expect(skipped.locator(".calendar-status-compact")).toHaveText("Skip");
-  await done.scrollIntoViewIfNeeded();
+  await done.click();
+  await expect(done).toHaveAttribute("aria-selected", "true");
+  const startTraining = page
+    .locator(".calendar-day-panel")
+    .getByRole("link", { name: "Start training" });
+  await expect(startTraining).toHaveCount(0);
+  await page.getByRole("button", { name: "Close selected day" }).click();
+  await skipped.click();
+  await expect(startTraining).toHaveCount(0);
+  await page.getByRole("button", { name: "Close selected day" }).click();
+  await expect(page.locator(".calendar-day-panel")).toHaveCount(0);
+  await done.focus();
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Shift+Tab");
+  await expect(done).toBeFocused();
+  await expect(done).toHaveCSS("outline-style", "solid");
+  for (const width of [320, 390, 768, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    const { violations } = await new AxeBuilder({ page })
+      .include(".plan-page")
+      .withRules(["color-contrast"])
+      .analyze();
+    expect(violations).toEqual([]);
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  await done.click();
   await page.screenshot({
     path: "/tmp/axyro-calendar-outcomes-mobile.png",
     fullPage: false,
@@ -135,4 +189,32 @@ test("calendar shows persisted completed and skipped training alongside matches"
   await page.reload();
   await expect(upcomingGames.getByText(/No upcoming games/)).toBeVisible();
   await expect(upcomingGames.locator(".game-list")).toHaveCount(0);
+  // Check today's primary action with a scheduled session, independently of outcomes.
+  await page.evaluate(
+    ({ plan, key }) => {
+      localStorage.removeItem(`veyro.owner.development-admin.${key}`);
+      localStorage.setItem(
+        "veyro.owner.development-admin.veyro.training-plan.v1",
+        JSON.stringify(plan),
+      );
+    },
+    { plan, key: workoutActivityStorageKey },
+  );
+  await page.goto("/plan");
+  await expect(page.locator(".plan-today-card")).toBeVisible();
+  for (const width of [320, 768, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    const start = page
+      .locator(".plan-today-card")
+      .getByRole("link", { name: "Start workout" });
+    await expect(start).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+  }
+  await page.screenshot({ path: "/tmp/axyro-plan-after-desktop.png" });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({ path: "/tmp/axyro-plan-after-mobile.png" });
 });

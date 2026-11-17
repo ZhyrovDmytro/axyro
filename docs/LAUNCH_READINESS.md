@@ -1,6 +1,6 @@
 # Paid public launch tracker
 
-Last updated: 2026-11-01 (Europe/Prague).
+Last updated: 2026-11-17 (Europe/Prague).
 
 This is the shared checklist for launching Axyro as a paid public web app.
 Current verdict: **not ready to accept public payments**. Core membership code
@@ -74,6 +74,15 @@ No owners or target dates have been assigned yet.
     blocker. Hosting remains open under L03.
 
 - [ ] **L03 — Hosting, domain and environments** · Partial
+  - 2026-11-02: operator approved separate Free Netlify staging project
+    `axyro-staging` from the existing Axyro repository, sandbox credential storage,
+    and temporary shared Supabase access for a dedicated regular test account.
+    Test origin is `https://axyro-staging.netlify.app`; the website is separate,
+    but the database is explicitly shared. No paid database or hosting upgrade,
+    project pause, live Stripe setup or production billing environment change.
+    The exact staging auth callback is saved and verified after reload.
+    Credentials are protected and populated only in staging's Production context.
+    See [staging setup](NETLIFY_DEPLOYMENT.md#billing-staging--2026-11-02).
   - Complete when: staging and production are deployed; domain, DNS, HTTPS,
     canonical `APP_URL` and server secrets are configured; deployed routes work.
     No connected deployment was verified during the audit.
@@ -182,6 +191,31 @@ No owners or target dates have been assigned yet.
     See [authentication operations](AUTHENTICATION.md).
 
 - [ ] **L06 — Stripe merchant and subscription setup** · Partial
+  - 2026-11-02 follow-up: created the approved staging webhook with all seven
+    required events and `2025-06-30.basil` snapshot payloads. Active endpoint is
+    `we_1UXLcrRrXPiiRoHsSibA6eCC`. The first endpoint was disabled and signing
+    configuration replaced after browser-tool output unexpectedly included its
+    initial secret. Both sandbox credentials are protected in the staging project.
+    Stripe API creation of a Checkout session and Customer Portal session succeeded
+    for disposable unlinked customer `cus_VYSegHai9vyo8K`, without personal/card
+    details, subscription purchase or money movement. User purchase verification
+    remains L08; live merchant setup remains open.
+  - Staging smoke exposed an origin mismatch: Netlify's immutable deployment URL
+    reached the server while the browser used the stable staging alias. Fixed the
+    shared mutation check to use canonical server-configured APP_URL in production,
+    preserving development behavior and rejecting all other/missing origins.
+    The regression test failed before the fix. Verified 426 unit tests, 30 account,
+    subscription and smoke browser checks, TypeScript, zero-warning lint and
+    webpack build. No database schema or app purchase behavior was added.
+  - 2026-11-02: API-verified the existing local sandbox key belongs to dedicated
+    **Axyro sandbox** (`acct_1UWlxJRrXPiiRoHs`), separate from the older Test mode
+    account. All four EUR/USD prices are active and `livemode=false`; the default
+    portal is active with payment-method updates, invoice history and period-end
+    cancellation. No sandbox webhook exists. Netlify's existing public project
+    lists no Stripe environment variables. Preparing separate hosted staging;
+    automatic approval review blocked GitHub import pending explicit repository
+    access/project and hosted-secret approval. No hosted credentials or public
+    billing configuration changed. See [sandbox handoff](BILLING_SANDBOX_TEST.md).
   - Baseline: billing code exists; local Stripe environment variables were absent.
   - 2026-11-01: operator selected standard Stripe and confirmed Czech Republic
     as the business registration country. Prepared Axyro subscription onboarding
@@ -222,6 +256,35 @@ No owners or target dates have been assigned yet.
     implement applicable tax handling.
 
 - [ ] **L08 — Real payment lifecycle verification** · Unverified
+  - 2026-11-02 infrastructure check: a zero-value invoice for a disposable
+    sandbox customer with no app association, email or payment details generated
+    real event `evt_1UXLrXRrXPiiRoHsQj93OjNu` (`invoice.paid`). Stripe records
+    Delivered, HTTP 200 and `{ "received": true }` from the active staging webhook.
+    This verifies signed delivery, provider reads and the Supabase server write
+    path, but does not verify paid-user access or a purchased subscription.
+    Staging now deploys the task branch; public main/billing remain unchanged.
+    Follow-up canonical-origin handling covers signup/recovery/Google callbacks,
+    session-refresh redirects and callback completion/error redirects to preserve
+    PKCE cookie scope. Three provider redirect tests failed before the follow-up;
+    verified 432 unit tests, 11 account/subscription browser tests, TypeScript,
+    zero-warning lint and webpack build.
+    Final staging source `e58ade54f8addc6b647697f873c9a265a8a067ea` is published as
+    `6ae8c0c451730a78a9d014d8`. Deployed checks verify four exact prices,
+    configured auth, disabled admin login, checkout 401 for guests, forged webhook
+    400, same-origin logout 200, cross-origin logout 403 and stable Google/refresh/
+    callback-error redirect origins. Browser USD/EUR selection loads correctly.
+    The operator's real app purchase/Pro/cancellation exercise remains open.
+    Both deployed guest release smoke tests passed against the final e58ade5
+    deployment: public routes and free-player start/pause/resume/skip-to-completion.
+  - 2026-11-02: added endpoint tests using real HMAC verification for the seven
+    subscribed events, expanded customer references, forged delivery, missing
+    signing configuration, unrelated events and retryable reconciliation failure.
+    All 12 focused tests pass. These use mocked reconciliation and do not establish
+    deployed webhook delivery or purchase readiness. Owner/Admin accounts already
+    have Pro; the operator test requires a regular account. Hosted database and
+    Stripe account isolation must be resolved before configuring staging.
+    Full local verification: 425 unit tests, TypeScript and zero-warning ESLint
+    pass. No production code was changed; build/browser checks were not rerun.
   - Complete when: real Stripe test-mode purchase → signed webhook → trusted Pro
     access works on staging, including checkout continuation, cancellation,
     failed payment, renewal, expiration, webhook retry, duplicate clicks and
@@ -255,9 +318,14 @@ No owners or target dates have been assigned yet.
     through a documented process (support-assisted is acceptable initially),
     backup/provider retention is explained, and data inventory docs are current.
 
-- [ ] **L13 — Production media rights** · Open
-  - Baseline: [media credits](../MEDIA_CREDITS.md) label some imported images as
-    temporary development references to replace before release.
+- [ ] **L13 — Production media rights** · Partial
+  - 2026-11-14: operator confirmed that current exercise GIFs are generated
+    production media and need no replacement. Removed eight unused images for
+    two out-of-catalog movements and their documentation references; 34 catalog
+    and schema tests passed. Legacy imported position images are separate from
+    the current GIF demonstrations. Exercise GIF replacement is not a launch
+    task. The separate confirmation-email reference review remains unverified;
+    see [media credits](../MEDIA_CREDITS.md).
   - Complete when: replace these references with production assets or document
     appropriate commercial permissions; confirm supplied clip/person rights and
     attribution obligations. Preserve the 40-exercise contract and stable IDs.
@@ -401,5 +469,34 @@ business and markets. Recheck current requirements when completing legal tasks.
 
 | 2026-11-01 | L06 / L07 / L19 | Added approved USD 7.99/month and USD 69.99/year sandbox prices alongside EUR 6.99/month and EUR 59.99/year. App supports USD/EUR selection with USD default and billing-period preservation; both use the existing Pro entitlement and server price allowlist. Verified 413 unit tests, eight account browser checks and three subscription browser checks, TypeScript, lint and webpack production build. Real local app loaded both currencies from Stripe and switched correctly. No live billing or production deployment changed; merchant activation, tax decisions and real payment/webhook lifecycle verification remain open. |
 
-
 | 2026-11-01 | L01 / L05 / L06 / L07 / L17 / L19 | Prepared account and membership release: distinct account illustrations, password request/completion feedback, USD/EUR selection, responsive paywall and an explicitly inactive optional promo-code input. Verified 413 unit tests, all 119 browser regressions, two local production smoke tests, TypeScript, zero-warning lint and webpack build. Production dependency audit reports 0 vulnerabilities; full audit has 16 moderate development-tooling findings and no high/critical findings. Source secret-pattern scan found no matches. Hosted checks and merge evidence follow; live payment/webhook lifecycle, promo redemption and remaining provider/device checks stay open. |
+
+| 2026-11-02 | L06 / L08 | Verified dedicated Stripe sandbox identity, all four active test prices and default portal settings through the API. No webhook endpoints or hosted Stripe variables exist. Added 12 signed-webhook endpoint tests and sandbox configuration/operator test instructions. All 425 unit tests, TypeScript and zero-warning lint pass. Separate hosted staging import was blocked by automatic approval review pending explicit scope/secret approval; no hosted configuration or live billing changed. L06 remains Partial and L08 Unverified. |
+
+| 2026-11-02 | L03 / L05 / L06 / L08 / L19 | Operator approved separate Free Netlify staging, sandbox secrets and temporary shared Axyro Supabase access for a dedicated regular account. Configured axyro-staging.netlify.app, exact auth callback, four sandbox prices and protected staging-only credentials. Active webhook we_1UXLcrRrXPiiRoHsSibA6eCC delivered real zero-value invoice.paid event evt_1UXLrXRrXPiiRoHsQj93OjNu with HTTP 200; no app subscription row was created. Replaced initial webhook signing configuration after tool-output exposure; old endpoint is disabled. Fixed Netlify immutable-origin handling for mutations and auth redirects, with failing-before-fix regressions. Verified 432 unit tests, 11 final account/subscription browser checks (30 earlier account/subscription/smoke checks), TypeScript, zero-warning lint and webpack build. Source e58ade5 published as 6ae8c0c451730a78a9d014d8; deployed auth/products/protections/redirect checks and both guest release smoke tests pass. Public main/billing unchanged; operator purchase/Pro/cancellation, live merchant and tax work remain open. |
+
+| 2026-11-02 | L17 | Updated paywall presentation: Monthly first/default, Yearly second; navigation Plan/Activity and Library Explore Pro open a shared modal retaining page/filter/scroll state. Verified 19 targeted browser regressions, including 320/390/1280px layouts, zero axe violations, stable dialog bounds during delayed pricing, focus trapping/restoration, pending Pro checks, unavailable prices and checkout currency/price selection. All 432 unit tests, TypeScript, zero-warning lint and webpack build passed. No deployment or real payment/device checks performed; L17 remains Partial. |
+
+| 2026-11-02 | L05 / L17 | Guests now sign in through a shared modal before plan questionnaires or other protected content. Home/plan/activity/library/paid-workout links and direct protected routes retain their destination through the existing account-isolation reset. Embedded registration/recovery reuse existing auth services; Free/Pro continuation and free-workout access are covered. Verified 433 unit tests and 141 browser regressions across full and targeted runs, mobile/desktop modal screenshots, zero axe violations on checked surfaces, TypeScript, zero-warning lint and webpack production build. Existing guest questionnaire fixtures now use authenticated Free accounts; hover/focus scans target the active modal. No deployment or fresh real Google/email/payment/device verification; L05/L17 remain Partial. |
+
+| 2026-11-02 | L17 | Added a shared 250ms CSS opacity/scale entrance and matching backdrop fade for access modals, using the existing easing token. Reduced motion keeps only the fade; dismissal stays immediate. All 28 targeted auth/paywall browser checks passed, including repeated openings, real transition events, reduced motion, Escape/focus restoration and stable settled layout; the two motion checks also passed with explicit backdrop assertions. TypeScript, lint and formatting passed. No new dependency or provider changes; physical-device motion feel and deployment remain unverified. |
+
+| 2026-11-02 | L05 / L17 | Exercise guides now require sign-in from library cards, workout-preview/editor links and direct URLs. Guests see the existing animated sign-in modal; authenticated Free users can open individual guides without Pro. Library browsing limits, guest free-workout playback, all 40 records and media paths remain unchanged. Verified 30 targeted browser regressions covering guest gating, Free/Pro continuation with sport query, library preview, optional equipment and workout editing; all 433 unit tests, TypeScript, lint and webpack build passed. Existing auth services and public static media delivery are unchanged. No deployment or fresh live Google/email/device checks. |
+
+| 2026-11-03 | L05 / L17 | Changed signed-in plan conversion to creation status → Plan-page preview → non-dismissible activation paywall. Free previews use the existing deterministic compiler and account-scoped session draft storage; paid planner API, cloud plan writes and paid execution still require Pro. Reset/deletion/activation clear previews with drafts. Pro creation and checkout resume preserve the authorized generation flow. All 435 unit tests and all 149 browser regressions passed, including locked Escape/backdrop behavior, preview reload, storage failure, cancellation and checkout continuation. TypeScript, zero-warning lint, formatting and webpack build passed; phone/desktop progress and locked-paywall screenshots reviewed with zero axe violations on checked modal surfaces. No deployment, real charge/provider or physical-device verification; L05/L17 remain Partial. |
+
+| 2026-11-03 | L17 | Created-plan paywall now confirms “Your plan is ready” and explains “Go Pro to unlock your personal plan and start training.” Other paywalls retain their context copy. All six targeted preview/checkout browser regressions, TypeScript and targeted zero-warning lint passed. Local copy change only; no deployment or provider changes. |
+
+| 2026-11-03 | L17 | Free access now covers the first 10 exercises in the shared global media/English-name order and Foundation Strength, the first quick-start workout. Signed-in catalog browsing shows all 40 summaries with Pro badges/Unlock guide actions after the free ten; direct guides and workout exercise links share the allowlist. All Pro offers now use a non-dismissible modal, while authentication forms remain closable. Created-plan confirmation is explicitly scoped to real previews. Verified all 436 unit tests and 156 full-suite browser regressions; eight targeted boundary/card/workout/browser-language tests also passed, including the added Czech-locale check. Types, zero-warning lint, formatting and webpack build passed. No catalog records/media paths, entitlement grants or paid execution APIs changed. No deployment or fresh real-provider/physical-device checks; L17 remains Partial. |
+
+| 2026-11-17 | L01 / L03 / L05 / L16 / L19 | Security release prepared: blocked control-character redirects, removed email-driven admin grants, bounded all five body-reading API routes while streaming, bound recovery privileges to recovery PKCE initiation, added baseline CSP/no-store/callback referrer policy and patched Next.js/tooling. npm audit: zero vulnerabilities. 492 unit tests, TypeScript, zero-warning lint, webpack production build and all three production smoke checks pass. Browser verification: 158/161 initially; all 30 tests in affected copy/layout suites pass after correcting stale assertions. Semgrep: zero findings from 74 rules/256 targets, with two partial test-file parses. See [security findings and remaining gates](SECURITY_AUDIT_2026-11-17.md). Actual Axyro database is paused; automatic approval review rejected resume because of quota/billing implications. No database or paid-plan changes; hosted account/payment/rate-limit/isolation verification and deployment remain open. |
+
+| 2026-11-17 | L02 / L03 / L19 | All existing product work and security fixes pushed to `codex/security-release` (`045275f`, `e07f3fa`); clean script-disabled lockfile install passed with a temporary npm cache. GitHub integration returned 403 on PR creation, browser fallback requires sign-in, and no workflow/status exists for the head. Netlify browser is also signed out. No merge or new deployment; follow the release comparison and the security report after GitHub/Netlify access and explicit Supabase resume approval. |
+
+| 2026-11-17 | L04 / L05 / L16 / L19 | Implemented shared service-only PostgreSQL request quotas for auth, Pro generation and billing actions, privacy-preserving environment-scoped bucket keys, fail-closed 503 and 429/Retry-After. Added five-minute public-price caching and explicit model timeout/no SDK retries. Official CLI generated the additive migration; local PostgreSQL/PGlite permission, expiry and allowance checks pass, as do 514 unit tests (including client-IP boundaries), TypeScript, zero-warning lint and ten account/form/billing browser tests. CI now includes an ephemeral PostgreSQL permission and 20-connection quota check; hosted execution remains pending. Apply/verify the migration before app deployment. Axyro remains INACTIVE in the connector; no hosted resume, migration, upgrade, new PR or deployment. See REQUEST_PROTECTION.md. |
+
+| 2026-11-17 | L03 / L19 | Operator signed into GitHub and Netlify; both browser sessions verified. Netlify currently publishes production deployment `6ae7c5d0d27a02b549097df1` from `340f67a`, recorded as the rollback target before this security release. Actual Axyro Supabase remains INACTIVE and explicit resume approval is pending. Hosted PR/CI preparation can now proceed; no production publication or database change yet. |
+
+| 2026-11-17 | L03 / L04 / L16 / L19 | Created PR #5 through the verified browser sign-in. Hosted Release checks run `44087857990` passed quality and browser on `23fc3ee`: 514 unit tests, 161 browser regressions, types/lint/audit/build/production smoke, PostgreSQL permissions and 20 concurrent quota requests admitting exactly three. Netlify preview `6afc4f029df8372b85ad579d` published that commit at https://deploy-preview-5--axyro-training.netlify.app; all three deployed guest/security smoke checks passed. Production rollback target remains `6ae7c5d0d27a02b549097df1` / `340f67a`. Production project resume approval, quota migration, runtime header-spoof/account/provider checks remain pending. No production merge/publication or database change. |
+
+| 2026-11-17 | L03 / L04 / L05 / L16 / L19 | Explicit operator authorization received to resume existing Free Axyro project; now ACTIVE_HEALTHY, no plan upgrade. Applied quota migration as hosted version 20261117164905. Live isolation, role/billing escalation denial, unpaid-plan guard and quota privileges passed with all synthetic fixtures rolled back. Staging deploy 6afc85c987fe70a139886b22 / 5454238 passed all three mobile release smoke tests and real 10-allowed/11th-429 sign-in quota with forged platform/forwarded IP headers still denied. Wrong/missing Origin 403 and oversized body 413 verified. CI run 44089218480 passed both jobs. Leaked-password protection requires Pro, so its advisor warning remains under Free/no-upgrade authorization. Real email/payment, backup and device launch gates remain open. |

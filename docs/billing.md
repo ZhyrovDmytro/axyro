@@ -2,6 +2,9 @@
 
 Axyro uses Stripe Checkout and Customer Portal with one `pro` entitlement. Prices are retrieved from Stripe; configure monthly and/or annual recurring Price IDs. No trial is introduced. No card data reaches the application.
 
+For the current provider verification, deployment prerequisites and operator
+purchase checklist, see [sandbox billing handoff](BILLING_SANDBOX_TEST.md).
+
 Required server environment: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_MONTHLY_PRICE_ID` and/or `STRIPE_YEARLY_PRICE_ID`, `APP_URL` (canonical deployment origin), plus the Supabase server configuration in the authentication setup. Keep secrets out of `NEXT_PUBLIC_*` variables. Apply all SQL migrations in filename order. Enable subscription management/cancellation in Stripe's Customer Portal.
 
 Approved regional membership prices are EUR 6.99/month or EUR 59.99/year and

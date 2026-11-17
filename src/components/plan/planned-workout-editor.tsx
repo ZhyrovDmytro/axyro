@@ -1,4 +1,6 @@
 "use client";
+import { freeExerciseIds } from "@/lib/library-access";
+import { PaywallLink } from "@/components/membership/paywall-modal";
 
 import { isExercisePlanEligible } from "@/domain/content/catalog-quality";
 import Link from "next/link";
@@ -108,9 +110,14 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
         <section>
           <p className="kicker">Session unavailable</p>
           <h1>We couldn’t find that workout.</h1>
-          <Link className="button button--primary" href="/plan">
+          <PaywallLink
+            className="button button--primary"
+            href="/plan"
+            context="plan"
+            returnTo="/plan"
+          >
             Back to plan
-          </Link>
+          </PaywallLink>
         </section>
       </main>
     );
@@ -295,9 +302,14 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
 
   return (
     <main className="page-shell page-shell--detail page-shell--workout-detail editor-page">
-      <Link className="back-link" href="/plan">
+      <PaywallLink
+        className="back-link"
+        href="/plan"
+        context="plan"
+        returnTo="/plan"
+      >
         <UiIcon name="arrow-left" /> Training plan
-      </Link>
+      </PaywallLink>
       <section className="detail-hero detail-hero--workout planned-workout-hero">
         <div>
           <div className="tag-row">
@@ -624,9 +636,14 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
                           Review before training
                         </span>
                       )}
-                      <Link href={`/exercises/${exercise.slug}`}>
+                      <PaywallLink
+                        href={`/exercises/${exercise.slug}`}
+                        context="library"
+                        returnTo={`/exercises/${exercise.slug}`}
+                        requirePro={!freeExerciseIds.has(exercise.id)}
+                      >
                         {exercise.name}
-                      </Link>
+                      </PaywallLink>
                       <p>{exercise.shortDescription}</p>
                       {isEditing && (
                         <div className="timing-fields">

@@ -306,3 +306,32 @@ it("updates generic upcoming titles without changing exercises, custom names or 
   expect(restored.sessions[2]).toEqual(plan.sessions[2]);
   expect(repository.load()).toEqual(restored);
 });
+
+describe("durable plan acceptance", () => {
+  it("writes the complete validated plan before reporting acceptance", () => {
+    const repository = new LocalTrainingPlanRepository(memoryStorage());
+    const plan = generateTrainingPlan(profile, new Date(2026, 8, 28, 12));
+    expect(repository.saveDurably(plan)).toEqual(plan);
+    expect(repository.load()).toEqual(plan);
+  });
+  it("rejects missing, full, or stale account storage", () => {
+    const plan = generateTrainingPlan(profile, new Date(2026, 8, 28, 12));
+    expect(() =>
+      new LocalTrainingPlanRepository(null).saveDurably(plan),
+    ).toThrow();
+    expect(() =>
+      new LocalTrainingPlanRepository({
+        getItem: () => null,
+        setItem: () => {
+          throw new Error("Full");
+        },
+      }).saveDurably(plan),
+    ).toThrow();
+    expect(() =>
+      new LocalTrainingPlanRepository({
+        getItem: () => null,
+        setItem: () => {},
+      }).saveDurably(plan),
+    ).toThrow();
+  });
+});

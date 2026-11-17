@@ -1,7 +1,42 @@
 import { createHmac } from "node:crypto";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { priceIds, verifyWebhook } from "./stripe";
-afterEach(() => vi.unstubAllEnvs());
+import { priceIds, stripeRequest, verifyWebhook } from "./stripe";
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
+});
+describe("billing provider response caching", () => {
+  it("caches only public price reads and keeps customer state and mutations private", async () => {
+    vi.stubEnv("STRIPE_SECRET_KEY", "test-key");
+    const fetcher = vi.fn<typeof fetch>(async () => Response.json({}));
+    vi.stubGlobal("fetch", fetcher);
+    await stripeRequest("prices/price_configured");
+    expect(fetcher).toHaveBeenLastCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        cache: "force-cache",
+        next: { revalidate: 300 },
+      }),
+    );
+    for (const path of [
+      "customers/cus_owned",
+      "subscriptions?customer=cus_owned",
+      "billing_portal/sessions",
+    ]) {
+      await stripeRequest(
+        path,
+        path.includes("sessions")
+          ? new URLSearchParams({ customer: "cus_owned" })
+          : undefined,
+      );
+      expect(fetcher).toHaveBeenLastCalledWith(
+        expect.any(String),
+        expect.objectContaining({ cache: "no-store" }),
+      );
+      expect(fetcher.mock.calls.at(-1)?.[1]).not.toHaveProperty("next");
+    }
+  });
+});
 describe("configured subscription prices", () => {
   it("includes both currencies and keeps EUR-only configurations working", () => {
     vi.stubEnv("STRIPE_MONTHLY_PRICE_ID", "price_eur_month");

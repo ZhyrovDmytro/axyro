@@ -1,0 +1,33 @@
+import { z } from "zod";
+
+export const weeklyAssessmentSchema = z.object({
+  id: z.string().min(1),
+  fingerprint: z.string().min(1),
+  actionable: z.boolean().optional(),
+  planId: z.string().min(1),
+  weekNumber: z.number().int().positive(),
+  completedSessions: z.number().int().nonnegative(),
+  scheduledSessions: z.number().int().nonnegative(),
+  explicitFeedbackCount: z.number().int().nonnegative(),
+  averageDifficultySignal: z.number(),
+  weightedDifficultySignal: z.number(),
+  completionRate: z.number().min(0).max(1),
+  skipRate: z.number().min(0).max(1),
+  substitutionRate: z.number().min(0).max(1),
+  painSignalCount: z.number().int().nonnegative(),
+  confidence: z.enum(["LOW", "MEDIUM", "HIGH"]),
+  assessment: z.enum([
+    "SIGNIFICANTLY_TOO_EASY",
+    "SLIGHTLY_TOO_EASY",
+    "APPROPRIATE",
+    "SLIGHTLY_TOO_HARD",
+    "SIGNIFICANTLY_TOO_HARD",
+    "INSUFFICIENT_DATA",
+  ]),
+  suggestedAdjustment: z.number().min(-20).max(15),
+  timingPreference: z.enum(["shorter", "more-recovery"]).optional(),
+  reasons: z.array(z.string()),
+  affectedExerciseIds: z.array(z.string()),
+  painExerciseIds: z.array(z.string()),
+  generatedAt: z.string().datetime(),
+});

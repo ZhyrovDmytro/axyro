@@ -4,15 +4,43 @@ Axyro remains a Next.js App Router web application. Supabase owns credentials an
 
 ## Access contract
 
-Guests and authenticated Free users can run Foundation Strength with all duration, effort, audio and player controls. Exactly one curated workout has `access: free`; other authored content is Pro. Guests and Free members browse a stable media-first preview of 6 exercises; search and pagination operate within that selection. A single overflow gradient introduces Explore Pro for everyone, with additional account/sign-in actions for guests. All exercise reference pages and media remain public, including links used by workout guidance; only full-library browsing is Pro. The 40 curated exercise records are preserved; all are eligible for home training, including the prone shoulder movements with optional light dumbbells.
+Guests and authenticated Free users can run Foundation Strength, the first
+quick-start workout, with all duration, effort, audio and player controls. It is
+the only free workout; all other workouts require Pro. Guests see a stable
+media-first preview of 10 exercises and must sign in to open a guide. Signed-in
+users can browse/search all 40 exercises. Free members can open exactly the first
+10 in the global library order; the remaining 30 show a Pro badge and an Unlock
+guide action. Filtering and pagination do not create a new free subset. Individual
+exercise links in workout previews/editors and direct guide URLs use the same
+stable ID allowlist. Preview media and free-workout playback remain available.
+The 40 curated exercise records, home-training eligibility and media paths are
+preserved.
 
-Pro unlocks personalized plan generation, plan scheduling/editing/execution, the workout and exercise libraries, history and progress. `hasEntitlement` centralizes subscription expiration and trusted admin overrides. APIs, SQL write policies and server workout guards enforce access independently of UI. Data is retained when Pro expires.
+Pro unlocks activation and server-assisted generation of personalized plans, plan scheduling/editing/execution, the workout and exercise libraries, history and progress. `hasEntitlement` centralizes subscription expiration and trusted admin overrides. APIs, SQL write policies and server workout guards enforce access independently of UI. Data is retained when Pro expires.
 
 For owner production testing, the server automatically assigns the trusted admin role to the authenticated, email-confirmed account `dmytrozhyrov@gmail.com`. The grant persists in `profiles.role`, so application and database checks agree. It requires the normal Supabase session and server secret; no Stripe subscription is required. See [authentication](./AUTHENTICATION.md) for verification and revocation details.
 
 ## Conversion
 
-Fitness setup can be explored without an account. The final Create My Plan action validates answers and opens the common contextual paywall for Free users. It does not generate a plan. An owned sessionStorage draft preserves answers across Checkout. An explicit `resume=1` authentication continuation can consume a guest draft once. This is intentionally distinct from automatically importing unowned historical data. Drafts never grant Pro. Following a successful Checkout redirect, the client requests trusted reconciliation and waits for server-confirmed membership before submitting the original plan request. Server-side deterministic fallback handles planner failure; the client never falls back around an authorization failure.
+Plan setup requires sign-in. The final Create My Plan action validates answers,
+shows creation status, and builds a deterministic local preview for Free users.
+The preview is kept beside the account-owned questionnaire draft in sessionStorage;
+it is not an active plan, is not synced to the account, and never calls the paid
+planner endpoint. The Plan page shows the generated schedule as an inert backdrop
+and automatically opens the common paywall without a close action. Escape and
+backdrop clicks cannot dismiss it. Reloading or returning to Plan in the same tab
+restores this state. Links to account/legal/free-workout pages and browser navigation
+still work. All Pro paywalls use the same non-dismissible behavior; sign-in
+forms remain dismissible.
+
+Pro users see the same creation status while the existing authorized planner API
+runs, then enter their active plan without a paywall. After checkout or restore,
+the client waits for trusted Pro confirmation and resumes the saved questionnaire
+with `resume=1`, creates the active plan through the server, then clears the draft
+and preview. Reset, local-data deletion and server-confirmed account deletion also
+clear the account's preview through the existing draft-cleanup path. The server
+planner, paid workout execution and cloud plan writes still require Pro. Local
+preview generation does not bypass those authorization checks.
 
 ## Screens
 
@@ -25,3 +53,94 @@ Fitness setup can be explored without an account. The final Create My Plan actio
 Run SQL migrations in order, configure Supabase email delivery/confirmation and Google OAuth, configure Stripe recurring monthly/yearly prices plus webhook and Customer Portal, and set the server-only variables in `.env.example`. Apple is not required by this web-only repository, and no fake Apple option is shown. Live provider flows require externally supplied configuration; local tests verify integration boundaries rather than claiming real charges or email delivery.
 
 Legal pages describe implemented behavior; the product owner must supply business identity, jurisdiction-specific terms, retention/backup policy and support contact before launch.
+
+## Paywall entry points — 2 November 2026
+
+The shared navigation’s Plan and Activity links, Library’s Explore Pro link and
+paid workout cards open a shared access modal over the current page. Guests see
+sign-in first; authenticated Free members see membership offers. Sign-in can be
+closed while preserving the route, filters and scroll position. Pro offers cannot
+be dismissed with a close control, Escape or backdrop click. The
+native dialog makes background content inert; the existing focus trap handles
+Tab and Shift+Tab; Escape closes only authentication forms. Focus returns to the
+trigger when those forms close. The background cannot
+scroll while the modal is open. Following an account/legal link closes the modal
+when the route changes. Pro members navigate directly; membership checks still
+pending at click time resolve before showing offers or continuing to the route.
+
+Membership choices show Monthly first (selected by default), then Yearly. USD
+remains the default currency when available, and changing currency preserves the
+chosen billing period. Dialog dimensions stay fixed while membership/pricing
+loads; the pricing loading state reserves space to reduce content jumps. Direct protected routes and `/upgrade` show guests the same sign-in modal;
+authenticated Free visitors see the same non-dismissible Pro modal. Checkout,
+restore, access enforcement and the inactive promo-code field are unchanged.
+
+## Sign-in before protected content — 2 November 2026
+
+All plan-creation links require an account before opening the questionnaire.
+`/plan/setup` and `/plan/refine` also guard direct visits, so anonymous visitors
+cannot start or restore questionnaire steps. Signed-in Free members retain the
+questionnaire-before-purchase flow; activating or executing a personal plan
+still requires Pro. The local preview flow is described above. All links into Plan and Activity use the shared access
+link. Paid workout cards open the access modal; the free workout keeps guest
+access. Individual exercise guides now require sign-in, as described below.
+Library’s explicit
+account links open registration/sign-in in that same modal.
+
+The modal reuses `AuthForm` with embedded layout and in-place navigation among
+sign-in, registration and recovery. Validation, Google OAuth, confirmation emails,
+password handling and server authorization remain in the existing services.
+Successful sign-in continues to the requested route for Pro/account-only entry
+points, or presents membership offers for a Free user entering Pro content.
+Closing the modal leaves a direct protected page with a sign-in action to reopen
+it; protected children are not mounted for guests.
+
+The access request provider sits outside `AuthProvider` while its modal outlet
+sits inside authentication and membership contexts. Only the requested destination
+and access context survive the identity reset; personal UI and data still remount
+when accounts change. Server-protected player/editor routes send guests through
+`/upgrade` with their original destination to show the same modal; existing
+refresh-cookie handling and trusted Pro checks remain intact.
+
+## Exercise guide access — 2 November 2026
+
+Opening an exercise from a library card, workout preview or workout editor uses
+the shared sign-in modal for guests. Direct exercise URLs use the same account
+check before mounting the guide. Sign-in returns to the requested exercise,
+including its valid sport query. A Free account opens the first 10 guides only;
+Pro opens all 40. Signed-in users may browse all exercise summaries, while guests
+see the ten-exercise preview. The preview and
+free-workout playback remain available without an account, and the 40 exercise
+records and their existing media paths are unchanged. This is a page-access rule;
+static media URLs remain public.
+
+
+## Creation status
+
+Creation uses an indeterminate spinner and real lifecycle states: validated
+answers, building the schedule, then ready to view. Fast previews keep the status
+visible for at least 600ms and show completion for 250ms so the transition is
+readable; no fabricated percentage or server-stage estimates are displayed.
+Reduced motion keeps the status indicator static. Back/Exit cancel pending work
+and prevent late navigation; errors restore the review with its answers intact.
+Preview storage failure prevents navigation and offers a retry. The existing
+runtime content/schema validation, authored timing and pain constraints remain
+in the deterministic compiler; the catalog still contains 40 exercises.
+
+
+## Stable free-content boundary — 3 November 2026
+
+`librarySelection` defines the global media/name order and `freeExerciseIds`
+contains its first ten stable exercise IDs. The same allowlist is used by cards,
+exercise guide routes and workout exercise links. Authenticated server catalog
+requests include all summaries; guests receive only the preview. Free exercise
+access is independent of current search, sport query and pagination.
+
+All Pro entry points, including Plan, Activity, Explore Pro, paid workouts and
+exercise 11 onward, now use a non-dismissible modal. Direct protected URLs also
+open this modal instead of an inline paywall. Authentication screens remain
+closable before sign-in; after sign-in a blocked destination shows the locked
+Pro offer. Only the actual generated-preview entry supplies `planCreated`, so
+other Plan invitations do not incorrectly claim a plan has already been created.
+Account/legal/free-workout links and browser navigation remain available. Pro
+accounts and trusted admin overrides retain full access.

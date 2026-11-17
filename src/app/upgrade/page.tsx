@@ -1,3 +1,4 @@
+import { ProGate } from "@/components/membership/pro-gate";
 import { Paywall } from "@/components/membership/paywall";
 export default async function UpgradePage({
   searchParams,
@@ -18,8 +19,10 @@ export default async function UpgradePage({
       ? query.returnTo
       : "/plan/setup";
   return (
-    <main className="page-shell account-shell">
-      <Paywall context={context} returnTo={returnTo} />
-    </main>
+    <ProGate context={context} returnTo={returnTo}>
+      <main className="page-shell account-shell">
+        <Paywall context={context} returnTo={returnTo} />
+      </main>
+    </ProGate>
   );
 }

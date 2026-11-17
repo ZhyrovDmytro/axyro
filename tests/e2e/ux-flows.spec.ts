@@ -1,3 +1,4 @@
+import { mockFreeMember } from "./helpers/free-member";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
@@ -41,11 +42,13 @@ test("keyboard users can skip navigation and reach Activity", async ({
     .getByRole("link", { name: "Activity" })
     .press("Enter");
   await expect(
-    page.getByRole("link", { name: "Activity", exact: true }),
-  ).toHaveAttribute("aria-current", "page");
+    page.getByRole("dialog", { name: "Sign in to continue" }),
+  ).toBeVisible();
+  await expect(page).toHaveURL(/\/workouts(?:#main-content)?$/);
 });
 
 test("setup moves focus forward and back", async ({ page }) => {
+  await mockFreeMember(page);
   await page.goto("/plan/setup");
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   await expect(page.locator("#setup-step-heading")).toBeFocused();
@@ -73,6 +76,6 @@ for (const width of [320, 768, 1280]) {
     await page
       .getByRole("link", { name: "Browse workouts", exact: true })
       .click();
-    await expect(page).toHaveURL(/\/workouts$/);
+    await expect(page).toHaveURL(/\/workouts(?:#main-content)?$/);
   });
 }

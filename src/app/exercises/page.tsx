@@ -43,9 +43,12 @@ export default async function ExercisesPage({
 
   const session = await getAuthSession({ refresh: false });
   const hasPro = session ? (await getBillingAccess(session)).hasPro : false;
-  const exerciseRows = librarySelection(exercises, hasPro).map((exercise) => ({
-    exercise,
-  }));
+  const showingFullCatalog = Boolean(session);
+  const exerciseRows = librarySelection(exercises, Boolean(session)).map(
+    (exercise) => ({
+      exercise,
+    }),
+  );
   const bodyAreas = [
     ...new Set(exercises.flatMap((exercise) => exercise.bodyAreas)),
   ];
@@ -125,7 +128,7 @@ export default async function ExercisesPage({
           <span className="result-count" role="status">
             {filteredExercises.length} result
             {filteredExercises.length === 1 ? "" : "s"}
-            {!hasPro && " in the free preview"}
+            {!showingFullCatalog && " in the free preview"}
           </span>
         </div>
         {filteredExercises.length ? (
@@ -137,10 +140,12 @@ export default async function ExercisesPage({
         ) : (
           <div className="empty-state">
             <h2>
-              {hasPro ? "No exercises found" : "No free-preview guides match"}
+              {showingFullCatalog
+                ? "No exercises found"
+                : "No free-preview guides match"}
             </h2>
             <p>
-              {hasPro
+              {showingFullCatalog
                 ? "Try clearing one or more filters."
                 : `Search covers the ${FREE_LIBRARY_LIMIT} free guides. Pro opens all ${exercises.length} exercises.`}
             </p>

@@ -63,7 +63,7 @@ test("membership currency preserves billing period and submits the selected pric
   await page.goto("/upgrade?context=workout");
   await expect(page.getByLabel("Currency", { exact: true })).toHaveValue("usd");
   await expect(page.getByRole("radio")).toHaveCount(2);
-  await expect(page.getByRole("radio", { name: /Yearly/ })).toBeChecked();
+  await expect(page.getByRole("radio", { name: /Monthly/ })).toBeChecked();
   await expect(
     page.getByRole("radio", { name: /Yearly/ }),
   ).toHaveAccessibleName(/69.99/);
@@ -197,7 +197,7 @@ test("Free workout to Pro checkout continues directly into personal plan and sig
     .click();
   await expect(
     page.getByRole("heading", {
-      name: "Build your personal padel training plan",
+      name: "Your plan is ready",
     }),
   ).toBeVisible();
   expect(state.generations()).toBe(0);
@@ -205,8 +205,10 @@ test("Free workout to Pro checkout continues directly into personal plan and sig
   await page
     .getByRole("button", { name: "Unlock My Plan", exact: true })
     .click();
+  await expect.poll(state.generations, { timeout: 30000 }).toBe(1);
+  await expect(page.locator(".plan-preview")).toHaveCount(0);
   await expect(
-    page.getByRole("heading", { name: "Your full plan.", exact: true }),
+    page.getByRole("heading", { name: "Your training plan", exact: true }),
   ).toBeVisible({ timeout: 30000 });
   expect(state.generations()).toBe(1);
   await page.goto("/account");

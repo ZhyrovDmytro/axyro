@@ -1,5 +1,42 @@
 import { expect, test } from "@playwright/test";
 
+test("enforces security headers, same-origin mutations and safe redirects", async ({
+  request,
+}) => {
+  const home = await request.get("/");
+  expect(home.headers()["content-security-policy"]).toContain(
+    "object-src 'none'",
+  );
+  expect(home.headers()["content-security-policy"]).toContain(
+    "frame-ancestors 'none'",
+  );
+  expect(home.headers()["content-security-policy"]).not.toContain(
+    "'unsafe-eval'",
+  );
+  expect(home.headers()["x-content-type-options"]).toBe("nosniff");
+  for (const path of [
+    "/api/auth/logout",
+    "/api/training-plan",
+    "/api/user-data",
+  ]) {
+    const response = await request.fetch(path, {
+      method: path.endsWith("user-data") ? "PUT" : "POST",
+      headers: { Origin: "https://attacker.test" },
+      data: {},
+    });
+    expect(response.status(), path).toBe(403);
+    expect(response.headers()["cache-control"], path).toContain("no-store");
+  }
+  const response = await request.get(
+    "/api/auth/refresh?next=%2F%09%2Fattacker.test",
+    { maxRedirects: 0 },
+  );
+  expect(new URL(response.headers().location).pathname).toBe("/signin");
+  expect(new URL(response.headers().location).searchParams.get("next")).toBe(
+    "/",
+  );
+});
+
 test("serves public pages and disables development administrator access", async ({
   page,
   request,

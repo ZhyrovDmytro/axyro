@@ -1,4 +1,5 @@
 "use client";
+import { PaywallLink } from "@/components/membership/paywall-modal";
 
 import Link from "next/link";
 import { useAuth } from "@/components/auth/auth-provider";
@@ -105,7 +106,7 @@ export function PrivacyDataSettings() {
   return (
     <main className="page-shell page-shell--inner settings-page">
       <header className="page-intro">
-        <h1>Make each workout yours.</h1>
+        <h1>Settings</h1>
         <p>
           Set your usual guidance and effort.{" "}
           {user && !user.isDevelopmentAdmin
@@ -125,14 +126,13 @@ export function PrivacyDataSettings() {
         aria-labelledby="guidance-settings-heading"
       >
         <div>
-          <p className="kicker">Workout guidance</p>
           <h2 id="guidance-settings-heading">Audio and tempo</h2>
         </div>
         <label className="setting-row">
           <span>
             <strong>Audio signals</strong>
             <small>
-              Five countdown tones and a distinct tone at each interval change.
+              Countdown tones and a distinct sound when the interval changes.
             </small>
           </span>
           <input
@@ -164,10 +164,7 @@ export function PrivacyDataSettings() {
         <label className="setting-row">
           <span>
             <strong>Keep screen awake</strong>
-            <small>
-              Ask supported browsers to keep the display on while the timer
-              runs.
-            </small>
+            <small>Keep the display on during workouts, where supported.</small>
           </span>
           <input
             type="checkbox"
@@ -183,7 +180,6 @@ export function PrivacyDataSettings() {
         aria-labelledby="effort-settings-heading"
       >
         <div>
-          <p className="kicker">Workout defaults</p>
           <h2 id="effort-settings-heading">Preferred effort</h2>
         </div>
         <div
@@ -219,9 +215,15 @@ export function PrivacyDataSettings() {
         </fieldset>
         {!profile && planReady && (
           <p>
-            <Link className="text-link" href="/plan/setup">
+            <PaywallLink
+              className="text-link"
+              href="/plan/setup"
+              context="plan"
+              returnTo="/plan/setup"
+              requirePro={false}
+            >
               Set up your plan
-            </Link>{" "}
+            </PaywallLink>{" "}
             to choose its default session length.
           </p>
         )}
@@ -235,13 +237,15 @@ export function PrivacyDataSettings() {
       <section className="context-card">
         <h2>Data storage</h2>
         <p>
-          Signed-in training profiles, plans, workout history, preferences and
-          active progress are saved to your account with an isolated copy on
-          this device. Guests can try the free starter workout locally. Supabase
-          manages identity and training storage; Stripe manages subscriptions.
-          Optional AI planning sends setup answers and a compact adaptation
-          profile through the server to OpenAI. There is no advertising or
-          analytics integration.
+          Your account saves your profile, plan, workout history, preferences
+          and active progress, with a separate copy on this device. Guest
+          workouts are saved on this device.
+        </p>
+        <p>
+          Supabase stores account and training data. Stripe manages
+          subscriptions. Optional AI planning sends setup answers and an
+          adaptation profile to OpenAI through our server. Axyro has no
+          advertising or analytics integration.
         </p>
         <p>
           Optional discomfort information is used only to avoid affected
@@ -256,9 +260,8 @@ export function PrivacyDataSettings() {
       <section className="context-card">
         <h2>About Axyro</h2>
         <p>
-          Axyro is a mobile-first guided home workout app. One complete starter
-          workout is free. An account keeps your training with you; Pro unlocks
-          personalized plans and the full library.
+          Guided home workouts for padel. Try one complete starter workout free.
+          Axyro Pro includes personalized plans and the full exercise library.
         </p>
       </section>
 

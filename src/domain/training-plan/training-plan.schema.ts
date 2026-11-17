@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { weeklyAssessmentSchema } from "./weekly-adaptation.schema";
 import { sessionLifecycleStatusSchema } from "@/domain/session/session-lifecycle";
 
 import {
@@ -559,12 +560,38 @@ export const plannedWorkoutSchema = z.object({
   feedbackAdaptations: z.array(feedbackAdaptationSchema),
   sections: sessionSectionsSchema,
   originalSessionSnapshot: originalSessionSnapshotSchema,
+  weeklyAdaptedSessionSnapshot: originalSessionSnapshotSchema.optional(),
   todayAdaptations: z.array(sessionAdaptationSchema),
   isEdited: z.boolean(),
   status: z.preprocess(
     (value) => (value === "planned" ? "scheduled" : value),
     sessionLifecycleStatusSchema,
   ),
+});
+
+export const weeklyAdaptationProposalSchema = z.object({
+  id: z.string().min(1),
+  planId: z.string().min(1),
+  assessmentId: z.string().min(1),
+  sourceWeek: z.number().int().positive(),
+  targetWeek: z.number().int().positive(),
+  assessment: weeklyAssessmentSchema.shape.assessment,
+  confidence: weeklyAssessmentSchema.shape.confidence,
+  overallAdjustmentPercent: z.number().min(-20).max(15),
+  reasons: z.array(z.string()),
+  changes: z
+    .array(
+      z.object({
+        sessionId: z.string().min(1),
+        summary: z.string(),
+        before: plannedWorkoutSchema,
+        after: plannedWorkoutSchema,
+      }),
+    )
+    .min(1),
+  status: z.enum(["PENDING", "ACCEPTED", "DECLINED", "SUPERSEDED"]),
+  createdAt: z.string().datetime(),
+  resolvedAt: z.string().datetime().optional(),
 });
 
 export const gameEventSchema = z.object({
@@ -655,6 +682,8 @@ const storedTrainingPlanSchema = z.object({
   games: z.array(gameEventSchema),
   generation: planGenerationMetadataSchema.optional(),
   generatedAt: z.string().datetime(),
+  weeklyAssessments: z.array(weeklyAssessmentSchema).optional(),
+  weeklyAdaptationProposals: z.array(weeklyAdaptationProposalSchema).optional(),
   lastRebalancedAt: z.string().datetime().optional(),
   rebalancedGamesKey: z.string().optional(),
 });

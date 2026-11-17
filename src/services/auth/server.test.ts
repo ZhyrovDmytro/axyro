@@ -30,12 +30,7 @@ describe("production owner access", () => {
   const id = "123e4567-e89b-42d3-a456-426614174000";
   const profile = { display_name: "Owner", avatar_url: null, role: "user" };
 
-  async function signIn(
-    email: string,
-    confirmed: boolean,
-    role = "user",
-    grantSucceeds = true,
-  ) {
+  async function signIn(email: string, confirmed: boolean, role = "user") {
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("SUPABASE_PUBLISHABLE_KEY", "sb_publishable_test");
     vi.stubEnv("SUPABASE_SECRET_KEY", "sb_secret_test");
@@ -52,34 +47,15 @@ describe("production owner access", () => {
           user_metadata: { email: "dmytrozhyrov@gmail.com", role: "admin" },
         }),
       )
-      .mockResolvedValueOnce(Response.json([{ ...profile, role }]))
-      .mockResolvedValueOnce(
-        grantSucceeds
-          ? Response.json([{ ...profile, role: "admin" }])
-          : Response.json({ error: "Unavailable" }, { status: 503 }),
-      );
+      .mockResolvedValueOnce(Response.json([{ ...profile, role }]));
     return getAuthSession({ refresh: false });
   }
 
   it.each(["dmytrozhyrov@gmail.com", "DmytroZhyrov@Gmail.com"])(
-    "grants verified %s full access through its database role",
+    "never promotes %s based on a verified email address",
     async (email) => {
-      const session = await signIn(email, true);
-      expect(session?.user).toMatchObject({
-        id,
-        role: "admin",
-        isDevelopmentAdmin: false,
-      });
-      expect(vi.mocked(fetch).mock.calls[2]).toEqual([
-        `https://example.supabase.co/rest/v1/profiles?user_id=eq.${id}`,
-        expect.objectContaining({
-          method: "PATCH",
-          body: JSON.stringify({ role: "admin" }),
-        }),
-      ]);
-      expect(
-        new Headers(vi.mocked(fetch).mock.calls[2][1]?.headers).get("apikey"),
-      ).toBe("sb_secret_test");
+      expect((await signIn(email, true))?.user.role).toBe("user");
+      expect(fetch).toHaveBeenCalledTimes(2);
     },
   );
 
@@ -100,12 +76,6 @@ describe("production owner access", () => {
       (await signIn("dmytrozhyrov@gmail.com", true, "admin"))?.user.role,
     ).toBe("admin");
     expect(fetch).toHaveBeenCalledTimes(2);
-  });
-  it("does not grant access when the database role update fails", async () => {
-    expect(
-      await signIn("dmytrozhyrov@gmail.com", true, "user", false),
-    ).toBeNull();
-    expect(fetch).toHaveBeenCalledTimes(3);
   });
 });
 

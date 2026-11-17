@@ -1,4 +1,5 @@
 "use client";
+import { PaywallLink } from "@/components/membership/paywall-modal";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -37,9 +38,9 @@ export function LibraryAndEditor() {
         <div className={styles.sectionIntro}>
           <div>
             <h2 id="library-heading">
-              Know the movement.
+              Learn each movement
               <br />
-              Build your game.
+              with clear technique cues
             </h2>
             <p>
               Explore a curated library of {exercises.length} exercises, with
@@ -83,9 +84,15 @@ export function LibraryAndEditor() {
                 <br />
                 One plan built around you.
               </strong>
-              <Link href="/plan/setup" className={styles.cta}>
+              <PaywallLink
+                href="/plan/setup"
+                context="plan"
+                returnTo="/plan/setup"
+                requirePro={false}
+                className={styles.cta}
+              >
                 Create my plan <UiIcon name="arrow-right" />
-              </Link>
+              </PaywallLink>
               <span>Full exercise library included with Pro.</span>
             </div>
           </div>
@@ -98,11 +105,9 @@ export function LibraryAndEditor() {
         <div className={styles.editorDetailGrid}>
           <div className={styles.editorCopy}>
             <h2 id="editor-heading">
-              Your plan.
+              Adjust the workout
               <br />
-              Your workout.
-              <br />
-              <span>Your call.</span>
+              to your priorities
             </h2>
             <p>
               Start with your personalized plan, then make a session your own.
@@ -123,9 +128,15 @@ export function LibraryAndEditor() {
                 Reorder exercises and adjust timed intervals
               </li>
             </ul>
-            <Link className={styles.cta} href="/plan/setup">
+            <PaywallLink
+              className={styles.cta}
+              href="/plan/setup"
+              context="plan"
+              returnTo="/plan/setup"
+              requirePro={false}
+            >
               Build my personalized plan <UiIcon name="arrow-right" />
-            </Link>
+            </PaywallLink>
             <span className={styles.reassurance}>
               Workout editing is available within your Pro plan.
             </span>

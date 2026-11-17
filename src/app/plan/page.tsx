@@ -1,7 +1,6 @@
-import { ProGate } from "@/components/membership/pro-gate";
 import type { Metadata } from "next";
 
-import { TrainingPlanDashboard } from "@/components/plan/training-plan-dashboard";
+import { PlanPageAccess } from "@/components/plan/plan-page-access";
 
 export const metadata: Metadata = {
   title: "Your training plan | Axyro",
@@ -10,9 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function TrainingPlanPage() {
-  return (
-    <ProGate returnTo="/plan">
-      <TrainingPlanDashboard />
-    </ProGate>
-  );
+  return <PlanPageAccess />;
 }

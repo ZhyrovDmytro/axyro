@@ -43,33 +43,50 @@ describe("generateTrainingPlan", () => {
     const changed = {
       ...plan,
       rebalancedGamesKey: getPlanGamesKey(plan),
-      games: [{ id: "new-match", date: "2026-10-10", label: "Match", importance: "normal" as const }],
+      games: [
+        {
+          id: "new-match",
+          date: "2026-10-10",
+          label: "Match",
+          importance: "normal" as const,
+        },
+      ],
     };
     expect(isPlanRebalanceNeeded(changed)).toBe(true);
-    const rebalanced = rebalancePlanAroundGames(changed);
+    const rebalanced = rebalancePlanAroundGames(changed, plan.startDate);
     expect(isPlanRebalanceNeeded(rebalanced)).toBe(false);
-    expect(isPlanRebalanceNeeded({ ...rebalanced, games: [{ ...rebalanced.games[0], label: "Renamed match" }] })).toBe(false);
-    expect(isPlanRebalanceNeeded({ ...changed, games: plan.games })).toBe(false);
+    expect(
+      isPlanRebalanceNeeded({
+        ...rebalanced,
+        games: [{ ...rebalanced.games[0], label: "Renamed match" }],
+      }),
+    ).toBe(false);
+    expect(isPlanRebalanceNeeded({ ...changed, games: plan.games })).toBe(
+      false,
+    );
   });
 
-  it.each([5, 10, 20] as const)("changes upcoming session targets to %s minutes without changing history", (minutes) => {
-    const plan = generateTrainingPlan(profile, new Date(2026, 9, 1, 12));
-    plan.sessions[1].status = "completed";
-    plan.sessions[2].status = "in-progress";
-    const today = plan.sessions[1].scheduledDate;
-    const next = changePlanSessionDuration(plan, minutes, today);
-    expect(next.profile.sessionDurationMinutes).toBe(minutes);
-    expect(plan.profile.sessionDurationMinutes).toBe(20);
-    expect(next.sessions[0]).toBe(plan.sessions[0]);
-    expect(next.sessions[1]).toBe(plan.sessions[1]);
-    expect(next.sessions[2]).toBe(plan.sessions[2]);
-    for (const session of next.sessions.slice(3)) {
-      expect(session.targetDurationSeconds).toBe(minutes * 60);
-      expect(Math.abs(session.durationDeltaSeconds)).toBeLessThanOrEqual(
-        getSessionDurationToleranceSeconds(minutes * 60),
-      );
-    }
-  });
+  it.each([5, 10, 20] as const)(
+    "changes upcoming session targets to %s minutes without changing history",
+    (minutes) => {
+      const plan = generateTrainingPlan(profile, new Date(2026, 9, 1, 12));
+      plan.sessions[1].status = "completed";
+      plan.sessions[2].status = "in-progress";
+      const today = plan.sessions[1].scheduledDate;
+      const next = changePlanSessionDuration(plan, minutes, today);
+      expect(next.profile.sessionDurationMinutes).toBe(minutes);
+      expect(plan.profile.sessionDurationMinutes).toBe(20);
+      expect(next.sessions[0]).toBe(plan.sessions[0]);
+      expect(next.sessions[1]).toBe(plan.sessions[1]);
+      expect(next.sessions[2]).toBe(plan.sessions[2]);
+      for (const session of next.sessions.slice(3)) {
+        expect(session.targetDurationSeconds).toBe(minutes * 60);
+        expect(Math.abs(session.durationDeltaSeconds)).toBeLessThanOrEqual(
+          getSessionDurationToleranceSeconds(minutes * 60),
+        );
+      }
+    },
+  );
 
   it("turns normalized questionnaire matches into actionable plan events", () => {
     const plan = generateTrainingPlan(
@@ -138,7 +155,10 @@ describe("generateTrainingPlan", () => {
       plan.sessions
         .filter((session) => session.weekNumber === 1)
         .map((session) => session.workout.name),
-    ).toEqual(["Stronger bandeja and víbora rotation", "Steadier racket control"]);
+    ).toEqual([
+      "Stronger bandeja and víbora rotation",
+      "Steadier racket control",
+    ]);
     expect(
       plan.sessions
         .filter((session) => session.weekNumber === 1)
@@ -530,7 +550,7 @@ describe("generateTrainingPlan", () => {
     ).toBeLessThanOrEqual(2 * 60);
   });
 
-  it("uses recent comparable feedback when a new plan is generated", () => {
+  it("preserves programmed progression after a single ordinary difficulty response", () => {
     const previous = generateTrainingPlan(profile, new Date(2026, 7, 31, 12));
     const completed = previous.sessions[0];
     const event: WorkoutFeedbackEvent = {
@@ -557,19 +577,13 @@ describe("generateTrainingPlan", () => {
     ]);
 
     expect(
-      next.sessions
-        .flatMap((session) => session.feedbackAdaptations)
-        .some((adaptation) => adaptation.feedbackEventId === event.id),
-    ).toBe(true);
-    expect(
-      next.sessions
-        .flatMap((session) => session.adjustments)
-        .some(
-          (adjustment) =>
-            adjustment.source === "feedback" &&
-            adjustment.feedbackEventId === event.id,
-        ),
-    ).toBe(true);
+      next.sessions.flatMap((session) => session.feedbackAdaptations),
+    ).toEqual([]);
+    expect(next.sessions.map((session) => session.workout)).toEqual(
+      generateTrainingPlan(profile, new Date(2026, 8, 28, 12)).sessions.map(
+        (session) => session.workout,
+      ),
+    );
   });
 
   it("records final reasons in generation-pipeline order", () => {
@@ -616,20 +630,73 @@ describe("generateTrainingPlan", () => {
 });
 
 describe("rebalancePlanAroundGames", () => {
+  it("moves forward across a busy match week without using past dates or changing history", () => {
+    const plan = generateTrainingPlan(profile, new Date(2026, 8, 28, 12));
+    const today = "2026-10-01";
+    plan.sessions = [
+      { ...plan.sessions[0], scheduledDate: "2026-09-28" },
+      { ...plan.sessions[1], scheduledDate: today },
+      {
+        ...plan.sessions[2],
+        scheduledDate: "2026-10-02",
+        status: "in-progress",
+      },
+      { ...plan.sessions[3], scheduledDate: "2026-10-03", status: "completed" },
+      { ...plan.sessions[4], scheduledDate: "2026-10-06" },
+      { ...plan.sessions[5], scheduledDate: "2026-10-08" },
+      { ...plan.sessions[6], scheduledDate: "2026-10-09" },
+    ];
+    plan.games = ["2026-09-28", today, "2026-10-03", "2026-10-05"].map(
+      (date) => ({
+        id: date,
+        date,
+        label: "Match",
+        importance: "normal",
+      }),
+    );
+    const next = rebalancePlanAroundGames(plan, today);
+    expect(next.sessions[1].scheduledDate).toBe("2026-10-07");
+    expect(describePlanRebalance(plan, next, today)).toContain(
+      "Past workouts stay",
+    );
+    expect(describePlanRebalance(plan, next, today)).not.toContain(
+      "no free future date",
+    );
+    for (const index of [0, 2, 3, 4, 5, 6]) {
+      expect(next.sessions[index]).toBe(plan.sessions[index]);
+    }
+    expect(
+      next.sessions.filter(
+        (session) =>
+          session.scheduledDate >= "2026-10-05" &&
+          session.scheduledDate <= "2026-10-11",
+      ).length,
+    ).toBe(4);
+    expect(
+      new Set(next.sessions.map((session) => session.scheduledDate)).size,
+    ).toBe(next.sessions.length);
+    expect(rebalancePlanAroundGames(next, today).sessions).toEqual(
+      next.sessions,
+    );
+  });
+
   it("moves planned sessions away from a game and its previous day", () => {
     const plan = generateTrainingPlan(profile, new Date(2026, 8, 28, 12));
     const gameDate = plan.sessions[1].scheduledDate;
-    const next = rebalancePlanAroundGames({
-      ...plan,
-      games: [
-        {
-          id: "game-1",
-          date: gameDate,
-          label: "League match",
-          importance: "normal",
-        },
-      ],
-    });
+    const next = rebalancePlanAroundGames(
+      {
+        ...plan,
+        games: [
+          {
+            id: "game-1",
+            date: gameDate,
+            label: "League match",
+            importance: "normal",
+          },
+        ],
+      },
+      plan.startDate,
+    );
 
     expect(
       next.sessions.some((session) => session.scheduledDate === gameDate),
@@ -655,10 +722,14 @@ describe("rebalance feedback", () => {
         importance: "normal",
       },
     ];
-    const next = rebalancePlanAroundGames(plan);
+    const next = rebalancePlanAroundGames(plan, plan.startDate);
     expect(next.sessions).toEqual(plan.sessions);
-    expect(describePlanRebalance(plan, next)).toContain("already in progress");
-    expect(describePlanRebalance(plan, next)).toContain("No workouts moved.");
+    expect(describePlanRebalance(plan, next, plan.startDate)).toContain(
+      "already in progress",
+    );
+    expect(describePlanRebalance(plan, next, plan.startDate)).toContain(
+      "No workouts moved.",
+    );
   });
 
   it("reports a moved workout and then explains a repeated click", () => {
@@ -672,27 +743,33 @@ describe("rebalance feedback", () => {
         importance: "normal",
       },
     ];
-    const next = rebalancePlanAroundGames(plan);
+    const next = rebalancePlanAroundGames(plan, plan.startDate);
     expect(next.sessions[0].scheduledDate).not.toBe(plan.games[0].date);
-    expect(describePlanRebalance(plan, next)).toContain("Moved 1 workout");
+    expect(describePlanRebalance(plan, next, plan.startDate)).toContain(
+      "Moved 1 workout",
+    );
     expect(
-      describePlanRebalance(next, rebalancePlanAroundGames(next)),
+      describePlanRebalance(
+        next,
+        rebalancePlanAroundGames(next, plan.startDate),
+        plan.startDate,
+      ),
     ).toContain("already clear");
   });
 
-  it("reports when all nearby dates are blocked", () => {
+  it("reports when no dates remain in the plan", () => {
     const plan = generateTrainingPlan(profile, new Date(2026, 8, 28, 12));
     plan.sessions = [plan.sessions[0]];
-    plan.games = Array.from({ length: 6 }, (_, index) => ({
+    plan.games = Array.from({ length: 60 }, (_, index) => ({
       id: String(index),
       date: addDays(plan.sessions[0].scheduledDate, index),
       label: "Match",
       importance: "normal" as const,
     }));
-    const next = rebalancePlanAroundGames(plan);
+    const next = rebalancePlanAroundGames(plan, plan.startDate);
     expect(next.sessions).toEqual(plan.sessions);
-    expect(describePlanRebalance(plan, next)).toContain(
-      "no free date within four days",
+    expect(describePlanRebalance(plan, next, plan.startDate)).toContain(
+      "no free future date before the plan ends",
     );
   });
 });

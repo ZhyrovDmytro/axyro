@@ -1,3 +1,4 @@
+import { ProGate } from "@/components/membership/pro-gate";
 import type { Metadata } from "next";
 
 import { PlanOnboarding } from "@/components/plan/plan-onboarding";
@@ -9,5 +10,9 @@ export const metadata: Metadata = {
 };
 
 export default function RefinePlanPage() {
-  return <PlanOnboarding mode="refine" />;
+  return (
+    <ProGate requirePro={false} returnTo="/plan/refine">
+      <PlanOnboarding mode="refine" />
+    </ProGate>
+  );
 }

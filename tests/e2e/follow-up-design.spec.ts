@@ -112,11 +112,11 @@ test("free preview search explains its scope and can be reset", async ({
   ).toBeVisible();
   await expect(
     page.getByText(
-      "Search covers the 6 free guides. Pro opens all 40 exercises.",
+      "Search covers the 10 free guides. Pro opens all 40 exercises.",
     ),
   ).toBeVisible();
   await page.getByRole("link", { name: "Clear all filters" }).click();
-  await expect(page.locator(".exercise-card")).toHaveCount(6);
+  await expect(page.locator(".exercise-card")).toHaveCount(10);
 });
 
 test("completion counts unique movements instead of repeated intervals", async ({
@@ -157,10 +157,12 @@ test("member sessions keep their authored name and reveal future sessions progre
   const plan = await seedPlan(page, baseURL!);
   const name = plan.sessions[0].workout.name;
   await page.goto("/");
-  await expect(page.locator(".today-hero .lede")).toContainText(name);
+  await expect(page.locator(".today-hero h1")).toHaveText("Today’s workout");
   await expect(page.locator(".today-session-card > strong")).toHaveText(name);
   await page.goto("/plan");
-  await expect(page.getByRole("heading", { name: "Your full plan.", exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Your training plan", exact: true }),
+  ).toBeVisible();
   await page.goto("/plan/calendar");
   await expect(page.locator(".session-list .session-card")).toHaveCount(6);
   await page.screenshot({

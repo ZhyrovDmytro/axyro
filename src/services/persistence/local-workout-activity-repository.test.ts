@@ -558,7 +558,7 @@ describe("LocalWorkoutActivityRepository", () => {
     ).toHaveLength(2);
   });
 
-  it("links one immutable feedback event to each completion", () => {
+  it("keeps one editable feedback event linked to each completion", () => {
     const repository = new LocalWorkoutActivityRepository(
       createMemoryStorage(),
     );
@@ -594,17 +594,21 @@ describe("LocalWorkoutActivityRepository", () => {
       recordedAt: new Date("2026-09-27T09:09:00.000Z"),
     });
 
-    expect(attemptedOverwrite).toEqual(firstFeedback);
+    expect(attemptedOverwrite).toMatchObject({
+      id: firstFeedback!.id,
+      rating: "too-easy",
+      createdAt: firstFeedback!.createdAt,
+    });
     expect(repository.getFeedbackForSession("plan-session-1")).toEqual([
-      firstFeedback,
+      attemptedOverwrite,
     ]);
     expect(repository.getRecentFeedback()).toMatchObject([
+      { sessionId: "plan-session-1", rating: "too-easy" },
       {
         sessionId: "plan-session-2",
         rating: "pain-or-discomfort",
         affectedArea: "knee",
       },
-      { sessionId: "plan-session-1", rating: "too-hard" },
     ]);
     expect(repository.getRecentFeedback(1)).toHaveLength(1);
   });
@@ -690,5 +694,247 @@ describe("LocalWorkoutActivityRepository", () => {
     expect(() =>
       repository.recordStarted("foundation-strength", "standard"),
     ).not.toThrow();
+  });
+});
+
+describe("structured workout feedback", () => {
+  it("updates one durable record and preserves its creation time", () => {
+    const repository = new LocalWorkoutActivityRepository(
+      createMemoryStorage(),
+    );
+    const completion = repository.recordCompleted({
+      sessionId: "structured",
+      workoutId: "foundation-strength",
+      intensity: "standard",
+      snapshot,
+      actualDurationSeconds: 540,
+    });
+    const first = repository.saveFeedbackEvent({
+      completionId: completion.id,
+      perceivedDifficulty: "HARD",
+      reasons: ["TECHNIQUE_DIFFICULTY"],
+      affectedExerciseIds: ["dead-bug"],
+      comment: " Left side ",
+      recordedAt: new Date("2026-10-01T10:00:00Z"),
+    });
+    const edited = repository.saveFeedbackEvent({
+      completionId: completion.id,
+      perceivedDifficulty: "JUST_RIGHT",
+      recordedAt: new Date("2026-10-02T10:00:00Z"),
+    });
+    expect(first).toMatchObject({
+      perceivedDifficulty: "HARD",
+      rating: "too-hard",
+      reasons: ["TECHNIQUE_DIFFICULTY"],
+      comment: "Left side",
+      actualDurationSeconds: 540,
+      expectedDurationSeconds: 580,
+      workoutCompletionPercent: 100,
+    });
+    expect(edited).toMatchObject({
+      id: first!.id,
+      perceivedDifficulty: "JUST_RIGHT",
+      rating: "just-right",
+      reasons: [],
+      createdAt: first!.createdAt,
+      updatedAt: "2026-10-02T10:00:00.000Z",
+    });
+    expect(repository.getRecentFeedback()).toHaveLength(1);
+    expect(
+      repository.saveFeedbackEvent({
+        completionId: completion.id,
+        perceivedDifficulty: "JUST_RIGHT",
+      }),
+    ).toEqual(edited);
+  });
+  it("rejects invalid structured reasons, long comments, and unrelated exercises", () => {
+    const repository = new LocalWorkoutActivityRepository(
+      createMemoryStorage(),
+    );
+    const completion = repository.recordCompleted({
+      sessionId: "validation",
+      workoutId: "foundation-strength",
+      intensity: "standard",
+      snapshot,
+    });
+    expect(() =>
+      repository.saveFeedbackEvent({
+        completionId: completion.id,
+        perceivedDifficulty: "TOO_EASY",
+        reasons: ["INSUFFICIENT_RECOVERY"],
+      }),
+    ).toThrow();
+    expect(() =>
+      repository.saveFeedbackEvent({
+        completionId: completion.id,
+        perceivedDifficulty: "HARD",
+        comment: "x".repeat(501),
+      }),
+    ).toThrow();
+    expect(() =>
+      repository.saveFeedbackEvent({
+        completionId: completion.id,
+        perceivedDifficulty: "HARD",
+        affectedExerciseIds: ["unknown"],
+      }),
+    ).toThrow();
+    expect(repository.getRecentFeedback()).toHaveLength(0);
+  });
+  it("retains pain separately from perceived difficulty", () => {
+    const repository = new LocalWorkoutActivityRepository(
+      createMemoryStorage(),
+    );
+    const completion = repository.recordCompleted({
+      sessionId: "pain",
+      workoutId: "foundation-strength",
+      intensity: "standard",
+      snapshot,
+    });
+    const feedback = repository.saveFeedbackEvent({
+      completionId: completion.id,
+      perceivedDifficulty: "SLIGHTLY_EASY",
+      reasons: ["PAIN_OR_DISCOMFORT"],
+      affectedExerciseIds: ["dead-bug"],
+    });
+    expect(feedback).toMatchObject({
+      perceivedDifficulty: "SLIGHTLY_EASY",
+      rating: "pain-or-discomfort",
+    });
+    expect(repository.getActivePainFeedback()).toHaveLength(1);
+  });
+});
+
+describe("feedback save failures", () => {
+  it("does not claim feedback was saved if durable storage rejects the write", () => {
+    const memory = createMemoryStorage();
+    const repository = new LocalWorkoutActivityRepository(memory);
+    const completion = repository.recordCompleted({
+      sessionId: "failed-save",
+      workoutId: "foundation-strength",
+      intensity: "standard",
+      snapshot,
+    });
+    memory.setItem = () => {
+      throw new Error("Storage full");
+    };
+    expect(() =>
+      repository.saveFeedbackEvent({
+        completionId: completion.id,
+        perceivedDifficulty: "JUST_RIGHT",
+      }),
+    ).toThrow("Could not save workout feedback");
+    expect(repository.getFeedbackForCompletion(completion.id)).toBeNull();
+  });
+});
+
+describe("passive training history", () => {
+  it("retains reschedules and resumed state through plan synchronization and reload", () => {
+    const storage = createMemoryStorage();
+    const repository = new LocalWorkoutActivityRepository(storage);
+    repository.syncScheduledSessions(
+      "owned-plan",
+      [
+        {
+          planId: "owned-plan",
+          sessionId: "passive-session",
+          workoutId: "foundation-strength",
+          scheduledDate: "2026-10-05",
+          plannedSnapshot: snapshot,
+        },
+      ],
+      "2026-10-01",
+    );
+    repository.rescheduleSession("passive-session", "2026-10-06");
+    repository.rescheduleSession("passive-session", "2026-10-07");
+    repository.markSessionStarted(
+      "passive-session",
+      "foundation-strength",
+      "standard",
+      new Date("2026-10-07T10:00:00Z"),
+      true,
+    );
+    repository.syncScheduledSessions(
+      "owned-plan",
+      [
+        {
+          planId: "owned-plan",
+          sessionId: "passive-session",
+          workoutId: "foundation-strength",
+          scheduledDate: "2026-10-07",
+          plannedSnapshot: snapshot,
+        },
+      ],
+      "2026-10-07",
+    );
+    const activity = new LocalWorkoutActivityRepository(
+      storage,
+    ).getActivityHistory("2026-10-07")[0];
+    expect(activity).toMatchObject({
+      resumedAfterInterruption: true,
+      rescheduleCount: 2,
+      originalScheduledDate: "2026-10-05",
+      planId: "owned-plan",
+    });
+    const completion = repository.recordCompleted({
+      activityId: activity.id,
+      sessionId: "passive-session",
+      workoutId: "foundation-strength",
+      intensity: "standard",
+      snapshot,
+    });
+    const feedback = repository.saveFeedbackEvent({
+      completionId: completion.id,
+      perceivedDifficulty: "JUST_RIGHT",
+    });
+    expect(feedback).toMatchObject({
+      planId: "owned-plan",
+      planWeek: 2,
+      completionId: completion.id,
+    });
+  });
+});
+
+describe("exact activity identity", () => {
+  it("does not borrow the start time from a different plan with the same session ID", () => {
+    const repository = new LocalWorkoutActivityRepository(
+      createMemoryStorage(),
+    );
+    const session = {
+      sessionId: "reused-session",
+      workoutId: "foundation-strength",
+      scheduledDate: "2026-10-07",
+      plannedSnapshot: snapshot,
+    };
+    repository.syncScheduledSessions(
+      "old-plan",
+      [{ ...session, planId: "old-plan" }],
+      "2026-10-07",
+    );
+    repository.markSessionStarted(
+      session.sessionId,
+      session.workoutId,
+      "standard",
+      new Date("2026-10-07T09:00:00Z"),
+    );
+    repository.syncScheduledSessions(
+      "new-plan",
+      [{ ...session, planId: "new-plan" }],
+      "2026-10-07",
+    );
+    const completion = repository.recordCompleted({
+      activityId: scheduledSessionActivityId("new-plan", session.sessionId),
+      sessionId: session.sessionId,
+      workoutId: session.workoutId,
+      intensity: "standard",
+      snapshot,
+      startedAt: new Date("2026-10-07T11:00:00Z"),
+    });
+    expect(completion.startedAt).toBe("2026-10-07T11:00:00.000Z");
+    expect(
+      repository.saveFeedbackEvent({
+        completionId: completion.id,
+        perceivedDifficulty: "JUST_RIGHT",
+      })?.planId,
+    ).toBe("new-plan");
   });
 });

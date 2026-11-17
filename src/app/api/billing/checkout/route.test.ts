@@ -1,4 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { enforceRateLimit } from "@/services/http/rate-limit";
+vi.mock("@/services/http/rate-limit", () => ({
+  enforceRateLimit: vi.fn(async (): Promise<Response | null> => null),
+}));
 vi.mock("@/services/auth/server", () => ({
   getAuthSession: vi.fn(),
   assertSameOrigin: vi.fn(),
@@ -65,6 +69,20 @@ beforeEach(() => {
   });
 });
 describe("Checkout trust boundaries", () => {
+  it.each([429, 503])(
+    "does not contact Stripe when quota protection returns %s",
+    async (status) => {
+      vi.mocked(enforceRateLimit).mockResolvedValueOnce(
+        new Response(null, { status }),
+      );
+      expect((await POST(request({ priceId: "price_allowed" }))).status).toBe(
+        status,
+      );
+      expect(enforceRateLimit).toHaveBeenCalledWith("billing", user.id);
+      expect(stripeRequest).not.toHaveBeenCalled();
+      expect(billingRow).not.toHaveBeenCalled();
+    },
+  );
   it("uses the same database intent when concurrent requests change continuation", async () => {
     vi.mocked(reserveCheckout).mockResolvedValue({
       id: "11111111-1111-4111-8111-111111111111",
@@ -141,8 +159,14 @@ describe("Checkout trust boundaries", () => {
     );
     expect(stripeRequest).not.toHaveBeenCalled();
   });
-  it.each(["/exercises/dead-bug", "/activity", "/workouts/lower-body-control?minutes=20"])("accepts contextual continuation %s", async (returnTo) => {
-    expect((await POST(request({ priceId: "price_allowed", returnTo }))).status).toBe(200);
+  it.each([
+    "/exercises/dead-bug",
+    "/activity",
+    "/workouts/lower-body-control?minutes=20",
+  ])("accepts contextual continuation %s", async (returnTo) => {
+    expect(
+      (await POST(request({ priceId: "price_allowed", returnTo }))).status,
+    ).toBe(200);
   });
   it("keeps plan continuation parameters and uses the authenticated customer", async () => {
     expect(

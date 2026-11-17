@@ -52,15 +52,12 @@ same browser/OS profile. Static exercise media remains publicly served by design
 
 ## Verification evidence
 
-- 492 unit tests in 71 files passed, including new security regressions.
+- 514 unit tests in 73 files passed, including the security regressions.
 - Production webpack build with Next.js 16.4.6 passed; TypeScript passed.
 - Zero-warning ESLint passed before final documentation changes.
 - Three local production browser tests passed, including hostile mutation
   origins, unsafe redirects, CSP/no-store headers and guest workout completion.
-- Full development mobile browser suite: 158/161 passed initially. Three old
-  copy/layout assertions conflicted with the existing UI revisions; related
-  suites were rerun after aligning assertions with the intended design: all 30
-  tests in the affected suites passed. No failing browser test remains.
+- All 161 development mobile browser regressions passed in hosted CI.
 - Semgrep 1.136.0: `p/typescript` and `p/javascript`, metrics disabled, 74 rules,
   256 targets, zero findings. Two test files had partially parsed generic syntax;
   parsed coverage was approximately 99.9%. No application-source parse errors.
@@ -76,23 +73,34 @@ same browser/OS profile. Static exercise media remains publicly served by design
 
 ## Release status
 
-Pushed branch: `codex/security-release`. Product commit `045275f`; security
-commit `e07f3fa`. The user's pre-existing product work is preserved and included
-in the release scope. The source working tree was clean after both commits.
+Release PR: [#5](https://github.com/ZhyrovDmytro/axyro/pull/5), branch
+`codex/security-release`. It includes the preserved product work, security fixes,
+shared quotas and migration. Production has not been promoted.
 
-The GitHub connector returned `403 Resource not accessible by integration` when
-creating the release PR. Browser fallback reached GitHub sign-in; Netlify is also
-signed out. The connector reports no statuses or workflow runs on `e07f3fa`;
-CI currently triggers only for PRs and main. No PR, merge or new deployment has
-been completed. Do not bypass the documented pre-merge checks by pushing main.
-Continue from [the release comparison](https://github.com/ZhyrovDmytro/axyro/compare/main...codex/security-release)
-after GitHub sign-in. Hosted account/payment/database and deployment checks
-remain required; the goal is not complete.
+[Hosted Release checks 44087857990](https://github.com/ZhyrovDmytro/axyro/actions/runs/44087857990)
+passed both quality and browser jobs on `23fc3ee`: 514 unit tests, all 161 browser
+regressions, types/lint/audit/build, production smoke, PostgreSQL permissions and
+the 20-connection/three-success quota check.
+
+Netlify preview deployment `6afc4f029df8372b85ad579d` successfully built that
+commit. [Preview](https://deploy-preview-5--axyro-training.netlify.app) passed all
+three deployed guest/security smoke tests. This establishes preview navigation,
+headers/origin/redirect protections and guest workout flow; it does not establish
+real provider/account/database behavior.
+
+The operator's GitHub and Netlify sign-ins are verified. The GitHub connector
+still lacks PR-write permission, so the PR was created through the signed-in
+browser. Rollback target, verified in Netlify before promotion:
+`6ae7c5d0d27a02b549097df1`, source `340f67a`.
+
+The actual Axyro database remains paused. Resume approval, migration application,
+production runtime client-IP/spoof checks, account isolation and remaining
+provider checks are pending. Do not merge or publish before these prerequisites
+pass; the goal is not complete.
 
 Supabase project `unrlqkymbdnpmgmmfltb` is Axyro and is paused. The active
 `jfnjftfiizoairfsgleb` project contains another application's court-booking tables;
-it is not a substitute and has not been modified. Netlify's browser session is
-signed out. Do not change credentials, upgrade plans or accept charges to finish
+it is not a substitute and has not been modified. Do not change credentials, upgrade plans or accept charges to finish
 this review without specific operator authorization.
 
 References: [Next.js advisory](https://github.com/advisories/GHSA-mfr8-8qww-v76h),
@@ -106,14 +114,15 @@ Prepared `20261117092915_api_rate_limits.sql` using the official Supabase CLI.
 No hosted migration or resume was attempted. PGlite executed the migration and
 SQL regression assertions successfully; an actual anonymous RPC call was denied.
 Vitest now passes 514 tests across 73 files; lint and TypeScript pass. Ten
-account/form/subscription browser regressions passed. The new CI PostgreSQL
-permission/concurrency steps parse, but have not run in hosted Actions.
+account/form/subscription browser regressions passed. The CI PostgreSQL
+permission/concurrency checks subsequently passed in hosted Actions; see the
+release status above.
 
 See [request protection](REQUEST_PROTECTION.md) for quota values, retention,
 limits and deployment order. **Apply and verify the database migration before
 publishing this follow-up code**: protection fails closed when the RPC is absent.
-The existing paused database and pending GitHub/Netlify sign-ins still prevent
-hosted verification and publication. The goal remains incomplete.
+The existing paused database and pending resume approval still prevent
+production database/runtime verification and publication. The goal remains incomplete.
 
 Public auth quota subjects were refined to Netlify connecting-IP/email pairs,
 plus a client-wide quota, so another IP cannot exhaust a victim's global login

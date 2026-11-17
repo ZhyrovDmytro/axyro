@@ -90,6 +90,6 @@ isolated PostgreSQL database with the `anon`, `authenticated` and BYPASSRLS
 
 The `quality` CI job creates an ephemeral PostgreSQL 17 service, applies the
 migration, runs those assertions, then sends 20 independent requests against a
-three-request quota and requires exactly three successes. Hosted execution must
-still be verified; local PGlite tests do not establish multi-connection behavior
-on the hosted database.
+three-request quota and requires exactly three successes. These checks passed in [hosted Release checks 44087857990](https://github.com/ZhyrovDmytro/axyro/actions/runs/44087857990).
+The actual Axyro database and Netlify runtime still need their separate hosted
+verification; CI PostgreSQL does not establish production configuration.

@@ -1,23 +1,32 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useId, useState, type FormEvent } from "react";
 import { authRequest, useAuth } from "./auth-provider";
 import { PasswordField } from "./password-field";
 import { UiIcon } from "@/components/ui-icon";
 
-type Mode = "signin" | "signup" | "recover" | "password";
+export type AuthMode = "signin" | "signup" | "recover" | "password";
 export function AuthForm({
   mode,
   next = "/plan/setup",
   initialError = "",
+  embedded = false,
+  onModeChange,
+  onSuccess,
 }: {
-  mode: Mode;
+  mode: AuthMode;
   next?: string;
   initialError?: string;
+  embedded?: boolean;
+  onModeChange?: (mode: AuthMode) => void;
+  onSuccess?: () => void;
 }) {
   const { configured, developmentAdminEnabled, refresh } = useAuth();
   const router = useRouter();
+  const formId = useId();
+  const titleId = embedded ? `${formId}-title` : "auth-title";
+  const errorId = embedded ? `${formId}-error` : "auth-error";
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(initialError);
   const [message, setMessage] = useState("");
@@ -68,8 +77,11 @@ export function AuthForm({
       }
       window.localStorage.setItem("axyro:identity-event", String(Date.now()));
       await refresh();
-      router.push(target);
-      router.refresh();
+      if (onSuccess) onSuccess();
+      else {
+        router.push(target);
+        router.refresh();
+      }
     } catch (error) {
       setError(error instanceof Error ? error.message : "Please try again.");
     } finally {
@@ -78,49 +90,59 @@ export function AuthForm({
   }
   const passwordUpdated = mode === "password" && Boolean(message);
   const title = {
-    signin: "Welcome back",
+    signin: "Sign in",
     signup: "Create your account",
     recover: "Reset your password",
     password: "Choose a new password",
   }[mode];
+  const Container = embedded ? "div" : "main";
+  const Heading = embedded ? "h2" : "h1";
+  const switchMode = (mode: AuthMode) =>
+    onModeChange
+      ? (event: { preventDefault: () => void }) => {
+          event.preventDefault();
+          onModeChange(mode);
+        }
+      : undefined;
   return (
-    <main className="page-shell auth-shell">
-      <aside className="auth-story" aria-label="Training with Axyro">
-        {mode !== "signin" && (
-          <Link className="auth-back" href="/">
-            <UiIcon name="arrow-left" /> Back to Axyro
-          </Link>
-        )}
-        <p className="auth-story__title">
-          Train anywhere.
-          <br />
-          Win on court.
-        </p>
-        <div className={`auth-story__image auth-story__image--${mode}`} />
-        <div className="auth-story__caption">
-          <p>Your next session starts here.</p>
-          <span>Guided home workouts. 5, 10 or 20 minutes.</span>
-        </div>
-      </aside>
-      <section
-        className="account-panel auth-panel"
-        aria-labelledby="auth-title"
-      >
-        {mode !== "signin" && (
+    <Container
+      className={embedded ? "auth-modal-form" : "page-shell auth-shell"}
+    >
+      {!embedded && (
+        <aside className="auth-story" aria-label="Training with Axyro">
+          {mode !== "signin" && (
+            <Link className="auth-back" href="/">
+              <UiIcon name="arrow-left" /> Back to Axyro
+            </Link>
+          )}
+          <p className="auth-story__title">
+            Train anywhere.
+            <br />
+            Win on court.
+          </p>
+          <div className={`auth-story__image auth-story__image--${mode}`} />
+          <div className="auth-story__caption">
+            <p>Your next session starts here.</p>
+            <span>Guided home workouts. 5, 10 or 20 minutes.</span>
+          </div>
+        </aside>
+      )}
+      <section className="account-panel auth-panel" aria-labelledby={titleId}>
+        {!embedded && mode !== "signin" && (
           <Link className="auth-back auth-back--mobile" href="/">
             <UiIcon name="arrow-left" /> Back to Axyro
           </Link>
         )}
-        <h1 id="auth-title">{passwordUpdated ? "Password updated" : title}</h1>
-        {!passwordUpdated && (
+        <Heading id={titleId}>
+          {passwordUpdated ? "Password updated" : title}
+        </Heading>
+        {!passwordUpdated && mode !== "signin" && (
           <p className="lede">
             {mode === "signup"
               ? "One real workout free forever. A personal plan when you’re ready for Pro."
               : mode === "recover"
                 ? "We’ll email you a secure link to reset your password."
-                : mode === "password"
-                  ? "Choose a password to keep your account secure."
-                  : "Your training, ready when you are."}
+                : "Choose a password to keep your account secure."}
           </p>
         )}
         {!configured && (
@@ -155,7 +177,7 @@ export function AuthForm({
               onSubmit={submit}
               className="account-form"
               aria-busy={busy}
-              aria-describedby={error ? "auth-error" : undefined}
+              aria-describedby={error ? errorId : undefined}
             >
               <fieldset className="account-form__fields" disabled={busy}>
                 <legend className="sr-only">{title}</legend>
@@ -218,6 +240,7 @@ export function AuthForm({
                         <Link
                           className="text-link auth-forgot"
                           href="/forgot-password"
+                          onNavigate={switchMode("recover")}
                         >
                           Forgot password?
                         </Link>
@@ -234,7 +257,7 @@ export function AuthForm({
                   </>
                 )}
                 {error && (
-                  <p id="auth-error" role="alert" className="form-error">
+                  <p id={errorId} role="alert" className="form-error">
                     {error}
                   </p>
                 )}
@@ -248,11 +271,16 @@ export function AuthForm({
                         <Link
                           className="text-link"
                           href={`/signin?next=${encodeURIComponent(target)}`}
+                          onNavigate={switchMode("signin")}
                         >
                           Sign in
                         </Link>{" "}
                         or{" "}
-                        <Link className="text-link" href="/forgot-password">
+                        <Link
+                          className="text-link"
+                          href="/forgot-password"
+                          onNavigate={switchMode("recover")}
+                        >
                           reset your password
                         </Link>
                         .
@@ -307,6 +335,7 @@ export function AuthForm({
                 <Link
                   className="text-link"
                   href={`/signup?next=${encodeURIComponent(target)}`}
+                  onNavigate={switchMode("signup")}
                 >
                   Create account
                 </Link>
@@ -319,6 +348,7 @@ export function AuthForm({
               <Link
                 className="text-link"
                 href={`/signin?next=${encodeURIComponent(target)}`}
+                onNavigate={switchMode("signin")}
               >
                 Sign in
               </Link>
@@ -328,6 +358,7 @@ export function AuthForm({
             <Link
               className="text-link"
               href={`/signin?next=${encodeURIComponent(target)}`}
+              onNavigate={switchMode("signin")}
             >
               Back to sign in
             </Link>
@@ -338,6 +369,6 @@ export function AuthForm({
           <Link href="/privacy">Privacy</Link>
         </p>
       </section>
-    </main>
+    </Container>
   );
 }

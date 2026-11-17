@@ -63,7 +63,7 @@
 .heroCopy > p {
   max-width: 440px;
   font-size: 18px;
-  margin: 28px 0 30px;
+  margin: 28px 0 32px;
 }
 .cta {
   background: var(--accent);
@@ -72,8 +72,8 @@
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  gap: 26px;
-  padding: 19px 25px;
+  gap: 24px;
+  padding: 20px 24px;
   border-radius: 12px;
   font-weight: 750;
   box-shadow: 0 10px 26px rgb(201 74 16 / 12%);
@@ -99,7 +99,7 @@
 }
 .reassurance {
   display: block;
-  margin-top: 14px;
+  margin-top: 16px;
   color: var(--muted);
   font-size: 12px;
   line-height: 1.6;
@@ -148,10 +148,10 @@
   background: var(--paper);
   border: 0;
   border-radius: 8px;
-  padding: 10px 14px;
+  padding: 8px 16px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   cursor: pointer;
   font-size: 12px;
   min-height: 44px;
@@ -159,7 +159,7 @@
 .workoutLabel {
   background: var(--ink);
   color: var(--text);
-  padding: 23px 26px 18px;
+  padding: 24px 24px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -186,7 +186,7 @@
   position: absolute;
   left: -32px;
   bottom: 120px;
-  padding: 17px 22px;
+  padding: 16px 24px;
   background: var(--paper);
   border-radius: 12px;
   box-shadow: var(--shadow-sm);
@@ -211,7 +211,7 @@
   justify-content: space-around;
   gap: 20px;
   border-block: 1px solid var(--border);
-  padding: 25px 0;
+  padding: 24px 0;
   font-size: 13px;
   font-weight: 650;
 }
@@ -229,7 +229,7 @@
   justify-content: space-between;
   align-items: end;
   margin-bottom: 52px;
-  gap: 30px;
+  gap: 32px;
 }
 .landing h2 {
   font-size: clamp(2.6rem, 4.4vw, 4rem);
@@ -296,12 +296,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   padding: 24px;
 }
 .playerReadout div {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 .playerReadout span {
   font-size: 12px;
@@ -311,14 +311,15 @@
   font-size: 20px;
 }
 .playerReadout b {
-  font-size: 46px;
+  font-size: 44px;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
-  color: var(--accent);
+  color: var(--text);
   letter-spacing: -0.04em;
 }
 .chapterProgress {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   margin-inline: 24px;
 }
 .chapterProgress i {
@@ -350,7 +351,7 @@
 }
 .chapterIcon {
   display: inline-flex;
-  margin-bottom: 22px;
+  margin-bottom: 24px;
 }
 .chapterIcon svg {
   width: 32px;
@@ -373,21 +374,21 @@
 }
 .timeSection p {
   max-width: 43ch;
-  margin: 25px 0;
+  margin: 24px 0;
 }
 .timeChoices {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   text-align: center;
 }
 .timeChoices > div {
   display: flex;
   flex-direction: column;
-  padding: 30px 8px;
+  padding: 32px 8px;
   position: relative;
-  gap: 14px;
+  gap: 16px;
 }
 .timeChoices strong {
   font-size: clamp(3rem, 5vw, 5rem);
@@ -416,13 +417,13 @@
 .timeChoices p {
   grid-column: 1 / -1;
   font-size: 13px;
-  margin: 15px auto 0;
+  margin: 16px auto 0;
 }
 .planSection {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 90px;
-  padding-block: 110px;
+  gap: 88px;
+  padding-block: 112px;
   align-items: center;
   scroll-margin-top: 24px;
 }
@@ -436,9 +437,9 @@
 .weekHeading {
   display: flex;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
-  padding-bottom: 25px;
+  padding-bottom: 24px;
 }
 .weekHeading > span {
   font-size: 11px;
@@ -447,7 +448,7 @@
 .weekRow {
   display: grid;
   grid-template-columns: 42px 1fr;
-  gap: 6px 14px;
+  gap: 8px 16px;
   border-top: 1px solid var(--border);
   padding: 20px 0;
 }
@@ -465,13 +466,13 @@
   color: var(--muted);
 }
 .planCopy p {
-  margin-block: 26px;
+  margin-block: 24px;
 }
 .planCopy ul {
   list-style: none;
   padding: 0;
   display: grid;
-  gap: 14px;
+  gap: 16px;
   margin-block: 28px;
   font-size: 14px;
 }
@@ -493,17 +494,17 @@
 .faq {
   display: grid;
   grid-template-columns: 0.9fr 1.1fr;
-  gap: 70px;
+  gap: 72px;
   padding-block: 40px 100px;
   scroll-margin-top: 24px;
 }
 .faq h2 {
   font-size: 38px;
-  margin-bottom: 25px;
+  margin-bottom: 24px;
 }
 .faq details {
   border-bottom: 1px solid var(--border);
-  padding-block: 22px;
+  padding-block: 24px;
 }
 .faq summary {
   cursor: pointer;
@@ -548,7 +549,7 @@
   color: var(--accent);
 }
 .closing p {
-  margin-block: 24px 30px;
+  margin-block: 24px 32px;
 }
 .ctaDark {
   position: relative;
@@ -572,7 +573,7 @@
   font-size: 12px;
 }
 .footer nav a {
-  padding-block: 15px;
+  padding-block: 16px;
 }
 @media (max-width: 760px) {
   .hero,
@@ -586,8 +587,8 @@
   }
   .hero {
     grid-template-columns: 1fr;
-    gap: 42px;
-    padding-block: 30px 52px;
+    gap: 40px;
+    padding-block: 32px 52px;
   }
   .hero h1 {
     font-size: clamp(2rem, 8.8vw, 3.9rem);
@@ -595,7 +596,7 @@
   .heroCopy > p {
     font-size: 16px;
     max-width: 35ch;
-    margin-block: 23px;
+    margin-block: 24px;
   }
   .explore {
     margin-top: 20px;
@@ -609,7 +610,7 @@
   .floatingNote {
     left: -12px;
     bottom: 115px;
-    padding: 12px 15px;
+    padding: 12px 16px;
   }
   .promiseStrip {
     flex-wrap: wrap;
@@ -622,11 +623,11 @@
     height: 20px;
   }
   .story {
-    padding-block: 58px;
+    padding-block: 56px;
   }
   .sectionIntro {
     display: block;
-    margin-bottom: 30px;
+    margin-bottom: 32px;
   }
   .sectionIntro p {
     margin-top: 20px;
@@ -643,10 +644,10 @@
     display: none;
   }
   .playerTop {
-    padding: 12px 18px;
+    padding: 12px 16px;
   }
   .playerReadout {
-    padding: 8px 18px 16px;
+    padding: 8px 16px 16px;
   }
   .playerReadout b {
     font-size: 38px;
@@ -655,11 +656,11 @@
     font-size: 18px;
   }
   .playerNext {
-    padding: 12px 18px;
+    padding: 12px 16px;
   }
   .chapter {
     min-height: 220px;
-    padding: 34px 8px;
+    padding: 32px 8px;
     scroll-margin-top: 200px;
   }
   .chapter p {
@@ -671,8 +672,8 @@
   }
   .timeSection {
     grid-template-columns: 1fr;
-    gap: 45px;
-    padding-block: 55px;
+    gap: 44px;
+    padding-block: 56px;
   }
   .timeChoices strong {
     font-size: 64px;
@@ -683,19 +684,19 @@
   .planSection {
     grid-template-columns: 1fr;
     gap: 40px;
-    padding-block: 65px;
+    padding-block: 64px;
   }
   .planCopy {
     grid-row: 1;
   }
   .week {
-    margin-inline: 6px;
-    padding: 22px;
+    margin-inline: 8px;
+    padding: 24px;
   }
   .faq {
     grid-template-columns: 1fr;
     gap: 20px;
-    padding-block: 20px 65px;
+    padding-block: 20px 64px;
   }
   .faq h2 {
     font-size: 36px;
@@ -751,7 +752,7 @@
   align-items: center;
   gap: 12px;
   min-height: 44px;
-  margin-top: 22px;
+  margin-top: 24px;
   font-size: 14px;
   text-decoration: none;
 }
@@ -763,8 +764,8 @@
 }
 
 .weekRow {
-  padding-inline: 14px;
-  margin-block: 6px;
+  padding-inline: 16px;
+  margin-block: 8px;
   border-radius: 10px;
 }
 .weekTrain {
@@ -799,7 +800,7 @@
 .personalIntro {
   display: grid;
   grid-template-columns: 1.1fr 1fr;
-  column-gap: 70px;
+  column-gap: 72px;
   align-items: start;
 }
 .personalIntro h2 {
@@ -838,7 +839,7 @@
 }
 .planSteps p {
   font-size: 16px;
-  margin-block: 18px;
+  margin-block: 16px;
 }
 .setupPreview {
   display: flex;
@@ -846,7 +847,7 @@
   justify-content: space-between;
   gap: 20px;
   min-height: 190px;
-  padding: 22px;
+  padding: 24px;
   border-radius: 12px;
   background: var(--surface);
 }
@@ -867,10 +868,10 @@
 .exampleTags span {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   border: 1px solid var(--border);
   border-radius: 100px;
-  padding: 8px 10px;
+  padding: 8px 8px;
   font-size: 12px;
 }
 .exampleTags svg {
@@ -925,7 +926,7 @@
   display: grid;
   grid-template-columns: 1.2fr 1fr;
   align-items: end;
-  gap: 50px;
+  gap: 48px;
 }
 .adaptIntro h2 {
   font-size: clamp(2.4rem, 3.6vw, 3.3rem);
@@ -937,14 +938,14 @@
   color: #c9c5c2;
 }
 .scheduleDemo {
-  margin-top: 45px;
+  margin-top: 44px;
 }
 .scheduleToolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  margin-bottom: 25px;
+  margin-bottom: 24px;
 }
 .scheduleToolbar > div {
   display: grid;
@@ -979,7 +980,7 @@
   gap: 8px;
 }
 .scheduleDay {
-  padding: 18px 10px;
+  padding: 16px 8px;
   background: #292522;
   border-radius: 12px;
   min-height: 170px;
@@ -991,7 +992,7 @@
 }
 .dayContent {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 .dayContent strong {
   font-size: 16px;
@@ -1014,7 +1015,7 @@
 }
 .scheduleStatus {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
   min-height: 55px;
   font-size: 13px;
@@ -1026,9 +1027,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 30px;
+  gap: 32px;
   border-top: 1px solid #514943;
-  padding-top: 25px;
+  padding-top: 24px;
 }
 .adaptFooter p {
   max-width: 60ch;
@@ -1047,8 +1048,8 @@
   }
   .personalSection {
     grid-template-columns: 1fr;
-    gap: 35px;
-    padding-block: 10px 60px;
+    gap: 36px;
+    padding-block: 8px 60px;
   }
   .personalIntro,
   .planSteps {
@@ -1069,11 +1070,11 @@
   }
   .adaptSection {
     padding: 28px 20px;
-    margin-bottom: 65px;
+    margin-bottom: 64px;
   }
   .adaptIntro {
     grid-template-columns: 1fr;
-    gap: 15px;
+    gap: 16px;
   }
   .adaptIntro h2 {
     font-size: 34px;
@@ -1087,7 +1088,7 @@
   }
   .scheduleDays {
     grid-template-columns: 1fr;
-    gap: 6px;
+    gap: 8px;
   }
   .scheduleDay {
     min-height: 64px;
@@ -1101,7 +1102,7 @@
   }
   .dayContent {
     grid-template-columns: 20px 1fr;
-    gap: 4px 10px;
+    gap: 4px 8px;
     align-items: center;
   }
   .dayContent svg {
@@ -1133,7 +1134,7 @@
   margin-inline: auto;
 }
 .courtBenefits {
-  padding-block: 90px 20px;
+  padding-block: 88px 20px;
 }
 .courtBenefits > div:first-child {
   display: grid;
@@ -1148,7 +1149,7 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 40px;
-  margin-top: 50px;
+  margin-top: 48px;
 }
 .courtOutcomes article {
   border-top: 1px solid var(--border);
@@ -1162,12 +1163,12 @@
   font-size: 15px;
 }
 .librarySection {
-  padding-block: 10px 70px;
+  padding-block: 8px 72px;
   scroll-margin-top: 24px;
 }
 .librarySection .sectionIntro p {
   max-width: 55ch;
-  margin-top: 25px;
+  margin-top: 24px;
 }
 .librarySection .planLink {
   flex: 0 0 auto;
@@ -1178,7 +1179,7 @@
 .libraryGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 30px 22px;
+  gap: 32px 24px;
 }
 .librarySample > div {
   position: relative;
@@ -1192,7 +1193,7 @@
 }
 .librarySample > span {
   display: block;
-  margin-top: 18px;
+  margin-top: 16px;
   font-size: 12px;
   color: var(--muted);
 }
@@ -1203,8 +1204,8 @@
 }
 .libraryContinuation {
   position: relative;
-  margin-top: 30px;
-  padding-bottom: 170px;
+  margin-top: 32px;
+  padding-bottom: 168px;
 }
 .libraryFade {
   position: absolute;
@@ -1250,13 +1251,13 @@
   text-underline-offset: 8px;
 }
 .editorCopy p {
-  margin-block: 25px;
+  margin-block: 24px;
 }
 .editorCopy ul {
   list-style: none;
   padding: 0;
   display: grid;
-  gap: 14px;
+  gap: 16px;
   margin-block: 28px;
   font-size: 14px;
 }
@@ -1288,8 +1289,8 @@
 }
 .editorTabs {
   display: flex;
-  gap: 18px;
-  padding-block: 26px 18px;
+  gap: 16px;
+  padding-block: 24px 16px;
   font-size: 12px;
   border-bottom: 1px solid var(--border);
 }
@@ -1344,8 +1345,8 @@
   --muted: #42200f;
   border: 0;
   border-radius: 10px;
-  padding: 14px 12px;
-  margin-top: 22px;
+  padding: 16px 12px;
+  margin-top: 24px;
   font-size: 13px;
   font-weight: 650;
   cursor: pointer;
@@ -1355,7 +1356,7 @@
 }
 .editorPreview footer {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
   font-size: 11px;
   color: var(--muted);
@@ -1368,19 +1369,19 @@
     width: calc(100% - 40px);
   }
   .courtBenefits {
-    padding-top: 55px;
+    padding-top: 56px;
   }
   .courtBenefits > div:first-child {
     grid-template-columns: 1fr;
-    gap: 18px;
+    gap: 16px;
   }
   .courtOutcomes {
     grid-template-columns: 1fr;
     gap: 24px;
-    margin-top: 25px;
+    margin-top: 24px;
   }
   .courtOutcomes h3 {
-    margin-top: 14px;
+    margin-top: 16px;
   }
   .libraryGrid {
     grid-template-columns: 1fr;
@@ -1389,7 +1390,7 @@
   .editorSection {
     grid-template-columns: 1fr;
     gap: 40px;
-    padding-block: 0 65px;
+    padding-block: 0 64px;
   }
   .editorPreview {
     padding: 20px 16px;
@@ -1475,7 +1476,7 @@
 .stageTop > span {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 .previewDot {
   width: 7px;
@@ -1485,8 +1486,8 @@
 }
 .movementPicker {
   display: flex;
-  gap: 10px;
-  padding: 0 24px 22px;
+  gap: 8px;
+  padding: 0 24px 24px;
   background: var(--ink);
   border-radius: 0 0 16px 16px;
 }
@@ -1551,124 +1552,6 @@
   }
 }
 
-.qualities {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 28px;
-  font-size: clamp(1.4rem, 5.6cqw, 2.15rem);
-  font-weight: 650;
-}
-.qualityLine {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.3em;
-  font-size-adjust: 0.52;
-  line-height: 1.5;
-  white-space: nowrap;
-}
-.qualityWords {
-  display: inline-grid;
-  align-items: baseline;
-  overflow: hidden;
-  line-height: inherit;
-  color: var(--accent);
-}
-.qualityWords > span {
-  grid-area: 1 / 1;
-  font-size: 1em;
-  line-height: inherit;
-  visibility: hidden;
-}
-.qualityWords > span:first-child {
-  visibility: visible;
-}
-@media (prefers-reduced-motion: no-preference) {
-  .qualityWords > span {
-    visibility: visible;
-    animation: quality-rotate 8.4s var(--ease-out) infinite;
-    animation-delay: var(--word-delay);
-  }
-}
-@keyframes quality-rotate {
-  0%,
-  14% {
-    transform: translateY(0);
-  }
-  16.6667%,
-  97.3333% {
-    transform: translateY(-100%);
-  }
-  97.34% {
-    transform: translateY(100%);
-  }
-  100% {
-    transform: translateY(0);
-  }
-}
-
-@media (max-width: 760px) {
-  .libraryContinuation > .libraryGrid > span:nth-child(n + 2) {
-    display: none;
-  }
-}
-
-.heroCopy {
-  container-type: inline-size;
-  min-width: 0;
-}
-.hero .heroHeadline {
-  font-size: min(15.5cqw, 6rem);
-}
-.hero .heroHeadline .headlineLine {
-  display: block;
-  white-space: nowrap;
-  color: var(--text);
-}
-.heroHeadline em {
-  color: var(--accent);
-}
-.qualityWords {
-  padding-inline: 0.08em;
-}
-.qualityWords > [data-quality="power"] {
-  font-family: Impact, Haettenschweiler, "Arial Black", sans-serif;
-  font-weight: 900;
-  font-style: normal;
-  letter-spacing: 0.015em;
-}
-.qualityWords > [data-quality="control"] {
-  font-family: "SFMono-Regular", Menlo, Consolas, monospace;
-  font-weight: 700;
-  font-style: normal;
-  letter-spacing: -0.045em;
-}
-.qualityWords > [data-quality="confidence"] {
-  font-family: Georgia, "Times New Roman", serif;
-  font-weight: 700;
-  font-style: italic;
-  letter-spacing: -0.04em;
-}
-.qualityWords > [data-quality="endurance"] {
-  font-family: "Trebuchet MS", "Lucida Grande", sans-serif;
-  font-weight: 700;
-  font-style: normal;
-  letter-spacing: -0.025em;
-}
-.qualityWords > [data-quality="speed"] {
-  font-family: "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
-  font-weight: 900;
-  font-stretch: condensed;
-  font-style: italic;
-  letter-spacing: -0.055em;
-}
-.qualityWords > [data-quality="stability"] {
-  font-family: Verdana, Geneva, sans-serif;
-  font-weight: 700;
-  font-style: normal;
-  letter-spacing: -0.045em;
-}
-
 /* Section-specific scroll entrances; content remains readable at every point. */
 
 @media (prefers-reduced-motion: no-preference) {
@@ -1690,5 +1573,96 @@
   .landing button:active,
   .cta:hover > svg {
     transform: none;
+  }
+}
+
+/* Question-led typography and quiet controls keep the movement preview primary. */
+.landing :is(h1, h2, h3) {
+  font-style: normal;
+  font-weight: 600;
+  line-height: 1.12;
+}
+.hero .heroHeadline {
+  font-size: clamp(2rem, 4.5vw, 4rem);
+  letter-spacing: -0.04em;
+}
+.hero {
+  grid-template-columns: 1fr 1.1fr;
+  gap: 48px;
+  padding-block: 48px;
+}
+.heroCopy > p {
+  margin: 24px 0;
+}
+.cta {
+  padding: 16px 24px;
+  gap: 24px;
+  font-weight: 600;
+  box-shadow: none;
+  transition: background-color 160ms var(--ease-out);
+}
+.cta:hover {
+  transform: none;
+  box-shadow: none;
+  background: var(--accent-hover, #f5813e);
+}
+.cta:hover > svg {
+  transform: none;
+}
+.heroCopy .freeLink {
+  display: flex;
+  width: fit-content;
+  margin-top: 16px;
+}
+.timer,
+.promiseStrip svg {
+  color: var(--text);
+}
+.heroStage {
+  animation: none;
+}
+.heroSlide {
+  transform: none;
+  transition: opacity 180ms var(--ease-out);
+}
+.heroSlideActive {
+  transform: none;
+}
+@media (max-width: 760px) {
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding-block: 32px;
+  }
+  .heroCopy > p {
+    margin-block: 20px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 760px) {
+  .landing h2 {
+    font-size: 2rem;
+    line-height: 1.15;
+  }
+  .chapter h3 {
+    font-size: 1.5rem;
+  }
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4) var(--space-6);
+  margin-top: var(--space-6);
+}
+.actions .freeLink {
+  margin: 0;
+}
+@media (max-width: 760px) {
+  .actions {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

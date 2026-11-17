@@ -1,3 +1,4 @@
+import { mockFreeMember } from "./helpers/free-member";
 import { expect, test } from "@playwright/test";
 
 test.beforeEach(async ({ page }) => {
@@ -14,6 +15,7 @@ test.beforeEach(async ({ page }) => {
 test("unavailable subscriptions explain account limits and offer a free workout", async ({
   page,
 }) => {
+  await mockFreeMember(page);
   await page.route("**/api/billing/products", (route) =>
     route.fulfill({ status: 503, json: { error: "Unavailable" } }),
   );
@@ -23,11 +25,11 @@ test("unavailable subscriptions explain account limits and offer a free workout"
   );
   await expect(
     page.getByText(
-      "Creating an account will not unlock Pro while subscriptions are unavailable.",
+      "You can keep using the free workout. Pro access requires an active subscription.",
     ),
   ).toBeVisible();
   await expect(
-    page.getByRole("link", { name: "Create a free account", exact: true }),
+    page.getByRole("button", { name: "Restore purchases", exact: true }),
   ).toBeVisible();
   await page
     .getByRole("link", { name: "Try the free workout", exact: true })
@@ -122,7 +124,10 @@ test("phone library cards fit their content and show the first name without scro
   const box = await first.boundingBox();
   expect(box!.height).toBeLessThan(430);
   await first.click();
-  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(
+    page.getByRole("dialog", { name: "Sign in to continue" }),
+  ).toBeVisible();
+  await expect(page).toHaveURL(/\/exercises$/);
 });
 
 test("player uses one phase label and keeps pause and skip reachable", async ({

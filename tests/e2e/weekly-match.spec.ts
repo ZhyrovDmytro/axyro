@@ -78,6 +78,7 @@ test("adds and edits a weekly match without replacing training", async ({
   await dialog.getByRole("button", { name: "Update game" }).click();
   await expect(row.getByText("Club match · Match day")).toBeVisible();
   await expect(row).toHaveClass(/has-game/);
+  await expect(row).toHaveCSS("background-image", /linear-gradient/);
   await expect(row.getByText("Training + match · Same day")).toBeVisible();
   await expect(
     page.getByRole("button", { name: /Rebalance plan/ }),

@@ -1,16 +1,16 @@
 import { expect, test } from "@playwright/test";
 
-test("guest preview keeps six real guides and offers account actions after the gradient", async ({
+test("guest preview keeps ten real guides and offers account actions after the gradient", async ({
   page,
 }) => {
   await page.goto("/exercises?page=3");
   const cards = page.locator(".exercise-card");
-  await expect(cards).toHaveCount(6);
+  await expect(cards).toHaveCount(10);
   await expect(
     page.getByRole("link", { name: "Explore Pro", exact: true }),
   ).toHaveAttribute("href", "/upgrade?context=library&returnTo=/exercises");
   await expect(page.locator(".library-invitation")).toContainText(
-    "34 more exercises",
+    "30 more exercises",
   );
   await expect(page.getByText("Locked guide", { exact: false })).toHaveCount(0);
   await expect(cards.first().locator("img, video").first()).toBeVisible();
@@ -26,8 +26,11 @@ test("guest preview keeps six real guides and offers account actions after the g
     page.getByRole("navigation", { name: "Exercise result pages" }),
   ).toHaveCount(0);
   await cards.first().click();
-  await expect(page).toHaveURL(/\/exercises\/[^?]+/);
-  await expect(page.locator("main img, main video").first()).toBeVisible();
+  await expect(
+    page.getByRole("dialog", { name: "Sign in to continue" }),
+  ).toBeVisible();
+  await expect(page).toHaveURL(/\/exercises\?page=3$/);
+  await expect(page.locator(".exercise-detail-hero")).toHaveCount(0);
 });
 
 test("Free member sees Explore Pro instead of registration in the library", async ({
@@ -63,11 +66,15 @@ test("Free member sees Explore Pro instead of registration in the library", asyn
     route.fulfill({ json: { hasPro: false, subscription: null } }),
   );
   await page.goto("/exercises");
-  await expect(page.locator(".exercise-card")).toHaveCount(6);
+  await expect(page.locator(".exercise-card")).toHaveCount(10);
   await expect(
     page.getByRole("link", { name: "Explore Pro", exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Create account", exact: true }),
   ).toHaveCount(0);
+  await page.locator(".exercise-card").first().click();
+  await expect(page).toHaveURL(/\/exercises\/[^?]+/);
+  await expect(page.locator(".exercise-detail-hero")).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
 });

@@ -39,7 +39,7 @@ for (const width of [320, 390, 1440]) {
     page.on("pageerror", (error) => errors.push(error.message));
     for (const [route, title, action] of [
       ["signup", "Create your account", "Create account"],
-      ["signin", "Welcome back", "Sign in"],
+      ["signin", "Sign in", "Sign in"],
       ["forgot-password", "Reset your password", "Send reset link"],
       ["reset-password", "Choose a new password", "Update password"],
     ]) {
@@ -154,9 +154,7 @@ test("recovery reports success and server errors, with a working sign-in link", 
     "Please try again later.",
   );
   await page.getByRole("link", { name: "Back to sign in" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Welcome back" }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
 });
 
 test("account profile, password and deletion forms share accessible controls", async ({

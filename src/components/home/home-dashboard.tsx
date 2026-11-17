@@ -1,4 +1,5 @@
 "use client";
+import { PaywallLink } from "@/components/membership/paywall-modal";
 
 import { getPlanProgress } from "@/domain/training-plan/plan-progress";
 
@@ -79,18 +80,23 @@ function DiscoverHome() {
     <div className="home-landing">
       <section className="home-landing-hero" aria-labelledby="hero-title">
         <div className="home-landing-copy">
-          <h1 id="hero-title">Your daily 10. Make it count.</h1>
+          <h1 id="hero-title">Train at home for padel</h1>
           <p className="lede">
-            Ten minutes of guided movement, built around you. Train at home with
-            bodyweight or dumbbells. Need a shorter or longer session? Choose 5
-            or 20 minutes.
+            Guided workouts with bodyweight or dumbbells. Choose 5, 10 or 20
+            minutes.
           </p>
           <div className="home-landing-actions">
-            <Link className="button button--primary" href="/plan/setup">
-              Build my 10-minute plan <UiIcon name="arrow-right" />
-            </Link>
+            <PaywallLink
+              className="button button--primary"
+              href="/plan/setup"
+              context="plan"
+              returnTo="/plan/setup"
+              requirePro={false}
+            >
+              Build my plan <UiIcon name="arrow-right" />
+            </PaywallLink>
             <Link className="text-link" href="/workouts">
-              Or start a quick workout
+              Start a quick workout
             </Link>
           </div>
           <ul className="home-trust-list" aria-label="Plan setup details">
@@ -110,7 +116,7 @@ function DiscoverHome() {
           <div className="home-week-preview__heading">
             <div>
               <span>Example week</span>
-              <strong>Training shaped around match day</strong>
+              <strong>Training around match day</strong>
             </div>
             <span className="home-week-preview__badge">10 min a day</span>
           </div>
@@ -134,7 +140,7 @@ function DiscoverHome() {
             <li className="is-recovery">
               <time>Fri</time>
               <div>
-                <strong>Recovery protected</strong>
+                <strong>Recovery day</strong>
                 <span>No hard training before your match</span>
               </div>
               <span className="home-week-preview__type">Rest</span>
@@ -156,7 +162,7 @@ function DiscoverHome() {
 
       <section className="home-benefits" aria-labelledby="benefits-heading">
         <div className="home-section-intro">
-          <h2 id="benefits-heading">Less planning. More useful training.</h2>
+          <h2 id="benefits-heading">What the plan handles</h2>
           <p>
             Every part of the plan is designed to remove decisions once it is
             time to move.
@@ -208,7 +214,7 @@ function DiscoverHome() {
         aria-labelledby="player-proof-heading"
       >
         <div>
-          <h2 id="player-proof-heading">Know what to do. Keep moving.</h2>
+          <h2 id="player-proof-heading">Inside a guided workout</h2>
           <p>
             Each session opens in the guided player with the current movement,
             exact interval, set progress and what comes next.
@@ -242,7 +248,7 @@ function DiscoverHome() {
 
       <section className="home-how-it-works" aria-labelledby="how-heading">
         <div className="home-section-intro">
-          <h2 id="how-heading">From a few answers to your next session.</h2>
+          <h2 id="how-heading">How to start your plan</h2>
           <p>No spreadsheet, manual timer or workout building required.</p>
         </div>
         <ol>
@@ -274,15 +280,21 @@ function DiscoverHome() {
 
       <section className="home-final-cta" aria-labelledby="home-cta-heading">
         <div>
-          <h2 id="home-cta-heading">Make the next session obvious.</h2>
+          <h2 id="home-cta-heading">Build your training plan</h2>
           <p>
             Ten minutes at a time. A 60-day plan with room for training, matches
             and recovery.
           </p>
         </div>
-        <Link className="button button--primary" href="/plan/setup">
+        <PaywallLink
+          className="button button--primary"
+          href="/plan/setup"
+          context="plan"
+          returnTo="/plan/setup"
+          requirePro={false}
+        >
           Create my plan <UiIcon name="arrow-right" />
-        </Link>
+        </PaywallLink>
       </section>
     </div>
   );
@@ -392,7 +404,6 @@ export function HomeDashboard() {
       <section className="today-hero" aria-labelledby="today-heading">
         <div className="today-hero__copy">
           <p className="today-status">
-            Today ·{" "}
             {formatPlanDate(today, {
               weekday: "long",
               month: "long",
@@ -401,16 +412,18 @@ export function HomeDashboard() {
           </p>
           <h1 id="today-heading">
             {hasActiveWorkout
-              ? "Finish what you started."
+              ? "Workout in progress"
               : todaySession
-                ? "Your daily movement is ready."
-                : "Your day, at a glance."}
+                ? "Today’s workout"
+                : nextSession
+                  ? "Next workout"
+                  : "Plan complete"}
           </h1>
           <p className="lede">
             {hasActiveWorkout
               ? "Resume your paused workout above. Today’s plan stays visible here when you are ready for it."
               : todaySession
-                ? `${getWorkoutTrainingTitle(todaySession.workout)} is scheduled today. Review the movements, choose your effort and start when you’re ready.`
+                ? "Review the movements or start with your saved effort."
                 : nextSession
                   ? `No training is scheduled today. Your next session is ${formatPlanDate(nextSession.scheduledDate, { weekday: "long" })}.`
                   : "Your 60-day plan is complete. Review the work you finished and decide what comes next."}
@@ -445,9 +458,14 @@ export function HomeDashboard() {
                 Review next training <UiIcon name="arrow-right" />
               </Link>
             ) : (
-              <Link className="button button--dark" href="/plan">
+              <PaywallLink
+                className="button button--dark"
+                href="/plan"
+                context="plan"
+                returnTo="/plan"
+              >
                 Review completed block <UiIcon name="arrow-right" />
-              </Link>
+              </PaywallLink>
             )}
           </div>
         </div>
@@ -473,10 +491,7 @@ export function HomeDashboard() {
           <article className="today-session-card today-session-card--complete">
             <span>Block complete</span>
             <strong>{completedCount} sessions finished</strong>
-            <p>
-              Your activity remains available while you review or rebuild the
-              the next 60 days.
-            </p>
+            <p>Review your completed sessions or build your next plan.</p>
           </article>
         )}
       </section>
@@ -559,7 +574,6 @@ export function HomeDashboard() {
         <aside className="home-upcoming" aria-labelledby="upcoming-heading">
           <div className="home-section-heading">
             <div>
-              <span>Coming up</span>
               <h2 id="upcoming-heading">Next on your calendar</h2>
             </div>
           </div>
@@ -598,12 +612,22 @@ export function HomeDashboard() {
           </p>
         </div>
         <div>
-          <Link className="button button--secondary" href="/plan">
+          <PaywallLink
+            className="button button--secondary"
+            href="/plan"
+            context="plan"
+            returnTo="/plan"
+          >
             Manage plan
-          </Link>
-          <Link className="text-link" href="/activity">
+          </PaywallLink>
+          <PaywallLink
+            className="text-link"
+            href="/activity"
+            context="progress"
+            returnTo="/activity"
+          >
             View activity <UiIcon name="arrow-right" />
-          </Link>
+          </PaywallLink>
         </div>
       </section>
 

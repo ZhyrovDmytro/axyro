@@ -476,7 +476,8 @@ export function deriveTodayAdaptedSession({
   adaptations: readonly SessionAdaptation[];
   exerciseCatalog: readonly Exercise[];
 }): TodayAdaptationResult {
-  const original = session.originalSessionSnapshot;
+  const original =
+    session.weeklyAdaptedSessionSnapshot ?? session.originalSessionSnapshot;
   const exerciseById = new Map(
     exerciseCatalog.map((exercise) => [exercise.id, exercise]),
   );
@@ -735,7 +736,8 @@ export function applyTodayAdaptationsToSession(
 }
 
 export function resetTodayAdaptations(session: PlannedWorkout): PlannedWorkout {
-  const original = session.originalSessionSnapshot;
+  const original =
+    session.weeklyAdaptedSessionSnapshot ?? session.originalSessionSnapshot;
   return {
     ...session,
     workout: cloneWorkout(original.workout),

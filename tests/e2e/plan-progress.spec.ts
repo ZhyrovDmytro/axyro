@@ -75,7 +75,7 @@ test("off-day completion appears as extra without advancing plan progress", asyn
   await page.reload();
   await page.goto("/plan");
   await expect(
-    page.getByRole("heading", { name: "Your full plan.", exact: true }),
+    page.getByRole("heading", { name: "Your training plan", exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("grid", { name: "60-day training calendar" }),

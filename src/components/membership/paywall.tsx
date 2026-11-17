@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { UiIcon } from "@/components/ui-icon";
 import { useAuth } from "@/components/auth/auth-provider";
 import { FREE_WORKOUT_ID } from "@/domain/access/entitlements";
@@ -19,12 +19,15 @@ export function Paywall({
   returnTo = "/plan/setup",
   onUnlocked,
   embedded = false,
+  planCreated = false,
 }: {
   context?: PaywallContext;
   returnTo?: string;
   onUnlocked?: () => void;
   embedded?: boolean;
+  planCreated?: boolean;
 }) {
+  const id = useId();
   const { user } = useAuth();
   const { hasPro, refresh } = useEntitlement();
   const [products, setProducts] = useState<Product[]>([]);
@@ -43,7 +46,7 @@ export function Paywall({
       .then((payload) => {
         if (!active) return;
         const sorted = (payload.products as Product[]).sort((a, b) =>
-          a.interval === b.interval ? 0 : a.interval === "year" ? -1 : 1,
+          a.interval === b.interval ? 0 : a.interval === "month" ? -1 : 1,
         );
         if (!sorted.length) throw new Error("No products available");
         setProducts(sorted);
@@ -123,17 +126,27 @@ export function Paywall({
       </section>
     );
   return (
-    <section className="account-panel paywall" aria-labelledby="paywall-title">
+    <section
+      className="account-panel paywall"
+      aria-labelledby={`${id}-paywall-title`}
+    >
       <div className="paywall-intro">
-        <Heading id="paywall-title">{titles[context]}</Heading>
+        <Heading
+          id={`${id}-paywall-title`}
+          tabIndex={embedded ? -1 : undefined}
+        >
+          {planCreated ? "Your plan is ready" : titles[context]}
+        </Heading>
         <p className="lede">
-          {context === "library"
-            ? "Movement demos and clear technique cues for every exercise in the collection."
-            : context === "workout"
-              ? "Choose a workout for your goal, with guided work and recovery from start to finish."
-              : context === "progress"
-                ? "Review your completed sessions and keep track of your training."
-                : "A personal plan built around your goals, level, equipment and schedule."}
+          {planCreated
+            ? "Axyro Pro includes your training schedule and guided sessions."
+            : context === "library"
+              ? "Movement demos and clear technique cues for every exercise in the collection."
+              : context === "workout"
+                ? "Choose a workout for your goal, with guided work and recovery from start to finish."
+                : context === "progress"
+                  ? "Review your completed sessions and keep track of your training."
+                  : "A personal plan built around your goals, level, equipment and schedule."}
         </p>
         <ul className="membership-benefits" aria-label="Included with Pro">
           {[
@@ -151,9 +164,7 @@ export function Paywall({
         </ul>
       </div>
       <div className="paywall-checkout">
-        <h2 className="paywall-membership-title">
-          Axyro <span>Pro</span>
-        </h2>
+        <h2 className="paywall-membership-title">Axyro Pro</h2>
         {!products.length && !productsUnavailable && (
           <p role="status" className="paywall-loading">
             Loading memberships…
@@ -163,9 +174,9 @@ export function Paywall({
           <>
             {currencies.length > 1 && (
               <div className="account-field">
-                <label htmlFor="membership-currency">Currency</label>
+                <label htmlFor={`${id}-membership-currency`}>Currency</label>
                 <select
-                  id="membership-currency"
+                  id={`${id}-membership-currency`}
                   className="plan-input"
                   value={selectedProduct?.currency}
                   disabled={busy}
@@ -204,7 +215,7 @@ export function Paywall({
                   >
                     <input
                       type="radio"
-                      name="product"
+                      name={`${id}-product`}
                       value={product.id}
                       checked={selected === product.id}
                       onChange={() => setSelected(product.id)}
@@ -238,11 +249,11 @@ export function Paywall({
                 ))}
             </fieldset>
             <div className="membership-promo">
-              <label htmlFor="membership-promo-code">
+              <label htmlFor={`${id}-membership-promo-code`}>
                 Promo code <span>(optional)</span>
               </label>
               <input
-                id="membership-promo-code"
+                id={`${id}-membership-promo-code`}
                 className="plan-input"
                 name="promoCode"
                 type="text"
@@ -252,9 +263,9 @@ export function Paywall({
                 spellCheck={false}
                 maxLength={64}
                 disabled={busy}
-                aria-describedby="membership-promo-help"
+                aria-describedby={`${id}-membership-promo-help`}
               />
-              <small id="membership-promo-help">
+              <small id={`${id}-membership-promo-help`}>
                 Promo codes are coming soon. Codes entered here won’t change
                 your price yet.
               </small>

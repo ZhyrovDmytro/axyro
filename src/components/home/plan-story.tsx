@@ -1,7 +1,7 @@
 "use client";
+import { PaywallLink } from "@/components/membership/paywall-modal";
 
 import { useState } from "react";
-import Link from "next/link";
 import Image from "next/image";
 import { UiIcon } from "@/components/ui-icon";
 import styles from "./landing-page.module.css";
@@ -18,18 +18,24 @@ export function PlanStory() {
       >
         <div className={styles.personalIntro}>
           <h2 id="personal-heading">
-            A plan with
+            60 days of training
             <br />
-            your name on it.
+            around your schedule
           </h2>
           <p>
             Your priorities, your available days, your equipment. Axyro turns
             your answers into a personalized 60-day training plan, with a clear
             next session waiting for you.
           </p>
-          <Link href="/plan/setup" className={styles.cta}>
+          <PaywallLink
+            href="/plan/setup"
+            context="plan"
+            returnTo="/plan/setup"
+            requirePro={false}
+            className={styles.cta}
+          >
             Create my plan <UiIcon name="arrow-right" />
-          </Link>
+          </PaywallLink>
           <span className={styles.reassurance}>
             Personalized planning is included with Axyro Pro.
           </span>
@@ -54,7 +60,7 @@ export function PlanStory() {
                 </div>
                 <small>Example answers</small>
               </div>
-              <h3>Start with what matters to you.</h3>
+              <h3>Choose your training goals</h3>
               <p>
                 Choose your goals and movement priorities. Your answers help
                 shape which exercises go into your plan.
@@ -82,7 +88,7 @@ export function PlanStory() {
                 </div>
                 <small>10-minute sessions · example schedule</small>
               </div>
-              <h3>Give it room in your real week.</h3>
+              <h3>Set your days and session length</h3>
               <p>
                 Choose training days, 5, 10 or 20 minutes, and the equipment you
                 have. Add match dates to make space for recovery.
@@ -108,14 +114,20 @@ export function PlanStory() {
                   <small>Guided movement + recovery</small>
                 </div>
               </div>
-              <h3>Make your next session obvious.</h3>
+              <h3>Follow your next session</h3>
               <p>
                 Open your plan, see what’s next, and follow the guided player.
                 Refine the plan as your schedule changes.
               </p>
-              <Link href="/plan/setup" className={styles.planLink}>
+              <PaywallLink
+                href="/plan/setup"
+                context="plan"
+                returnTo="/plan/setup"
+                requirePro={false}
+                className={styles.planLink}
+              >
                 Build around my goals <UiIcon name="arrow-right" />
-              </Link>
+              </PaywallLink>
             </div>
           </li>
         </ol>
@@ -207,12 +219,15 @@ export function PlanStory() {
               your revised availability and matches to shape upcoming training.
               Your real schedule depends on the days you choose.
             </p>
-            <Link
+            <PaywallLink
               href="/plan/setup"
+              context="plan"
+              returnTo="/plan/setup"
+              requirePro={false}
               className={`${styles.cta} ${styles.ctaDark}`}
             >
               Create my plan <UiIcon name="arrow-right" />
-            </Link>
+            </PaywallLink>
           </div>
         </div>
       </section>

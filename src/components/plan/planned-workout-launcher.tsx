@@ -1,17 +1,13 @@
 "use client";
+import { PaywallLink } from "@/components/membership/paywall-modal";
 
 import { applyBudgetedEffort } from "@/domain/workout/daily-duration";
-import Link from "next/link";
 
 import { WorkoutPlayer } from "@/components/player/workout-player";
+import { WeeklyPlanAdaptation } from "./weekly-plan-adaptation";
 import { exercises } from "@/content/exercises";
 import { buildWorkoutSequence } from "@/domain/workout/build-workout-sequence";
-import {
-  applyFeedbackAdaptation,
-  deriveAdaptation,
-} from "@/domain/training-plan/feedback-adaptation";
 import { parseIntensityLevel } from "@/domain/workout/intensity";
-import { finalizeGeneratedTrainingPlan } from "@/domain/training-plan/generate-training-plan";
 import { useTrainingPlan } from "@/hooks/use-training-plan";
 import { flattenSessionSections } from "@/domain/workout/session-sections";
 import { scheduledSessionActivityId } from "@/services/persistence/workout-activity-repository";
@@ -36,9 +32,14 @@ export function PlannedWorkoutLauncher({
       <main className="page-shell plan-empty">
         <section>
           <h1>Session not found.</h1>
-          <Link className="button button--primary" href="/plan">
+          <PaywallLink
+            className="button button--primary"
+            href="/plan"
+            context="plan"
+            returnTo="/plan"
+          >
             Back to plan
-          </Link>
+          </PaywallLink>
         </section>
       </main>
     );
@@ -70,6 +71,7 @@ export function PlannedWorkoutLauncher({
   );
 
   return (
+    <WeeklyPlanAdaptation key={`${plan.generatedAt}:${session.weekNumber}`} plan={plan} updatePlan={updatePlan} entryWeek={session.weekNumber}>
     <WorkoutPlayer
       activityContext={{
         planId: plan.generatedAt,
@@ -100,28 +102,10 @@ export function PlannedWorkoutLauncher({
           ),
         }))
       }
-      onFeedbackRecorded={(event) =>
-        deriveAdaptation({
-          recentFeedback: [event],
-          upcomingSessions: (plan?.sessions ?? []).filter(
-            (item) =>
-              item.id !== session.id &&
-              item.scheduledDate >= session.scheduledDate,
-          ),
-          exerciseCatalog: exercises,
-        })
-      }
-      onApplyFeedbackAdaptation={(proposal) =>
-        updatePlan((current) =>
-          finalizeGeneratedTrainingPlan(
-            applyFeedbackAdaptation(current, proposal),
-            exercises,
-          ),
-        )
-      }
       sequence={sequence}
       sections={composedSections}
       workout={composedWorkout}
     />
+    </WeeklyPlanAdaptation>
   );
 }

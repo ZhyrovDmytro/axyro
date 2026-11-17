@@ -1,6 +1,6 @@
 "use client";
-import Link from "next/link";
 import { useAuth } from "@/components/auth/auth-provider";
+import { PaywallLink } from "./paywall-modal";
 import { FREE_LIBRARY_LIMIT } from "@/lib/library-access";
 
 export function LibraryInvitation({ total }: { total: number }) {
@@ -21,26 +21,35 @@ export function LibraryInvitation({ total }: { total: number }) {
           clear technique cues. Explore the full library with Pro.
         </p>
         <div className="account-actions">
-          <Link
+          <PaywallLink
+            context="library"
+            returnTo="/exercises"
             className="button button--dark"
             href="/upgrade?context=library&returnTo=/exercises"
           >
             Explore Pro
-          </Link>
+          </PaywallLink>
           {!user && (
             <>
-              <Link
+              <PaywallLink
+                context="library"
+                returnTo="/exercises"
+                requirePro={false}
+                initialAuthMode="signup"
                 className="button button--secondary"
                 href="/signup?next=/exercises"
               >
                 Create account
-              </Link>
-              <Link
+              </PaywallLink>
+              <PaywallLink
+                context="library"
+                returnTo="/exercises"
+                requirePro={false}
                 className="button button--secondary"
                 href="/signin?next=/exercises"
               >
                 Sign in
-              </Link>
+              </PaywallLink>
             </>
           )}
         </div>

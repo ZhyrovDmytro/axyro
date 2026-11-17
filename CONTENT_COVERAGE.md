@@ -72,16 +72,16 @@ Areas overlap; this table is coverage, not an additive count.
 
 ## Retired variations
 
-These 19 definitions and their sport associations were removed from the active
-catalog. Existing image files and attribution are retained. GIF/video exercises
-were not removed.
+The following definitions and their sport associations were removed from the
+active catalog. Their image files and attribution are retained. Unused assets
+for two additional retired movements were deleted on 2026-11-14. GIF/video
+exercises were not removed.
 
 - Dumbbell Rotational Swing (`dumbbell-rotational-swing`)
 - Half-Kneeling Dumbbell Chop (`half-kneeling-dumbbell-chop`)
 - Seated Dumbbell Twist (`russian-twist-dumbbell`)
 - Wall Slide (`wall-slide`)
 - Prone T Raise (`prone-t-raise`)
-- Dumbbell Scaption Raise (`db-scaption-raise`)
 - Bent-Over Dumbbell Reverse Fly (`bent-over-db-reverse-fly`)
 - Half-Kneeling Single-Arm Dumbbell Press (`half-kneeling-single-arm-db-press`)
 - Dumbbell Pullover (`db-pullover`)
@@ -91,7 +91,6 @@ were not removed.
 - Chair Squat (`chair-squat`)
 - Supported Single-leg RDL (`supported-single-leg-rdl`)
 - Lateral Push Step (`lateral-push-step`)
-- Wall First-step Drive (`wall-first-step-drive`)
 - Step-down Control (`step-down-control`)
 - Towel Grip Hold (`towel-grip-hold`)
 - Suitcase Hold (`suitcase-hold`)
@@ -101,12 +100,12 @@ and extra setup requirements while retaining all body areas. See
 [the reference comparison](docs/DAILY_TEN_CONTENT_REVIEW.md) for individual
 movement decisions and the limits of the competitor review.
 
-## Media backlog
+## Production media
 
-Replace temporary position references with owned photography or short clips.
-The three prone shoulder videos remain usable for their arm paths; execution
-uses the floor with optional light dumbbells. Future recordings should show
-these equipment-free variations directly. Do not copy competitor media.
+On 2026-11-14, the operator confirmed that the current exercise GIFs are
+generated production media and need no replacement. Preserve the current
+catalog media and paths. The three prone shoulder movements remain executable
+floor exercises with optional light dumbbells.
 
 ## Catalog reachability and optional weights
 

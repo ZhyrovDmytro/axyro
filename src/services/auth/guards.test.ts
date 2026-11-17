@@ -22,6 +22,14 @@ beforeEach(() => {
   mock.hasCookie.mockReturnValue(false);
 });
 describe("premium server page protection", () => {
+  it("sends guests to the modal sign-in gate with their original destination", async () => {
+    await expect(
+      requireProPage("/workouts/power/start?minutes=5", "workout"),
+    ).rejects.toThrow(
+      "REDIRECT:/upgrade?context=workout&returnTo=%2Fworkouts%2Fpower%2Fstart%3Fminutes%3D5",
+    );
+    expect(mock.billing).not.toHaveBeenCalled();
+  });
   it("refreshes expired cookies through a route handler before rendering", async () => {
     mock.hasCookie.mockReturnValue(true);
     await expect(requireProPage("/plan/workouts/a/start")).rejects.toThrow(

@@ -59,6 +59,9 @@ test("text contrast across routes, button hover and focus states", async ({
     await page.goto(route);
     await page.waitForLoadState("networkidle");
     await checkContrast(page, route);
+    const surface = (await page.getByRole("dialog").count())
+      ? page.getByRole("dialog")
+      : page;
     for (const selector of [
       ".button--primary",
       ".button--secondary",
@@ -69,7 +72,7 @@ test("text contrast across routes, button hover and focus states", async ({
       ".effort-option",
       "button[type=submit]:not(.sr-only)",
     ]) {
-      const control = page.locator(selector).first();
+      const control = surface.locator(selector).first();
       if (!(await control.isVisible()) || !(await control.isEnabled()))
         continue;
       await control.hover();
@@ -96,7 +99,7 @@ test("text contrast throughout plan creation, calendar and editing", async ({
   }
   await page.getByRole("button", { name: "Create My Plan" }).click();
   await expect(
-    page.getByRole("heading", { name: "Your full plan." }),
+    page.getByRole("heading", { name: "Your training plan" }),
   ).toBeVisible();
   await checkContrast(page, "plan overview");
   await checkContrast(page, "calendar and current training arc");
@@ -113,6 +116,7 @@ test("text contrast throughout plan creation, calendar and editing", async ({
     .getByRole("dialog")
     .getByRole("button", { name: "Cancel" })
     .click();
+  await page.getByRole("button", { name: "Close selected day" }).click();
   await page.getByRole("link", { name: "Review", exact: true }).first().click();
   await expect(page.locator(".planned-workout-hero")).toBeVisible();
   await checkContrast(page, "planned workout preview");
@@ -121,8 +125,13 @@ test("text contrast throughout plan creation, calendar and editing", async ({
   await checkContrast(page, "workout editor");
   await page.getByRole("button", { name: "Add exercise", exact: true }).click();
   await checkContrast(page, "exercise picker");
-  const availableMovement = await page.locator(".exercise-picker-list button strong").first().innerText();
-  await page.getByPlaceholder("Search movement or body area").fill(availableMovement);
+  const availableMovement = await page
+    .locator(".exercise-picker-list button strong")
+    .first()
+    .innerText();
+  await page
+    .getByPlaceholder("Search movement or body area")
+    .fill(availableMovement);
   await page.locator(".exercise-picker-list button").first().click();
   await page.getByRole("button", { name: "Adapt today" }).click();
   await checkContrast(page, "adapt dialog");
@@ -163,14 +172,12 @@ test("text contrast in paused player, guidance, technique and completion", async
     page.getByRole("heading", { name: "Strong work." }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "How did that workout feel?" }),
+    page.getByRole("heading", { name: "How did this workout feel?" }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Repeat workout", exact: true }),
   ).toBeVisible();
   await checkContrast(page, "completion and feedback");
-  await page
-    .getByRole("button", { name: "Just right Challenging but manageable" })
-    .click();
+  await page.getByRole("button", { name: "Just right", exact: true }).click();
   await checkContrast(page, "selected completion feedback");
 });

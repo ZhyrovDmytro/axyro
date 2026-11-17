@@ -4,13 +4,9 @@ import { useCallback, useEffect, useRef } from "react";
 
 import type { IntensityLevel } from "@/domain/workout/intensity";
 import { createBrowserWorkoutActivityRepository } from "@/services/persistence/local-workout-activity-repository";
-import { updateAdaptationProfile } from "@/domain/training-plan/adaptation-profile";
-import { createBrowserAdaptationProfileRepository } from "@/services/persistence/local-adaptation-profile-repository";
 import type {
   CompletedWorkoutSession,
-  FeedbackAffectedArea,
-  FeedbackAdaptationDecision,
-  WorkoutFeedback,
+  SaveFeedbackEventInput,
   WorkoutFeedbackEvent,
   WorkoutSessionSnapshot,
 } from "@/services/persistence/workout-activity-repository";
@@ -24,6 +20,7 @@ type UseWorkoutActivityOptions = {
   completed: boolean;
   actualDurationSeconds?: number;
   startedAt?: string;
+  resumedAfterInterruption?: boolean;
 };
 
 function standaloneSessionId(workoutId: string) {
@@ -43,15 +40,11 @@ export function useWorkoutActivity({
   completed,
   actualDurationSeconds,
   startedAt: restoredStartedAt,
+  resumedAfterInterruption = false,
 }: UseWorkoutActivityOptions): {
   recordFeedback: (
-    feedback: WorkoutFeedback,
-    affectedArea?: FeedbackAffectedArea,
+    answer: Omit<SaveFeedbackEventInput, "completionId">,
   ) => WorkoutFeedbackEvent | null;
-  recordFeedbackDecision: (
-    feedbackEventId: string,
-    decision: FeedbackAdaptationDecision,
-  ) => void;
 } {
   const repository = useRef<ReturnType<
     typeof createBrowserWorkoutActivityRepository
@@ -73,8 +66,9 @@ export function useWorkoutActivity({
       workoutId,
       intensity,
       sessionStartedAt,
+      resumedAfterInterruption,
     );
-  }, [intensity, restoredStartedAt, workoutId]);
+  }, [intensity, restoredStartedAt, resumedAfterInterruption, workoutId]);
 
   const ensureCompletion = useCallback(() => {
     if (completion.current) return completion.current;
@@ -97,36 +91,18 @@ export function useWorkoutActivity({
   }, [actualDurationSeconds, completed, ensureCompletion]);
 
   const recordFeedback = useCallback(
-    (feedback: WorkoutFeedback, affectedArea?: FeedbackAffectedArea) => {
+    (answer: Omit<SaveFeedbackEventInput, "completionId">) => {
       const completedSession = ensureCompletion();
       if (!completedSession) return null;
-      const event =
+      return (
         repository.current?.saveFeedbackEvent({
+          ...answer,
           completionId: completedSession.id,
-          rating: feedback,
-          ...(affectedArea ? { affectedArea } : {}),
-        }) ?? null;
-      if (event) {
-        const adaptationRepository = createBrowserAdaptationProfileRepository();
-        adaptationRepository.save(
-          updateAdaptationProfile({
-            current: adaptationRepository.load(),
-            feedback,
-            snapshot: completedSession.snapshot,
-          }),
-        );
-      }
-      return event;
+        }) ?? null
+      );
     },
     [ensureCompletion],
   );
 
-  const recordFeedbackDecision = useCallback(
-    (feedbackEventId: string, decision: FeedbackAdaptationDecision) => {
-      repository.current?.saveFeedbackDecision({ feedbackEventId, decision });
-    },
-    [],
-  );
-
-  return { recordFeedback, recordFeedbackDecision };
+  return { recordFeedback };
 }

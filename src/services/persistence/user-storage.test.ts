@@ -22,14 +22,26 @@ afterEach(() => vi.unstubAllGlobals());
 describe("identity-owned browser persistence", () => {
   it("clears only the current owner's setup draft and progress", () => {
     sessionStorage.setItem("veyro.plan-draft.alice", "answers");
+    sessionStorage.setItem("veyro.plan-draft.alice.preview", "preview");
+    sessionStorage.setItem("veyro.plan-draft.bob.preview", "other preview");
     sessionStorage.setItem("veyro.plan-draft.alice.initial.step", "goals");
     sessionStorage.setItem("veyro.plan-draft.alice.refine.step", "schedule");
     sessionStorage.setItem("veyro.plan-draft.bob", "other answers");
     expect(clearPlanDraft("alice")).toBe(true);
     expect(sessionStorage.getItem("veyro.plan-draft.alice")).toBeNull();
-    expect(sessionStorage.getItem("veyro.plan-draft.alice.initial.step")).toBeNull();
-    expect(sessionStorage.getItem("veyro.plan-draft.alice.refine.step")).toBeNull();
-    expect(sessionStorage.getItem("veyro.plan-draft.bob")).toBe("other answers");
+    expect(sessionStorage.getItem("veyro.plan-draft.alice.preview")).toBeNull();
+    expect(sessionStorage.getItem("veyro.plan-draft.bob.preview")).toBe(
+      "other preview",
+    );
+    expect(
+      sessionStorage.getItem("veyro.plan-draft.alice.initial.step"),
+    ).toBeNull();
+    expect(
+      sessionStorage.getItem("veyro.plan-draft.alice.refine.step"),
+    ).toBeNull();
+    expect(sessionStorage.getItem("veyro.plan-draft.bob")).toBe(
+      "other answers",
+    );
   });
   it("retries a failed save with local changes without reloading older cloud data", async () => {
     const owner = "a0000000-0000-4000-8000-000000000000";

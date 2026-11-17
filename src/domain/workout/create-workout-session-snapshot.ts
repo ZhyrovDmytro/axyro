@@ -189,7 +189,8 @@ export function createAdaptedSessionSnapshot(
   session: PlannedWorkout,
   exercises: readonly Exercise[],
 ): WorkoutSessionSnapshot | undefined {
-  if (session.todayAdaptations.length === 0) return undefined;
+  if (session.todayAdaptations.length === 0 && !session.weeklyAdaptedSessionSnapshot)
+    return undefined;
   return createWorkoutSessionSnapshot({
     workout: session.workout,
     sections: session.sections,

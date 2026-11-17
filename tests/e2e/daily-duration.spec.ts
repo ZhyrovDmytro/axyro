@@ -6,7 +6,7 @@ test("daily duration controls and responsive screens", async ({ page }) => {
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: /Train anywhere\.\s*Win on court\./ }),
+    page.getByRole("heading", { name: /Home training for your next padel match/ }),
   ).toBeVisible();
   await page.screenshot({ path: "/tmp/axyro-home-mobile.png", fullPage: true });
   await page.goto("/workouts");
@@ -80,7 +80,7 @@ test("creates a five-minute plan and exposes duration refinement", async ({
   }
   await page.getByRole("button", { name: "Create My Plan" }).click();
   await expect(
-    page.getByRole("heading", { name: "Your full plan." }),
+    page.getByRole("heading", { name: "Your training plan" }),
   ).toBeVisible();
   await expect(page.getByRole("link", { name: "Adjust my plan" })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Change session length" })).toHaveCount(0);

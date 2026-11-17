@@ -1,6 +1,6 @@
 # Product Specification
 
-> Current account/subscription extension: see [Membership implementation](docs/MEMBERSHIP_IMPLEMENTATION.md), [Authentication](docs/AUTHENTICATION.md), [Billing](docs/billing.md), and [Multi-user data](docs/MULTI_USER_DATA_ARCHITECTURE.md). These replace earlier local-only/no-account scope statements below. Guest access is the single free starter; personalized plans and full access require Pro.
+> Current account/subscription extension: see [Membership implementation](docs/MEMBERSHIP_IMPLEMENTATION.md), [Authentication](docs/AUTHENTICATION.md), [Billing](docs/billing.md), and [Multi-user data](docs/MULTI_USER_DATA_ARCHITECTURE.md). These replace earlier local-only/no-account scope statements below. Guest access is the single free starter. Signed-in Free users can create a local plan preview; activation, execution and full access require Pro.
 
 
 ## Working concept
@@ -162,11 +162,12 @@ The app does not infer athletic capacity in the MVP. The athlete chooses the sus
 The exact relationship between cadence and exercise tempo will be refined later.
 
 ## Exercise library UX
-Users can browse exercises separately from workouts. Guests and Free members
-can browse a stable 6-exercise preview with working reference media. Pro opens
-the full 40-exercise collection. The preview ends with an overflow gradient and
-account/sign-in actions for guests, or Explore Pro for signed-in Free members.
-All reference detail pages and assets remain publicly available.
+Users can browse exercises separately from workouts. Guests see a stable
+10-exercise preview and must sign in to open guides. Signed-in members can browse
+all 40 summaries; Free accounts can open the first 10 exercises in the global
+library order and Foundation Strength, the first workout. Remaining guides and
+workouts require Pro and open a non-dismissible paywall. Filtering does not change
+which ten are free. Static media assets remain public.
 
 MVP filtering should be simple and useful:
 - search;
@@ -277,7 +278,14 @@ recovery, equipment, comfort, or feedback adjustment. The plan identifies a
 validated local fallback instead of silently presenting it as AI-generated.
 Athletes can add matches and
 explicitly rebalance; the current rule keeps training off match day and the day
-before. Feedback adaptation uses the same explainable boundary. After a
+before (two days before important matches). Rebalance only moves unstarted
+sessions dated today or later, searching forward for the next unoccupied date
+within the plan. Busy match weeks can push training into a later week, exceeding
+the preferred weekly session count; past, started and recorded sessions stay put.
+If no date remains, the workout stays in place with explanatory feedback.
+Days containing both training and a match blend the training orange and match
+blue in the weekly list and full calendar, alongside their text labels.
+Feedback adaptation uses the same explainable boundary. After a
 completed plan session, Too easy or Too hard can produce one small proposal for
 the next comparable session; the athlete explicitly applies it or keeps the
 current level. Just right keeps the calendar progression unchanged.
@@ -355,3 +363,7 @@ to the session budget using the first entry's prescription. On load, unstarted s
 between main and support sections are refitted within the existing duration
 tolerance after activity status reconciliation. Started and recorded workouts
 retain their saved flow.
+
+### Feedback-driven weekly plan adjustments
+
+Completed workouts request a brief five-choice difficulty answer, with conditional reasons and an optional note. History supports feedback edits. Feedback accumulates during each plan-relative week; meaningful next-week changes are explained and require acceptance. Standard programmed progression continues for appropriate or insufficiently observed weeks. Pain is a separate safety signal and cannot justify increases. Canonical prescriptions and accepted change history remain available. See [feedback adaptation architecture](docs/FEEDBACK_ADAPTATION.md) for scoring, confidence, persistence and timing/safety boundaries.

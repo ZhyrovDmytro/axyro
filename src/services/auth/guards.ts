@@ -11,7 +11,9 @@ export async function requireProPage(
   if (!session) {
     if ((await cookies()).has("axyro-refresh"))
       redirect(`/api/auth/refresh?next=${encodeURIComponent(next)}`);
-    redirect(`/signin?next=${encodeURIComponent(next)}`);
+    redirect(
+      `/upgrade?context=${context}&returnTo=${encodeURIComponent(next)}`,
+    );
   }
   const access = await getBillingAccess(session);
   if (!access.hasPro)

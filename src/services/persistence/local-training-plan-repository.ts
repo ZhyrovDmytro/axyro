@@ -178,7 +178,7 @@ export class LocalTrainingPlanRepository implements TrainingPlanRepository {
     }
   }
 
-  save(plan: TrainingPlan): TrainingPlan {
+  private validate(plan: TrainingPlan): TrainingPlan {
     const validated = trainingPlanSchema.parse(plan);
     const unknownExerciseIds = findUnknownExerciseIds(validated);
     if (unknownExerciseIds.length > 0) {
@@ -186,10 +186,27 @@ export class LocalTrainingPlanRepository implements TrainingPlanRepository {
         `Training plan references unknown exercise ID(s): ${unknownExerciseIds.join(", ")}.`,
       );
     }
+    return validated;
+  }
+
+  save(plan: TrainingPlan): TrainingPlan {
+    const validated = this.validate(plan);
     try {
       this.storage?.setItem(trainingPlanStorageKey, JSON.stringify(validated));
     } catch {
       // The plan remains usable in memory when browser storage is unavailable.
+    }
+    return validated;
+  }
+
+  saveDurably(plan: TrainingPlan): TrainingPlan {
+    const validated = this.validate(plan);
+    if (!this.storage)
+      throw new Error("Plan storage is unavailable. Please try again.");
+    const serialized = JSON.stringify(validated);
+    this.storage.setItem(trainingPlanStorageKey, serialized);
+    if (this.storage.getItem(trainingPlanStorageKey) !== serialized) {
+      throw new Error("Could not save your plan. Please try again.");
     }
     return validated;
   }

@@ -1,9 +1,12 @@
 "use client";
+import { PaywallLink } from "@/components/membership/paywall-modal";
 
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { UiIcon } from "@/components/ui-icon";
+import { CalendarDayPanel } from "./calendar-day-panel";
+import { WeeklyPlanAdaptation } from "./weekly-plan-adaptation";
 import { ActivityStatus } from "@/components/activity/activity-status";
 import { exercises } from "@/content/exercises";
 import {
@@ -31,6 +34,7 @@ import {
 import type {
   PlannedWorkout,
   ProgressionPhase,
+  TrainingPlan,
 } from "@/domain/training-plan/training-plan.types";
 import { formatSessionDurationMinutes } from "@/domain/workout/session-duration";
 import {
@@ -240,11 +244,20 @@ type DashboardView = "week" | "workspace";
 
 export function TrainingPlanDashboard({
   view = "workspace",
+  previewPlan,
 }: {
   view?: DashboardView;
+  previewPlan?: TrainingPlan;
 }) {
   const state = useTrainingPlan();
-  return <TrainingPlanDashboardContent {...state} view={view} />;
+  return (
+    <TrainingPlanDashboardContent
+      {...state}
+      plan={previewPlan ?? state.plan}
+      ready={previewPlan ? true : state.ready}
+      view={view}
+    />
+  );
 }
 
 export function TrainingPlanDashboardContent({
@@ -261,6 +274,11 @@ export function TrainingPlanDashboardContent({
   const [rebalanceResult, setRebalanceResult] = useState("");
   const [gameLabel, setGameLabel] = useState("Padel match");
   const [isGameDialogOpen, setIsGameDialogOpen] = useState(false);
+  const calendarDayTrigger = useRef<HTMLButtonElement | null>(null);
+  useEffect(() => {
+    if (!selectedDate)
+      calendarDayTrigger.current?.focus({ preventScroll: true });
+  }, [selectedDate]);
   const weeklyMatchTrigger = useRef<HTMLButtonElement | null>(null);
   useEffect(() => {
     if (!isGameDialogOpen) weeklyMatchTrigger.current?.focus();
@@ -268,6 +286,21 @@ export function TrainingPlanDashboardContent({
   const [gamePendingDeletionId, setGamePendingDeletionId] = useState<
     string | null
   >(null);
+  const wasEditingCalendarDay = useRef(false);
+  useEffect(() => {
+    const editing = isGameDialogOpen || Boolean(gamePendingDeletionId);
+    if (
+      wasEditingCalendarDay.current &&
+      !editing &&
+      selectedDate &&
+      view !== "week"
+    ) {
+      document
+        .querySelector<HTMLElement>(".calendar-day-panel h3")
+        ?.focus({ preventScroll: true });
+    }
+    wasEditingCalendarDay.current = editing;
+  }, [isGameDialogOpen, gamePendingDeletionId, selectedDate, view]);
   const [keepPainExclusions, setKeepPainExclusions] = useState(false);
   const today = toDateKey(new Date());
   const activityHistory = useWorkoutActivityHistory(today);
@@ -327,9 +360,15 @@ export function TrainingPlanDashboardContent({
             </div>
           </div>
           <div className="button-row">
-            <Link className="button button--primary" href="/plan/setup">
+            <PaywallLink
+              className="button button--primary"
+              href="/plan/setup"
+              context="plan"
+              returnTo="/plan/setup"
+              requirePro={false}
+            >
               Create my plan <UiIcon name="arrow-right" />
-            </Link>
+            </PaywallLink>
             <Link className="text-link" href="/workouts">
               Try a quick workout
             </Link>
@@ -375,7 +414,7 @@ export function TrainingPlanDashboardContent({
 
   const gameDialog = selectedDate && isGameDialogOpen && (
     <div
-      className="dialog-backdrop"
+      className={view === "week" ? "dialog-backdrop" : "calendar-game-editor"}
       onMouseDown={(event) => {
         if (event.currentTarget === event.target) {
           setIsGameDialogOpen(false);
@@ -385,11 +424,15 @@ export function TrainingPlanDashboardContent({
     >
       <form
         aria-labelledby="game-dialog-label game-dialog-heading"
-        aria-modal="true"
+        aria-modal={view === "week" ? true : undefined}
         className="game-dialog"
         onKeyDown={(event) => {
-          if (event.key === "Escape") setIsGameDialogOpen(false);
-          if (event.key === "Tab") {
+          if (event.key === "Escape") {
+            event.preventDefault();
+            event.stopPropagation();
+            setIsGameDialogOpen(false);
+          }
+          if (view === "week" && event.key === "Tab") {
             const controls =
               event.currentTarget.querySelectorAll<HTMLElement>(
                 "button, input",
@@ -406,7 +449,7 @@ export function TrainingPlanDashboardContent({
           }
         }}
         onSubmit={addGame}
-        role="dialog"
+        role={view === "week" ? "dialog" : undefined}
       >
         <div className="game-dialog__heading">
           <div>
@@ -463,6 +506,7 @@ export function TrainingPlanDashboardContent({
     );
     return (
       <>
+        <WeeklyPlanAdaptation plan={plan} updatePlan={updatePlan} />
         <section className="plan-week" aria-labelledby="this-week-heading">
           <div className="section-heading section-heading--compact">
             <div>
@@ -476,7 +520,7 @@ export function TrainingPlanDashboardContent({
               type="button"
             >
               <span aria-hidden="true" className="rebalance-button__icon">
-                <UiIcon name="sparkle" />
+                <UiIcon name="scheduled" />
               </span>
               <span>
                 <strong>Rebalance plan</strong>
@@ -749,16 +793,74 @@ export function TrainingPlanDashboardContent({
     setGamePendingDeletionId(null);
   }
 
+  const deleteGameDialog = gamePendingDeletion && (
+    <div
+      className={selectedDate ? "calendar-game-editor" : "dialog-backdrop"}
+      onMouseDown={(event) => {
+        if (event.currentTarget === event.target) {
+          setGamePendingDeletionId(null);
+        }
+      }}
+      role="presentation"
+    >
+      <section
+        aria-describedby="delete-game-description"
+        aria-labelledby="delete-game-heading"
+        aria-modal={selectedDate ? undefined : true}
+        className="delete-game-dialog"
+        onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            event.preventDefault();
+            event.stopPropagation();
+            setGamePendingDeletionId(null);
+          }
+        }}
+        role={selectedDate ? undefined : "dialog"}
+      >
+        <p className="kicker">Delete match</p>
+        <h2 id="delete-game-heading">Delete this match?</h2>
+        <p id="delete-game-description">
+          “{gamePendingDeletion.label}” on{" "}
+          {formatPlanDate(gamePendingDeletion.date)} will be removed from your
+          plan. This can’t be undone.
+        </p>
+        <div className="delete-game-dialog__actions">
+          <button
+            autoFocus
+            className="button button--secondary button--small"
+            onClick={() => setGamePendingDeletionId(null)}
+            type="button"
+          >
+            Cancel
+          </button>
+          <button
+            className="button button--danger button--small"
+            onClick={() => removeGame(gamePendingDeletion.id)}
+            type="button"
+          >
+            Delete match
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+
   return (
     <main className="page-shell page-shell--inner plan-page">
       <section className="plan-hero">
         <div>
-          <p className="kicker">Plan workspace</p>
+          <p className="kicker">Training schedule</p>
           <div className="plan-hero__title-row">
-            <h1>Your full plan.</h1>
-            <Link className="text-link" href="/plan/refine">
+            <h1>Your training plan</h1>
+            <PaywallLink
+              className="text-link"
+              href="/plan/refine"
+              context="plan"
+              returnTo="/plan/refine"
+              requirePro={false}
+            >
               Refine my plan
-            </Link>
+            </PaywallLink>
           </div>
           <p className="lede">
             {plan.profile.sessionsPerWeek} training days a week ·{" "}
@@ -777,6 +879,7 @@ export function TrainingPlanDashboardContent({
       </section>
 
       <ActiveWorkoutCard />
+      <WeeklyPlanAdaptation plan={plan} updatePlan={updatePlan} />
 
       {todaySession && (
         <section
@@ -824,9 +927,14 @@ export function TrainingPlanDashboardContent({
             {missed.length} missed{" "}
             {missed.length === 1 ? "workout" : "workouts"}
           </h2>
-          <Link className="text-link" href="/activity">
+          <PaywallLink
+            className="text-link"
+            href="/activity"
+            context="progress"
+            returnTo="/activity"
+          >
             Review activity <UiIcon name="arrow-right" />
-          </Link>
+          </PaywallLink>
         </section>
       )}
 
@@ -911,9 +1019,14 @@ export function TrainingPlanDashboardContent({
             >
               Build next 60 days
             </button>
-            <Link className="button button--secondary" href="/activity">
+            <PaywallLink
+              className="button button--secondary"
+              href="/activity"
+              context="progress"
+              returnTo="/activity"
+            >
               Review activity
-            </Link>
+            </PaywallLink>
           </div>
         </section>
       )}
@@ -932,7 +1045,7 @@ export function TrainingPlanDashboardContent({
               type="button"
             >
               <span aria-hidden="true" className="rebalance-button__icon">
-                <UiIcon name="sparkle" />
+                <UiIcon name="scheduled" />
               </span>
               <span>
                 <strong>Rebalance plan</strong>
@@ -946,8 +1059,7 @@ export function TrainingPlanDashboardContent({
             </p>
           )}
           <p className="calendar-help">
-            Tap a training day to see the workout, or any date to add a match.
-            Upcoming training is orange; checks mark completed workouts.
+            Select a day to view training or add a match.
           </p>
           <div
             className="calendar-grid"
@@ -977,7 +1089,9 @@ export function TrainingPlanDashboardContent({
                   className={`calendar-day${!inPlan ? " calendar-day--outside" : ""}${session ? " calendar-day--training" : ""}${game ? " calendar-day--game" : ""}${trainingStatus ? ` calendar-day--${trainingStatus.tone}` : ""}${isSelected ? " calendar-day--selected" : ""}${isToday ? " calendar-day--today" : ""}`}
                   disabled={!inPlan || (date < today && !session && !game)}
                   key={date}
-                  onClick={() => {
+                  onClick={(event) => {
+                    calendarDayTrigger.current = event.currentTarget;
+                    setGamePendingDeletionId(null);
                     setSelectedDate(date);
                     setGameLabel(game?.label ?? "Padel match");
                     setIsGameDialogOpen(false);
@@ -1007,219 +1121,7 @@ export function TrainingPlanDashboardContent({
               );
             })}
           </div>
-          {selectedDate && (
-            <section
-              aria-label={`Selected day: ${formatPlanDate(selectedDate)}`}
-              className="selected-calendar-day"
-            >
-              <div className="selected-calendar-day__heading">
-                <div>
-                  <span>Selected day</span>
-                  <strong>{formatPlanDate(selectedDate)}</strong>
-                </div>
-                <button
-                  aria-label="Close selected day"
-                  onClick={() => {
-                    setIsGameDialogOpen(false);
-                    setSelectedDate("");
-                  }}
-                  type="button"
-                >
-                  <UiIcon name="close" />
-                </button>
-              </div>
-
-              {selectedSession && (
-                <div className="calendar-workout-selection">
-                  <Link
-                    aria-label={`View ${getWorkoutTrainingTitle(selectedSession.workout)} exercises`}
-                    className="calendar-workout-preview"
-                    href={`/plan/workouts/${selectedSession.id}/edit`}
-                  >
-                    <div className="calendar-workout-preview__topline">
-                      <span>
-                        {selectedSession.status === "completed"
-                          ? "Completed workout"
-                          : selectedSession.status === "skipped"
-                            ? "Skipped workout"
-                            : "Planned workout"}
-                      </span>
-                      {selectedSession.isEdited && <span>Edited</span>}
-                      {selectedSession.todayAdaptations.length > 0 && (
-                        <span>Adapted today</span>
-                      )}
-                    </div>
-                    <strong>
-                      {getWorkoutTrainingTitle(selectedSession.workout)}
-                    </strong>
-                    <div className="calendar-workout-preview__meta">
-                      <span>{sessionMinutes(selectedSession)} min</span>
-                      <span>
-                        {
-                          flattenSessionSections(selectedSession.sections)
-                            .length
-                        }{" "}
-                        exercises
-                      </span>
-                      <span>{selectedSession.workout.difficulty}</span>
-                    </div>
-                    <div className="session-section-summary">
-                      {selectedSession.sections.map((section) => (
-                        <span key={section.type}>
-                          {section.type === "warmup"
-                            ? "Warm-up"
-                            : section.type === "cooldown"
-                              ? "Cooldown"
-                              : "Workout"}{" "}
-                          ·{" "}
-                          {formatSessionDurationMinutes(
-                            calculateSessionSectionDuration(section),
-                          )}{" "}
-                          min
-                        </span>
-                      ))}
-                    </div>
-                    {selectedSession.durationStatus !== "on_target" && (
-                      <small>{durationMessage(selectedSession)}</small>
-                    )}
-                    <ProgressionSummary session={selectedSession} />
-                    <span className="calendar-workout-preview__action">
-                      View exercises <UiIcon name="arrow-right" />
-                    </span>
-                  </Link>
-                  {selectedSession.scheduledDate === today &&
-                    selectedSession.status === "scheduled" && (
-                      <Link
-                        className="button button--primary button--full"
-                        href={getPlannedWorkoutStartHref(
-                          selectedSession.id,
-                          preferredIntensity,
-                          preferencesReady,
-                        )}
-                      >
-                        Start today’s workout
-                      </Link>
-                    )}
-                  {renderMoveTraining(selectedSession)}
-                  {selectedSession.status === "scheduled" && (
-                    <button
-                      className="cancel-calendar-training"
-                      onClick={() => {
-                        removeSession(selectedSession);
-                        setSelectedDate("");
-                      }}
-                      type="button"
-                    >
-                      Cancel training
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {!selectedSession && !selectedGame && (
-                <p className="selected-calendar-day__empty">
-                  No training or game is planned for this day.
-                </p>
-              )}
-
-              {selectedGame && (
-                <div className="selected-game-summary">
-                  <div className="selected-game-summary__content">
-                    <span>Game</span>
-                    <strong>{selectedGame.label}</strong>
-                  </div>
-                  <div
-                    aria-label="Game actions"
-                    className="selected-game-summary__actions"
-                    role="group"
-                  >
-                    <button
-                      aria-label={`Edit ${selectedGame.label}`}
-                      onClick={() => {
-                        setGameLabel(selectedGame.label);
-                        setIsGameDialogOpen(true);
-                      }}
-                      title="Edit game"
-                      type="button"
-                    >
-                      <EditGameIcon />
-                    </button>
-                    <button
-                      aria-label={`Delete ${selectedGame.label}`}
-                      className="selected-game-summary__delete"
-                      onClick={() => setGamePendingDeletionId(selectedGame.id)}
-                      title="Delete match"
-                      type="button"
-                    >
-                      <DeleteGameIcon />
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {!selectedGame && (
-                <button
-                  className="button button--secondary button--small selected-day-game-action"
-                  onClick={() => {
-                    setGameLabel("Padel match");
-                    setIsGameDialogOpen(true);
-                  }}
-                  type="button"
-                >
-                  <UiIcon name="plus" />
-                  Add game
-                </button>
-              )}
-            </section>
-          )}
-          {gameDialog}
-          {gamePendingDeletion && (
-            <div
-              className="dialog-backdrop"
-              onMouseDown={(event) => {
-                if (event.currentTarget === event.target) {
-                  setGamePendingDeletionId(null);
-                }
-              }}
-              role="presentation"
-            >
-              <section
-                aria-describedby="delete-game-description"
-                aria-labelledby="delete-game-heading"
-                aria-modal="true"
-                className="delete-game-dialog"
-                onKeyDown={(event) => {
-                  if (event.key === "Escape") setGamePendingDeletionId(null);
-                }}
-                role="dialog"
-              >
-                <p className="kicker">Delete match</p>
-                <h2 id="delete-game-heading">Delete this match?</h2>
-                <p id="delete-game-description">
-                  “{gamePendingDeletion.label}” on{" "}
-                  {formatPlanDate(gamePendingDeletion.date)} will be removed
-                  from your plan. This can’t be undone.
-                </p>
-                <div className="delete-game-dialog__actions">
-                  <button
-                    autoFocus
-                    className="button button--secondary button--small"
-                    onClick={() => setGamePendingDeletionId(null)}
-                    type="button"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className="button button--danger button--small"
-                    onClick={() => removeGame(gamePendingDeletion.id)}
-                    type="button"
-                  >
-                    Delete match
-                  </button>
-                </div>
-              </section>
-            </div>
-          )}
+          {!selectedDate && deleteGameDialog}
           <div className="calendar-legend" aria-label="Calendar legend">
             <span>
               <i className="legend-train" /> Training
@@ -1236,45 +1138,215 @@ export function TrainingPlanDashboardContent({
           </div>
         </section>
 
-        <aside className="plan-context" aria-labelledby="matches-heading">
-          <p className="kicker">Court calendar</p>
-          <h2 id="matches-heading">Upcoming games</h2>
-          {upcomingGames.length === 0 ? (
-            <p>
-              No upcoming games. Select a calendar date to protect recovery
-              around a match.
-            </p>
-          ) : (
-            <ul className="game-list">
-              {upcomingGames.map((game) => (
-                <li key={game.id}>
-                  <span>
-                    <strong>{game.label}</strong>
-                    <small>{formatPlanDate(game.date)}</small>
-                  </span>
-                  <button
-                    aria-label={`Delete ${game.label} on ${formatPlanDate(game.date)}`}
-                    className="game-remove-button"
-                    onClick={() => setGamePendingDeletionId(game.id)}
-                    type="button"
-                  >
-                    Delete
-                  </button>
-                </li>
-              ))}
-            </ul>
+        <div className="calendar-context-column">
+          {selectedDate && (
+            <CalendarDayPanel
+              date={formatPlanDate(selectedDate, {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+              })}
+              onClose={() => {
+                setIsGameDialogOpen(false);
+                setGamePendingDeletionId(null);
+                setSelectedDate("");
+              }}
+              onBack={
+                gamePendingDeletionId || isGameDialogOpen
+                  ? () => {
+                      setGamePendingDeletionId(null);
+                      setIsGameDialogOpen(false);
+                    }
+                  : undefined
+              }
+            >
+              {gamePendingDeletion ? (
+                deleteGameDialog
+              ) : isGameDialogOpen ? (
+                gameDialog
+              ) : (
+                <>
+                  {selectedSession && (
+                    <div className="calendar-workout-selection">
+                      <div className="calendar-workout-preview">
+                        <div className="calendar-workout-preview__topline">
+                          <span>
+                            {selectedSession.status === "completed"
+                              ? "Completed workout"
+                              : selectedSession.status === "skipped"
+                                ? "Skipped workout"
+                                : "Planned workout"}
+                          </span>
+                          {selectedSession.isEdited && <span>Edited</span>}
+                          {selectedSession.todayAdaptations.length > 0 && (
+                            <span>Adapted today</span>
+                          )}
+                        </div>
+                        <strong>
+                          {getWorkoutTrainingTitle(selectedSession.workout)}
+                        </strong>
+                        <div className="calendar-workout-preview__meta">
+                          <span>{sessionMinutes(selectedSession)} min</span>
+                          <span>
+                            {
+                              flattenSessionSections(selectedSession.sections)
+                                .length
+                            }{" "}
+                            exercises
+                          </span>
+                          <span>{selectedSession.workout.difficulty}</span>
+                        </div>
+                        {selectedSession.durationStatus !== "on_target" && (
+                          <small>{durationMessage(selectedSession)}</small>
+                        )}
+                        <ProgressionSummary session={selectedSession} />
+                      </div>
+                      {(selectedSession.status === "scheduled" ||
+                        selectedSession.status === "missed") && (
+                        <div className="calendar-workout-management">
+                          {renderMoveTraining(selectedSession)}
+                          {selectedSession.status === "scheduled" && (
+                            <button
+                              className="cancel-calendar-training"
+                              onClick={() => {
+                                removeSession(selectedSession);
+                                setSelectedDate("");
+                              }}
+                              type="button"
+                            >
+                              Cancel training
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {!selectedSession && !selectedGame && (
+                    <p className="selected-calendar-day__empty">
+                      No training or game is planned for this day.
+                    </p>
+                  )}
+
+                  {selectedGame && (
+                    <div className="selected-game-summary">
+                      <div className="selected-game-summary__content">
+                        <span>Game</span>
+                        <strong>{selectedGame.label}</strong>
+                      </div>
+                      <div
+                        aria-label="Game actions"
+                        className="selected-game-summary__actions"
+                        role="group"
+                      >
+                        <button
+                          aria-label={`Edit ${selectedGame.label}`}
+                          onClick={() => {
+                            setGameLabel(selectedGame.label);
+                            setIsGameDialogOpen(true);
+                          }}
+                          title="Edit game"
+                          type="button"
+                        >
+                          <EditGameIcon />
+                        </button>
+                        <button
+                          aria-label={`Delete ${selectedGame.label}`}
+                          className="selected-game-summary__delete"
+                          onClick={() =>
+                            setGamePendingDeletionId(selectedGame.id)
+                          }
+                          title="Delete match"
+                          type="button"
+                        >
+                          <DeleteGameIcon />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {(selectedSession || !selectedGame) && (
+                    <div className="calendar-day-panel__actions">
+                      {selectedSession?.status === "scheduled" && (
+                        <Link
+                          className="button button--primary button--full"
+                          href={getPlannedWorkoutStartHref(
+                            selectedSession.id,
+                            preferredIntensity,
+                            preferencesReady,
+                          )}
+                        >
+                          Start training
+                        </Link>
+                      )}
+                      {selectedSession && (
+                        <Link
+                          aria-label={`View ${getWorkoutTrainingTitle(selectedSession.workout)} exercises`}
+                          className="button button--secondary button--full"
+                          href={`/plan/workouts/${selectedSession.id}/edit`}
+                        >
+                          View exercises <UiIcon name="arrow-right" />
+                        </Link>
+                      )}
+                      {!selectedGame && (
+                        <button
+                          className="button button--secondary button--small selected-day-game-action"
+                          onClick={() => {
+                            setGameLabel("Padel match");
+                            setIsGameDialogOpen(true);
+                          }}
+                          type="button"
+                        >
+                          <UiIcon name="plus" />
+                          Add game
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </CalendarDayPanel>
           )}
-          <div className="smart-note">
-            <UiIcon name="sparkle" />
-            <div>
-              <strong>Make room for your matches</strong>
+
+          <aside className="plan-context" aria-labelledby="matches-heading">
+            <p className="kicker">Court calendar</p>
+            <h2 id="matches-heading">Upcoming games</h2>
+            {upcomingGames.length === 0 ? (
               <p>
-                Match dates help protect recovery around your games. Workout
-                feedback helps shape future sessions.
+                No upcoming games. Select a calendar date to protect recovery
+                around a match.
               </p>
+            ) : (
+              <ul className="game-list">
+                {upcomingGames.map((game) => (
+                  <li key={game.id}>
+                    <span>
+                      <strong>{game.label}</strong>
+                      <small>{formatPlanDate(game.date)}</small>
+                    </span>
+                    <button
+                      aria-label={`Delete ${game.label} on ${formatPlanDate(game.date)}`}
+                      className="game-remove-button"
+                      onClick={() => setGamePendingDeletionId(game.id)}
+                      type="button"
+                    >
+                      Delete
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="smart-note">
+              <div>
+                <strong>Make room for your matches</strong>
+                <p>
+                  Match dates help protect recovery around your games. Workout
+                  feedback helps shape future sessions.
+                </p>
+              </div>
             </div>
-          </div>
-        </aside>
+          </aside>
+        </div>
       </div>
 
       <section
@@ -1289,12 +1361,23 @@ export function TrainingPlanDashboardContent({
           protect recovery around your games.
         </p>
         <div className="button-row">
-          <Link className="text-link" href="/plan/refine">
+          <PaywallLink
+            className="text-link"
+            href="/plan/refine"
+            context="plan"
+            returnTo="/plan/refine"
+            requirePro={false}
+          >
             Refine your priorities <UiIcon name="arrow-right" />
-          </Link>
-          <Link className="text-link" href="/activity">
+          </PaywallLink>
+          <PaywallLink
+            className="text-link"
+            href="/activity"
+            context="progress"
+            returnTo="/activity"
+          >
             View activity <UiIcon name="arrow-right" />
-          </Link>
+          </PaywallLink>
         </div>
         <section className="plan-arc" aria-labelledby="plan-arc-heading">
           <div className="section-heading section-heading--compact">

@@ -12,6 +12,28 @@ import {
   type SessionLifecycleStatus,
 } from "@/domain/session/session-lifecycle";
 
+export const perceivedDifficultyValues = [
+  "TOO_EASY",
+  "SLIGHTLY_EASY",
+  "JUST_RIGHT",
+  "HARD",
+  "TOO_HARD",
+] as const;
+export type PerceivedDifficulty = (typeof perceivedDifficultyValues)[number];
+export const feedbackReasonValues = [
+  "OVERALL_INTENSITY",
+  "WORKOUT_TOO_LONG",
+  "MUSCLE_FATIGUE",
+  "TECHNIQUE_DIFFICULTY",
+  "INSUFFICIENT_RECOVERY",
+  "PAIN_OR_DISCOMFORT",
+  "EXERCISES_TOO_SIMPLE",
+  "WORKOUT_TOO_SHORT",
+  "TOO_MUCH_REST",
+  "OTHER",
+] as const;
+export type FeedbackReason = (typeof feedbackReasonValues)[number];
+
 export const workoutFeedbackValues = [
   "too-easy",
   "just-right",
@@ -101,6 +123,9 @@ export const sessionActivityStatuses = sessionLifecycleStatuses;
 export type SessionActivityStatus = SessionLifecycleStatus;
 
 export type SessionActivity = {
+  resumedAfterInterruption?: boolean;
+  rescheduleCount?: number;
+  originalScheduledDate?: string;
   id: string;
   planId?: string;
   sessionId: string;
@@ -131,6 +156,17 @@ export type ScheduledSessionActivityInput = {
 };
 
 export type WorkoutFeedbackEvent = {
+  perceivedDifficulty?: PerceivedDifficulty;
+  reasons?: FeedbackReason[];
+  comment?: string;
+  affectedExerciseIds?: string[];
+  planId?: string;
+  planWeek?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  workoutCompletionPercent?: number;
+  actualDurationSeconds?: number;
+  expectedDurationSeconds?: number;
   id: string;
   completionId: string;
   sessionId: string;
@@ -164,7 +200,11 @@ export type RecordCompletedWorkoutInput = {
 
 export type SaveFeedbackEventInput = {
   completionId: string;
-  rating: WorkoutFeedback;
+  perceivedDifficulty?: PerceivedDifficulty;
+  reasons?: FeedbackReason[];
+  comment?: string;
+  affectedExerciseIds?: string[];
+  rating?: WorkoutFeedback;
   affectedArea?: FeedbackAffectedArea;
   recordedAt?: Date;
 };
@@ -217,6 +257,7 @@ export interface WorkoutActivityRepository {
     workoutId: string,
     intensity: IntensityLevel,
     startedAt?: Date,
+    resumedAfterInterruption?: boolean,
   ): SessionActivity | null;
   skipSession(sessionId: string, skippedAt?: Date): SessionActivity | null;
   cancelSession(sessionId: string, cancelledAt?: Date): SessionActivity | null;

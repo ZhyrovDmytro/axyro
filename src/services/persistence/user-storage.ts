@@ -189,7 +189,7 @@ export function removeUserStorage(userId: string) {
 export function clearPlanDraft(userId: string | null): boolean {
   try {
     const key = `veyro.plan-draft.${userId ?? "guest"}`;
-    for (const suffix of ["", ".initial.step", ".refine.step"]) {
+    for (const suffix of ["", ".initial.step", ".refine.step", ".preview"]) {
       window.sessionStorage.removeItem(key + suffix);
     }
     return true;

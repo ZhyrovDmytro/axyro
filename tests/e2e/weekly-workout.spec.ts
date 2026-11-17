@@ -87,7 +87,7 @@ test("weekly statuses match Activity and missed training can move to today", asy
   await page.reload();
   await page.goto("/plan");
   await expect(
-    page.getByRole("heading", { name: "Your full plan.", exact: true }),
+    page.getByRole("heading", { name: "Your training plan", exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("grid", { name: "60-day training calendar" }),
@@ -99,11 +99,25 @@ test("weekly statuses match Activity and missed training can move to today", asy
   for (const width of [320, 1280]) {
     await page.setViewportSize({ width, height: 1000 });
     const title = await page.locator(".plan-hero h1").boundingBox();
-    const refine = await page.getByRole("link", { name: "Refine my plan", exact: true }).boundingBox();
-    expect(refine!.x).toBeGreaterThan(title!.x + title!.width);
-    expect(Math.abs(refine!.y + refine!.height / 2 - title!.y - title!.height / 2)).toBeLessThan(1);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    await page.locator(".plan-hero").screenshot({ path: `/tmp/plan-header-${width}.png` });
+    const refine = await page
+      .getByRole("link", { name: "Refine my plan", exact: true })
+      .boundingBox();
+    if (width === 320) {
+      expect(refine!.y).toBeGreaterThanOrEqual(title!.y + title!.height);
+    } else {
+      expect(refine!.x).toBeGreaterThan(title!.x + title!.width);
+      expect(
+        Math.abs(refine!.y + refine!.height / 2 - title!.y - title!.height / 2),
+      ).toBeLessThan(1);
+    }
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    await page
+      .locator(".plan-hero")
+      .screenshot({ path: `/tmp/plan-header-${width}.png` });
   }
   await page.setViewportSize({ width: 393, height: 851 });
   const notice = page.locator(".missed-workout-notice");
@@ -119,7 +133,7 @@ test("weekly statuses match Activity and missed training can move to today", asy
   await page.getByRole("gridcell", { name: /Missed, training:/ }).click();
   await expect(
     page
-      .getByRole("region", { name: /Selected day:/ })
+      .getByRole("dialog", { name: /Selected day:/ })
       .getByText("Move training", { exact: true }),
   ).toBeVisible();
   await page.goto("/");
@@ -147,7 +161,9 @@ test("weekly statuses match Activity and missed training can move to today", asy
       ),
     ).toBe(true);
     await week.screenshot({ path: `/tmp/weekly-statuses-${width}.png` });
-    await page.locator(".today-hero").screenshot({ path: `/tmp/home-hero-${width}.png` });
+    await page
+      .locator(".today-hero")
+      .screenshot({ path: `/tmp/home-hero-${width}.png` });
   }
   const missed = week.locator('li[data-status="missed"]');
   await missed.getByText("Move training", { exact: true }).click();

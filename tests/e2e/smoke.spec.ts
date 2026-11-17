@@ -30,15 +30,17 @@ test("loads the application shell", async ({ page }) => {
 
   await expect(
     page.getByRole("heading", {
-      name: /Train anywhere\.\s*Win on court\./,
+      name: /Home training for your next padel match/,
     }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "A plan with your name on it." }),
+    page.getByRole("heading", {
+      name: /60 days of training\s*around your schedule/,
+    }),
   ).toBeVisible();
   await expect(
     page.getByRole("heading", {
-      name: /Your workout\.\s*With the thinking taken out\./,
+      name: "Guidance through every session",
     }),
   ).toBeVisible();
 });
@@ -69,16 +71,22 @@ test("keeps mobile navigation to one safe five-item row", async ({ page }) => {
       .getByRole("banner")
       .getByRole("link", { name: "Sign in", exact: true }),
   ).toBeVisible();
-  const settings = page.getByRole("banner").getByRole("link", { name: "Settings", exact: true });
+  const settings = page
+    .getByRole("banner")
+    .getByRole("link", { name: "Settings", exact: true });
   for (const width of [320, 1280]) {
     await page.setViewportSize({ width, height: 844 });
     await expect(settings).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
   }
   await settings.click();
   await expect(page).toHaveURL(/\/settings$/);
   await expect(settings).toHaveAttribute("aria-current", "page");
-  await expect(page.getByRole("heading", { name: "Make each workout yours." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
 });
 
 test("browses a workout and previews its plan", async ({ page }) => {
@@ -136,9 +144,9 @@ test("builds and customizes a 60-day training plan", async ({ page }) => {
     .getByRole("button", { name: "Create My Plan" })
     .click({ force: true });
 
-  await expect(page.getByRole("heading", { name: "Your full plan." })).toBeVisible(
-    { timeout: 60_000 },
-  );
+  await expect(
+    page.getByRole("heading", { name: "Your training plan" }),
+  ).toBeVisible({ timeout: 60_000 });
   await expect(
     page.locator(".plan-next-session").getByText("Your selected focus"),
   ).toHaveCount(0);
@@ -162,17 +170,19 @@ test("builds and customizes a 60-day training plan", async ({ page }) => {
     page.getByRole("heading", { name: "Your training arc" }),
   ).toBeVisible();
   await expect(page.getByText("Foundation", { exact: true })).toBeVisible();
-  await page.locator(".calendar-day:not(:disabled)").first().click();
+  const selectedDay = page.locator(".calendar-day:not(:disabled)").first();
+  await selectedDay.click();
   await expect(page.getByRole("button", { name: "Add game" })).toBeVisible();
   await page.getByRole("button", { name: "Add game" }).click();
-  await expect(page.getByRole("dialog", { name: /Add game/i })).toBeVisible();
+  await expect(page.getByRole("form", { name: /Add game/i })).toBeVisible();
   await expect(page.getByLabel("Game name")).toHaveValue("Padel match");
   await page.getByRole("button", { name: "Save game" }).click();
   await expect(
     page
-      .getByRole("region", { name: /Selected day:/ })
+      .getByRole("dialog", { name: /Selected day:/ })
       .getByText("Padel match", { exact: true }),
   ).toBeVisible();
+  await page.getByRole("button", { name: "Close selected day" }).click();
   await page.getByRole("button", { name: /Rebalance plan/ }).click();
   expect(
     consoleErrors.some(
@@ -181,8 +191,9 @@ test("builds and customizes a 60-day training plan", async ({ page }) => {
         message.includes("while rendering a different component"),
     ),
   ).toBe(false);
+  await selectedDay.click();
   await page.getByRole("button", { name: "Edit Padel match" }).click();
-  const editGameDialog = page.getByRole("dialog", { name: /Edit game/i });
+  const editGameDialog = page.getByRole("form", { name: /Edit game/i });
   await expect(editGameDialog).toBeVisible();
   await expect(
     editGameDialog.getByRole("button", { name: "Delete match" }),
@@ -191,14 +202,15 @@ test("builds and customizes a 60-day training plan", async ({ page }) => {
   await page
     .getByRole("button", { name: "Delete Padel match", exact: true })
     .click();
-  const deleteGameDialog = page.getByRole("dialog", {
+  const deleteGameDialog = page.getByRole("region", {
     name: "Delete this match?",
   });
   await expect(deleteGameDialog).toBeVisible();
   await deleteGameDialog
     .getByRole("button", { name: "Delete match", exact: true })
     .click();
-  await expect(page.getByText("No upcoming games.")).toBeVisible();
+  await page.getByRole("button", { name: "Close selected day" }).click();
+  await expect(page.getByText(/No upcoming games/)).toBeVisible();
   await page.getByRole("link", { name: "Review", exact: true }).first().click();
   await expect(page.locator(".detail-hero--workout")).toBeVisible();
   await expect(
@@ -541,7 +553,7 @@ test("controls and completes a workout session", async ({ page }) => {
     page.getByRole("heading", { name: "Strong work." }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "How did that workout feel?" }),
+    page.getByRole("heading", { name: "How did this workout feel?" }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Repeat workout", exact: true }),
@@ -550,14 +562,17 @@ test("controls and completes a workout session", async ({ page }) => {
     page.getByRole("button", { name: "Repeat workout" }),
   ).toBeVisible();
   const justRight = page.getByRole("button", {
-    name: "Just right Challenging but manageable",
+    name: "Just right",
+    exact: true,
   });
   await justRight.click();
-  await expect(justRight).toHaveAttribute("aria-pressed", "true");
+  await expect(
+    page.getByRole("button", { name: "Edit feedback" }),
+  ).toBeVisible();
   await expect(
     page.getByText("Saved. Your feedback stays with this completed session."),
   ).toBeVisible();
-  await expect(page.getByRole("button", { name: /Too easy/ })).toBeDisabled();
+  await expect(page.getByRole("button", { name: /Too easy/ })).toHaveCount(0);
 
   await page.getByRole("link", { name: "Done" }).click();
   await expect(
@@ -689,7 +704,7 @@ test("does not overwrite a different active workout", async ({ page }) => {
   );
 });
 
-test("asks for an affected area before saving pain feedback", async ({
+test("saves pain as a reason linked to affected movements", async ({
   page,
 }) => {
   await page.goto("/workouts/foundation-strength/start?intensity=light");
@@ -701,20 +716,42 @@ test("asks for an affected area before saving pain feedback", async ({
   }
 
   await expect(
-    page.getByRole("heading", { name: "How did that workout feel?" }),
+    page.getByRole("heading", { name: "How did this workout feel?" }),
   ).toBeVisible();
 
+  await expect(
+    page.getByRole("link", { name: "Done", exact: true }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Too hard", exact: true }).click();
+  await page.getByRole("checkbox", { name: "Pain or discomfort" }).check();
+  await expect(page.getByText("Which movements? (optional)")).toBeVisible();
   await page
-    .getByRole("button", {
-      name: "Pain or discomfort Something did not feel right",
-    })
+    .getByRole("textbox", { name: "Anything else? (optional)" })
+    .fill("Left side was uncomfortable.");
+  await page
+    .getByRole("button", { name: "Save feedback", exact: true })
     .click();
-  await expect(page.getByText("Where did you feel discomfort?")).toBeVisible();
-  await page.getByRole("button", { name: "Knee", exact: true }).click();
   await expect(page.getByText(/Do not push through pain/)).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Done", exact: true }),
+  ).toBeVisible();
+  await page.goto("/activity");
+  await page.locator(".activity-card").first().click();
+  await expect(page.getByText("Left side was uncomfortable.")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Edit feedback" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Edit feedback" }).click();
+  await page.getByRole("button", { name: "Hard", exact: true }).click();
+  await page.getByRole("checkbox", { name: "Muscle fatigue" }).check();
+  await page
+    .getByRole("button", { name: "Save feedback", exact: true })
+    .click();
+  await page.reload();
+  await expect(page.getByText("Muscle fatigue", { exact: true })).toBeVisible();
 });
 
-test("applies a transparent feedback change to a future plan session", async ({
+test("collects easy feedback without changing the plan after one session", async ({
   page,
 }) => {
   test.slow();
@@ -745,19 +782,24 @@ test("applies a transparent feedback change to a future plan session", async ({
   }
 
   await expect(
-    page.getByRole("heading", { name: "How did that workout feel?" }),
+    page.getByRole("heading", { name: "How did this workout feel?" }),
   ).toBeVisible();
 
+  await page.getByRole("button", { name: "Too easy", exact: true }).click();
+  await page.getByRole("checkbox", { name: "Too much rest" }).check();
   await page
-    .getByRole("button", { name: "Too easy I had plenty left" })
+    .getByRole("button", { name: "Save feedback", exact: true })
     .click();
-  await expect(page.getByText("Adjusted for you")).toBeVisible();
-  await page.getByRole("button", { name: "Apply change" }).click();
   await expect(
-    page.getByText("Change applied to your next comparable session."),
+    page.getByText("Saved. Your feedback stays with this completed session."),
   ).toBeVisible();
-  await page.getByRole("link", { name: "Done" }).click();
-  await expect(page.getByText("Adjusted for you").first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Apply change" })).toHaveCount(
+    0,
+  );
+  await page.getByRole("link", { name: "Done", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Adjust my plan" }),
+  ).toHaveCount(0);
 });
 
 for (const viewport of [

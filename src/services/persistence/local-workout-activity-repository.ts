@@ -16,6 +16,9 @@ import { TRAINING_PLAN_WEEK_COUNT } from "@/domain/training-plan/progression";
 import type { StorageLike } from "@/services/persistence/storage";
 import {
   feedbackAffectedAreaValues,
+  perceivedDifficultyValues,
+  feedbackReasonValues,
+  type FeedbackReason,
   type CompletedWorkoutSession,
   type RecordCompletedWorkoutInput,
   type SaveFeedbackEventInput,
@@ -109,7 +112,18 @@ const completedSessionSchema = z.object({
   actualDurationSeconds: z.number().int().nonnegative().optional(),
 });
 
-const feedbackEventSchema = z.object({
+export const feedbackEventSchema = z.object({
+  perceivedDifficulty: z.enum(perceivedDifficultyValues).optional(),
+  reasons: z.array(z.enum(feedbackReasonValues)).max(10).optional(),
+  comment: z.string().trim().max(500).optional(),
+  affectedExerciseIds: z.array(z.string().min(1)).max(40).optional(),
+  planId: z.string().min(1).optional(),
+  planWeek: z.number().int().min(1).max(TRAINING_PLAN_WEEK_COUNT).optional(),
+  createdAt: z.string().datetime().optional(),
+  updatedAt: z.string().datetime().optional(),
+  workoutCompletionPercent: z.number().min(0).max(100).optional(),
+  actualDurationSeconds: z.number().int().nonnegative().optional(),
+  expectedDurationSeconds: z.number().int().positive().optional(),
   id: z.string().min(1),
   completionId: z.string().min(1),
   sessionId: z.string().min(1),
@@ -137,6 +151,9 @@ const activityStateV2Schema = z.object({
 });
 
 const sessionActivitySchema = z.object({
+  resumedAfterInterruption: z.boolean().optional(),
+  rescheduleCount: z.number().int().nonnegative().optional(),
+  originalScheduledDate: z.string().date().optional(),
   id: z.string().min(1),
   planId: z.string().min(1).optional(),
   sessionId: z.string().min(1),
@@ -496,6 +513,18 @@ export class LocalWorkoutActivityRepository implements WorkoutActivityRepository
       }
       const activity: SessionActivity = {
         id,
+        ...(index >= 0 && state.activities[index].resumedAfterInterruption
+          ? { resumedAfterInterruption: true }
+          : {}),
+        ...(index >= 0 && state.activities[index].rescheduleCount !== undefined
+          ? { rescheduleCount: state.activities[index].rescheduleCount }
+          : {}),
+        ...(index >= 0 && state.activities[index].originalScheduledDate
+          ? {
+              originalScheduledDate:
+                state.activities[index].originalScheduledDate,
+            }
+          : {}),
         planId,
         sessionId: session.sessionId,
         workoutId: session.workoutId,
@@ -530,6 +559,7 @@ export class LocalWorkoutActivityRepository implements WorkoutActivityRepository
     workoutId: string,
     intensity: WorkoutActivity["lastIntensity"],
     startedAt = new Date(),
+    resumedAfterInterruption = false,
   ): SessionActivity | null {
     const state = this.loadState();
     const index = state.activities.findIndex(
@@ -540,6 +570,7 @@ export class LocalWorkoutActivityRepository implements WorkoutActivityRepository
     if (index < 0) {
       const activity: SessionActivity = {
         id: `activity-${sessionId}`,
+        ...(resumedAfterInterruption ? { resumedAfterInterruption: true } : {}),
         sessionId,
         workoutId,
         scheduledDate: toDateKey(startedAt),
@@ -554,6 +585,7 @@ export class LocalWorkoutActivityRepository implements WorkoutActivityRepository
     state.activities[index] = {
       ...state.activities[index],
       status: "in-progress",
+      ...(resumedAfterInterruption ? { resumedAfterInterruption: true } : {}),
       workoutId,
       startedAt: state.activities[index].startedAt ?? startedAt.toISOString(),
       intensity,
@@ -633,6 +665,11 @@ export class LocalWorkoutActivityRepository implements WorkoutActivityRepository
     void _missedAt;
     state.activities[index] = {
       ...activity,
+      originalScheduledDate:
+        activity.originalScheduledDate ?? activity.scheduledDate,
+      rescheduleCount:
+        (activity.rescheduleCount ?? 0) +
+        Number(activity.scheduledDate !== scheduledDate),
       scheduledDate,
       status: "scheduled",
     };
@@ -653,7 +690,9 @@ export class LocalWorkoutActivityRepository implements WorkoutActivityRepository
     const id = `completion-${input.sessionId}-${completedAt}`;
     const scheduledActivity = state.activities.find(
       (activity) =>
-        activity.sessionId === input.sessionId &&
+        (input.activityId
+          ? activity.id === input.activityId
+          : activity.sessionId === input.sessionId) &&
         (activity.status === "scheduled" || activity.status === "in-progress"),
     );
     const startedAt =
@@ -737,22 +776,148 @@ export class LocalWorkoutActivityRepository implements WorkoutActivityRepository
     const existing = state.feedbackEvents.find(
       (event) => event.completionId === completion.id,
     );
-    if (existing) return existing;
-    const event: WorkoutFeedbackEvent = {
-      id: `${completion.id}-feedback`,
+    const perceivedDifficulty =
+      input.perceivedDifficulty ??
+      (input.rating === "too-easy"
+        ? "TOO_EASY"
+        : input.rating === "just-right"
+          ? "JUST_RIGHT"
+          : input.rating === "too-hard" || input.rating === "pain-or-discomfort"
+            ? "TOO_HARD"
+            : undefined);
+    if (!perceivedDifficulty) throw new Error("Choose how the workout felt.");
+    const reasons = [
+      ...new Set(
+        input.reasons ??
+          (input.rating === "pain-or-discomfort" ? ["PAIN_OR_DISCOMFORT"] : []),
+      ),
+    ] as FeedbackReason[];
+    const easy =
+      perceivedDifficulty === "TOO_EASY" ||
+      perceivedDifficulty === "SLIGHTLY_EASY";
+    const allowedReasons: readonly FeedbackReason[] =
+      perceivedDifficulty === "JUST_RIGHT"
+        ? ["PAIN_OR_DISCOMFORT"]
+        : easy
+          ? [
+              "OVERALL_INTENSITY",
+              "EXERCISES_TOO_SIMPLE",
+              "WORKOUT_TOO_SHORT",
+              "TOO_MUCH_REST",
+              "OTHER",
+              "PAIN_OR_DISCOMFORT",
+            ]
+          : [
+              "OVERALL_INTENSITY",
+              "WORKOUT_TOO_LONG",
+              "MUSCLE_FATIGUE",
+              "TECHNIQUE_DIFFICULTY",
+              "INSUFFICIENT_RECOVERY",
+              "PAIN_OR_DISCOMFORT",
+              "OTHER",
+            ];
+    if (reasons.some((reason) => !allowedReasons.includes(reason))) {
+      throw new Error("Choose reasons that match the workout feedback.");
+    }
+    const affectedExerciseIds = [...new Set(input.affectedExerciseIds ?? [])];
+    if (
+      affectedExerciseIds.some(
+        (id) =>
+          !completion.snapshot?.items.some((item) => item.exerciseId === id),
+      )
+    ) {
+      throw new Error("Feedback exercises must belong to this workout.");
+    }
+    const activity = state.activities.find(
+      (candidate) => candidate.completionId === completion.id,
+    );
+    const recordedAt = (input.recordedAt ?? new Date()).toISOString();
+    const rating = reasons.includes("PAIN_OR_DISCOMFORT")
+      ? "pain-or-discomfort"
+      : easy
+        ? "too-easy"
+        : perceivedDifficulty === "JUST_RIGHT"
+          ? "just-right"
+          : "too-hard";
+    const comment = input.comment?.trim() || undefined;
+    const content = {
+      perceivedDifficulty,
+      rating,
+      reasons,
+      affectedExerciseIds,
+      ...(comment ? { comment } : {}),
+      ...(input.affectedArea ? { affectedArea: input.affectedArea } : {}),
+    };
+    if (
+      existing &&
+      JSON.stringify({ ...content }) ===
+        JSON.stringify({
+          perceivedDifficulty: existing.perceivedDifficulty,
+          rating: existing.rating,
+          reasons: existing.reasons,
+          affectedExerciseIds: existing.affectedExerciseIds,
+          ...(existing.comment ? { comment: existing.comment } : {}),
+          ...(existing.affectedArea
+            ? { affectedArea: existing.affectedArea }
+            : {}),
+        })
+    )
+      return existing;
+    const items = completion.snapshot?.items ?? [];
+    const expectedWork = items.reduce(
+      (sum, item) =>
+        sum + item.sets * item.workDurationSeconds * (item.perSide ? 2 : 1),
+      0,
+    );
+    const completedWork = items.reduce(
+      (sum, item) =>
+        sum +
+        (item.status === "skipped"
+          ? 0
+          : Math.min(
+              item.sets,
+              item.completedSets ??
+                (item.status === "completed" ? item.sets : 0),
+            )) *
+          item.workDurationSeconds *
+          (item.perSide ? 2 : 1),
+      0,
+    );
+    const event: WorkoutFeedbackEvent = feedbackEventSchema.parse({
+      ...content,
+      id: existing?.id ?? `${completion.id}-feedback`,
       completionId: completion.id,
       sessionId: completion.sessionId,
       workoutId: completion.workoutId,
       completedAt: completion.completedAt,
-      recordedAt: (input.recordedAt ?? new Date()).toISOString(),
-      rating: input.rating,
-      ...(input.affectedArea ? { affectedArea: input.affectedArea } : {}),
-      ...(completion.snapshot ? { snapshot: completion.snapshot } : {}),
-    };
-    state.feedbackEvents = [event, ...state.feedbackEvents]
+      recordedAt,
+      createdAt: existing?.createdAt ?? existing?.recordedAt ?? recordedAt,
+      updatedAt: recordedAt,
+      ...(activity?.planId ? { planId: activity.planId } : {}),
+      ...(completion.snapshot?.progressionWeek
+        ? { planWeek: completion.snapshot.progressionWeek }
+        : {}),
+      workoutCompletionPercent: expectedWork
+        ? Math.round((completedWork / expectedWork) * 100)
+        : 100,
+      ...(completion.actualDurationSeconds !== undefined
+        ? { actualDurationSeconds: completion.actualDurationSeconds }
+        : {}),
+      ...(completion.snapshot
+        ? {
+            snapshot: completion.snapshot,
+            expectedDurationSeconds:
+              completion.snapshot.estimatedDurationSeconds,
+          }
+        : {}),
+    });
+    state.feedbackEvents = [
+      event,
+      ...state.feedbackEvents.filter((candidate) => candidate.id !== event.id),
+    ]
       .sort(byMostRecent)
       .slice(0, maximumStoredSessions);
-    this.storeState(state);
+    this.storeState(state, true);
     return event;
   }
 
@@ -910,16 +1075,24 @@ export class LocalWorkoutActivityRepository implements WorkoutActivityRepository
     return state.activities[index];
   }
 
-  private storeState(state: ActivityState) {
+  private storeState(state: ActivityState, requireDurableSave = false) {
     try {
-      this.storage?.setItem(
-        workoutActivityStorageKey,
-        JSON.stringify(activityStateSchema.parse(state)),
-      );
+      if (requireDurableSave && !this.storage)
+        throw new Error("Storage unavailable");
+      const serialized = JSON.stringify(activityStateSchema.parse(state));
+      this.storage?.setItem(workoutActivityStorageKey, serialized);
+      if (
+        requireDurableSave &&
+        this.storage?.getItem(workoutActivityStorageKey) !== serialized
+      ) {
+        throw new Error("Storage owner changed");
+      }
       if (typeof window !== "undefined") {
         window.dispatchEvent(new Event(workoutActivityChangedEvent));
       }
     } catch {
+      if (requireDurableSave)
+        throw new Error("Could not save workout feedback. Please try again.");
       // Persistence is an enhancement; the live session remains authoritative.
     }
   }

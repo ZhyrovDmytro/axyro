@@ -3,6 +3,11 @@ import type { Metadata, Viewport } from "next";
 import { AuthProvider } from "@/components/auth/auth-provider";
 import { EntitlementProvider } from "@/components/membership/entitlement-provider";
 
+import {
+  PaywallProvider,
+  PaywallOutlet,
+} from "@/components/membership/paywall-modal";
+
 import { AppHeader } from "@/components/app-header";
 
 import "./globals.css";
@@ -22,19 +27,22 @@ export default function RootLayout({
   return (
     <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body suppressHydrationWarning>
-        <AuthProvider>
-          <EntitlementProvider>
-            <div className="app-frame">
-              <a className="skip-link" href="#main-content">
-                Skip to content
-              </a>
-              <AppHeader />
-              <div id="main-content" tabIndex={-1}>
-                {children}
+        <PaywallProvider>
+          <AuthProvider>
+            <EntitlementProvider>
+              <PaywallOutlet />
+              <div className="app-frame">
+                <a className="skip-link" href="#main-content">
+                  Skip to content
+                </a>
+                <AppHeader />
+                <div id="main-content" tabIndex={-1}>
+                  {children}
+                </div>
               </div>
-            </div>
-          </EntitlementProvider>
-        </AuthProvider>
+            </EntitlementProvider>
+          </AuthProvider>
+        </PaywallProvider>
       </body>
     </html>
   );

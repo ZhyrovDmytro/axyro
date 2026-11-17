@@ -1,15 +1,20 @@
 "use client";
+import { PaywallLink } from "@/components/membership/paywall-modal";
 
 import { DurationOptions } from "@/components/workout/duration-options";
 import { parseDailyDuration } from "@/domain/workout/daily-duration";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useRef, useState } from "react";
 
 import { useAuth } from "@/components/auth/auth-provider";
 import { useEntitlement } from "@/components/membership/entitlement-provider";
-import { Paywall } from "@/components/membership/paywall";
+import { PlanCreationProgress } from "./plan-creation-progress";
+import {
+  generateTrainingPlan,
+  UnsupportedPlanDurationError,
+} from "@/domain/training-plan/generate-training-plan";
+import { createBrowserPlanPreviewRepository } from "@/services/persistence/session-plan-preview-repository";
 
 import { UiIcon } from "@/components/ui-icon";
 import {
@@ -191,7 +196,6 @@ export function PlanOnboarding({
   const router = useRouter();
   const { user } = useAuth();
   const { hasPro, loading: membershipLoading } = useEntitlement();
-  const [showPaywall, setShowPaywall] = useState(false);
   const continued = useRef(false);
   const restoredReview = useRef(false);
   const generationRequest = useRef<AbortController | null>(null);
@@ -225,6 +229,7 @@ export function PlanOnboarding({
   const [error, setError] = useState("");
   const [editingReview, setEditingReview] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationComplete, setGenerationComplete] = useState(false);
   const [matchDate, setMatchDate] = useState("");
   const [matchImportance, setMatchImportance] =
     useState<AthleteProfile["matches"][number]["importance"]>("normal");
@@ -268,11 +273,11 @@ export function PlanOnboarding({
   }, [currentStep, draftKey, ready, serializedProfile, stepKey]);
   useEffect(() => () => generationRequest.current?.abort(), []);
   useEffect(() => {
-    if (ready && !showPaywall) {
+    if (ready) {
       stepHeadingRef.current?.focus({ preventScroll: true });
       window.scrollTo({ top: 0, behavior: "instant" });
     }
-  }, [currentStep, ready, showPaywall]);
+  }, [currentStep, ready]);
   useEffect(() => {
     if (membershipLoading || !profileOverride || restoredReview.current) return;
     const query = new URLSearchParams(window.location.search);
@@ -281,7 +286,6 @@ export function PlanOnboarding({
     const timer = window.setTimeout(() => {
       restoredReview.current = true;
       setStep(steps.length - 1);
-      if (!hasPro) setShowPaywall(true);
     }, 0);
     return () => window.clearTimeout(timer);
   }, [hasPro, membershipLoading, profileOverride, steps.length]);
@@ -456,84 +460,85 @@ export function PlanOnboarding({
       setError("Check your answers before creating the plan.");
       return;
     }
-    if (!hasPro) {
-      try {
-        window.sessionStorage.setItem(draftKey, JSON.stringify(result.data));
-      } catch {
-        /* Continue without device storage. */
-      }
-      setShowPaywall(true);
-      return;
-    }
     const today = new Date();
     const adaptationProfile = createBrowserAdaptationProfileRepository().load();
     setIsGenerating(true);
+    setGenerationComplete(false);
     setError("");
+    const startedAt = performance.now();
     const controller = new AbortController();
     generationRequest.current = controller;
     let nextPlan: TrainingPlan;
     try {
-      const response = await fetch("/api/training-plan", {
-        signal: controller.signal,
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          profile: result.data,
-          today: toDateKey(today),
-          adaptationProfile,
-        }),
-      });
-      if (response.status === 422) {
-        if (controller.signal.aborted) return;
-        setError(
-          "No plan fits these answers yet. Try a shorter session or review your available equipment. Keep your current discomfort selections accurate. Your answers are saved so you can return later.",
-        );
-        setIsGenerating(false);
-        return;
-      }
-      if (!response.ok) throw new Error("Planner request failed.");
-      const payload: unknown = await response.json();
-      const parsed = trainingPlanSchema.safeParse(
-        payload && typeof payload === "object" && "plan" in payload
-          ? payload.plan
-          : null,
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => resolve()),
       );
-      if (!parsed.success) throw new Error("Planner response was invalid.");
       if (controller.signal.aborted) return;
-      nextPlan = parsed.data;
-    } catch {
+      if (!hasPro) {
+        nextPlan = generateTrainingPlan(result.data, today, [], {
+          adaptationProfile,
+        });
+      } else {
+        const response = await fetch("/api/training-plan", {
+          signal: controller.signal,
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            profile: result.data,
+            today: toDateKey(today),
+            adaptationProfile,
+          }),
+        });
+        if (response.status === 422) {
+          if (controller.signal.aborted) return;
+          setError(
+            "No plan fits these answers yet. Try a shorter session or review your available equipment. Keep your current discomfort selections accurate. Your answers are saved so you can return later.",
+          );
+          setIsGenerating(false);
+          return;
+        }
+        if (!response.ok) throw new Error("Planner request failed.");
+        const payload: unknown = await response.json();
+        const parsed = trainingPlanSchema.safeParse(
+          payload && typeof payload === "object" && "plan" in payload
+            ? payload.plan
+            : null,
+        );
+        if (!parsed.success) throw new Error("Planner response was invalid.");
+        if (controller.signal.aborted) return;
+        nextPlan = parsed.data;
+      }
+      // Keep fast local previews readable without inventing percentage progress.
+      await new Promise<void>((resolve) =>
+        window.setTimeout(
+          resolve,
+          Math.max(0, 600 - (performance.now() - startedAt)),
+        ),
+      );
+      if (controller.signal.aborted) return;
+      if (
+        !hasPro &&
+        (!user || !createBrowserPlanPreviewRepository(user.id).save(nextPlan))
+      ) {
+        throw new Error("Preview storage unavailable");
+      }
+    } catch (error) {
       if (controller.signal.aborted) return;
       setError(
-        "Your plan could not be created. Check your connection and membership, then try again. Your answers are still here.",
+        error instanceof UnsupportedPlanDurationError
+          ? "No plan fits these answers yet. Try a shorter session or review your available equipment. Keep your current discomfort selections accurate. Your answers are saved so you can return later."
+          : "Your plan could not be created. Check your connection and browser storage, then try again. Your answers are still here.",
       );
       setIsGenerating(false);
       return;
     }
-    setPlan(nextPlan);
-    clearPlanDraft(user?.id ?? null);
-    try {
-      router.push("/plan");
-    } finally {
-      setIsGenerating(false);
+    if (hasPro) {
+      setPlan(nextPlan);
+      clearPlanDraft(user?.id ?? null);
     }
-  }
-
-  if (showPaywall && !hasPro) {
-    return (
-      <main className="page-shell account-shell">
-        <p className="safety-note">
-          Your answers are saved in this browser. Pro unlocks your personal
-          plan.
-        </p>
-        <Paywall
-          context="plan"
-          returnTo={`${mode === "refine" ? "/plan/refine" : "/plan/setup"}?resume=1`}
-        />
-        <button className="text-link" onClick={() => setShowPaywall(false)}>
-          Back to my answers
-        </button>
-      </main>
-    );
+    setGenerationComplete(true);
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 250));
+    if (!controller.signal.aborted) router.push("/plan");
   }
 
   if (!ready) {
@@ -554,9 +559,15 @@ export function PlanOnboarding({
             Start with the essentials, then add padel-specific priorities and
             match dates once your first session is ready.
           </p>
-          <Link className="button button--dark" href="/plan/setup">
+          <PaywallLink
+            className="button button--dark"
+            href="/plan/setup"
+            context="plan"
+            returnTo="/plan/setup"
+            requirePro={false}
+          >
             Create my plan <UiIcon name="arrow-right" />
-          </Link>
+          </PaywallLink>
         </section>
       </main>
     );
@@ -596,7 +607,13 @@ export function PlanOnboarding({
         <span style={{ transform: `scaleX(${(step + 1) / steps.length})` }} />
       </div>
 
-      <form ref={formRef} className="onboarding-card" onSubmit={goForward}>
+      <form
+        ref={formRef}
+        className="onboarding-card"
+        data-generating={isGenerating || undefined}
+        onSubmit={goForward}
+      >
+        {isGenerating && <PlanCreationProgress complete={generationComplete} />}
         {currentStep !== "review" && (
           <h1
             className="sr-only"
@@ -614,15 +631,15 @@ export function PlanOnboarding({
 
         {currentStep === "sport" && (
           <fieldset>
-            <legend>Ten minutes. Built around you.</legend>
+            <legend>What sport are you training for?</legend>
             <p className="question-help">
-              Start with 10 minutes on your training days. You can choose 5 or
-              20 later. First, choose your sport.
+              Training days start at 10 minutes. You can switch to 5 or 20
+              later.
             </p>
             {!hasPro && (
               <p className="question-help">
-                Setup is free. We’ll save your answers; a Pro subscription is
-                required to create and use your personal plan.
+                Setup and your plan preview are free. A Pro subscription unlocks
+                your training schedule and guided sessions.
               </p>
             )}
             <div className="choice-grid">
@@ -838,7 +855,7 @@ export function PlanOnboarding({
 
         {currentStep === "schedule" && (
           <fieldset>
-            <legend>Make it fit your week.</legend>
+            <legend>When can you train?</legend>
             <p className="question-help">
               A realistic plan beats a perfect plan you cannot follow.
             </p>
@@ -1171,11 +1188,10 @@ export function PlanOnboarding({
               </p>
             </div>
             <p className="safety-note">
-              Your plan and workout history are saved to your account with an
-              isolated copy on this device. If AI planning is enabled, setup
-              answers and a compact adaptation profile are sent through
-              Axyro&apos;s server route to OpenAI. You can reset the plan or
-              delete all local Axyro data in Settings.
+              {hasPro
+                ? "Your plan and workout history are saved to your account with an isolated copy on this device. When AI planning is enabled, setup answers and a compact adaptation profile are sent through Axyro’s server route to OpenAI."
+                : "Your preview and answers stay in this browser tab. Pro activates your plan and saves it to your account."}{" "}
+              You can reset the plan or delete local Axyro data in Settings.
             </p>
           </section>
         )}

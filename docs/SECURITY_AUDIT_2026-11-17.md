@@ -74,7 +74,7 @@ same browser/OS profile. Static exercise media remains publicly served by design
 
 Release PR: [#5](https://github.com/ZhyrovDmytro/axyro/pull/5), branch
 `codex/security-release`. It includes the preserved product work, security fixes,
-shared quotas and migration. Staging is published; production promotion follows the verification below.
+shared quotas and migration. Merged as `1549150970c838ef546a75cf5e70e322d0332992`; Netlify published production deployment `6afc89280149db91f5bdb3bc` at https://axyro.app.
 
 [Hosted Release checks 44087857990](https://github.com/ZhyrovDmytro/axyro/actions/runs/44087857990)
 passed both quality and browser jobs on `23fc3ee`: 514 unit tests, all 161 browser
@@ -147,3 +147,16 @@ Final follow-up static analysis: 74 Semgrep JavaScript/TypeScript rules over all
 The updated production webpack build passes. The privacy notice now discloses
 pseudonymous security counters and their expiry/cleanup behavior. Local SQL
 checks are supplemented by the hosted CI concurrency and staging header tests above.
+
+## Production verification
+
+Final PR CI [44131764773](https://github.com/ZhyrovDmytro/axyro/actions/runs/44131764773)
+passed quality and browser on `d692a8d`. After publication of merge `1549150`,
+all three Mobile Chrome release smoke tests passed against https://axyro.app:
+security headers/origins/redirects, public pages/development-admin rejection and
+free-workout start/pause/resume/skip-to-completion. Production sign-in admitted
+ten invalid `.invalid` credential attempts, returned 429/Retry-After on the
+eleventh, and still returned 429 with a forged Netlify platform IP. No account,
+email or payment was created. The previous deployment `6ae7c5d0d27a02b549097df1`
+/ `340f67a` remains the pre-release rollback target; rollback was not rehearsed.
+The following documentation-only evidence commit does not change application code.

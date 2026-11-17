@@ -146,3 +146,18 @@ provider setup and the remaining release tasks still need completion.
 - [Netlify Next.js support](https://docs.netlify.com/build/frameworks/framework-setup-guides/nextjs/overview/)
 - [Node.js build/runtime selection](https://docs.netlify.com/build/configure-builds/manage-dependencies/)
 - [Netlify pricing](https://www.netlify.com/pricing/)
+
+## Security release — 2026-11-17
+
+PR #5 merged as `1549150970c838ef546a75cf5e70e322d0332992` after hosted
+quality and browser checks passed. Production deployment
+`6afc89280149db91f5bdb3bc` published at https://axyro.app. All three deployed
+Mobile Chrome release tests and live service-key quota / forged-IP rejection
+checks passed. Database quota migration was applied before promotion; the
+existing Free Supabase project is healthy after explicit resume authorization.
+The subsequent documentation-only evidence commit preserves this application code.
+
+Pre-release rollback: `6ae7c5d0d27a02b549097df1`, source `340f67a`. Keep the
+additive quota table/function when rolling back application code. A rollback
+rehearsal and real email/payment/device launch checks remain open; see the
+[security report](SECURITY_AUDIT_2026-11-17.md).

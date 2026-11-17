@@ -7,15 +7,16 @@ missing migration, invalid counter responses or provider errors deny protected
 work with 503 and `Retry-After: 30`. Exhausted quotas return 429 and the database's
 remaining window duration. Responses are `no-store`.
 
-| Action                                        | Subject                    | Fixed-window limit       |
-| --------------------------------------------- | -------------------------- | ------------------------ |
-| Password sign-in                              | Normalized email           | 10 attempts / 15 minutes |
-| Signup                                        | Normalized email           | 5 attempts / 15 minutes  |
-| Recovery email                                | Normalized email           | 3 attempts / 15 minutes  |
-| Password change                               | Verified user ID           | 5 attempts / 15 minutes  |
-| Account deletion                              | Verified user ID           | 3 attempts / 15 minutes  |
-| Plan generation                               | Verified Pro/admin user ID | 6 requests / hour        |
-| Checkout, portal and billing restore combined | Verified user ID           | 10 requests / 15 minutes |
+| Action                                        | Subject                          | Fixed-window limit       |
+| --------------------------------------------- | -------------------------------- | ------------------------ |
+| All public auth actions combined              | Netlify connecting client IP     | 30 requests / 15 minutes |
+| Password sign-in                              | Connecting IP + normalized email | 10 attempts / 15 minutes |
+| Signup                                        | Connecting IP + normalized email | 5 attempts / 15 minutes  |
+| Recovery email                                | Connecting IP + normalized email | 3 attempts / 15 minutes  |
+| Password change                               | Verified user ID                 | 5 attempts / 15 minutes  |
+| Account deletion                              | Verified user ID                 | 3 attempts / 15 minutes  |
+| Plan generation                               | Verified Pro/admin user ID       | 6 requests / hour        |
+| Checkout, portal and billing restore combined | Verified user ID                 | 10 requests / 15 minutes |
 
 Quotas count requests, including requests that subsequently fail validation or
 provider work. Signup/sign-in/recovery quotas start after their input schemas

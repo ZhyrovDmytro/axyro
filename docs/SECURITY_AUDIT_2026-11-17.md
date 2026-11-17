@@ -76,9 +76,18 @@ same browser/OS profile. Static exercise media remains publicly served by design
 
 ## Release status
 
-Working branch: `codex/security-release`. The user's pre-existing product work
-is preserved and included in the release scope. Push, hosted CI, merge and
-deployment evidence will be recorded here as they become verified.
+Pushed branch: `codex/security-release`. Product commit `045275f`; security
+commit `e07f3fa`. The user's pre-existing product work is preserved and included
+in the release scope. The source working tree was clean after both commits.
+
+The GitHub connector returned `403 Resource not accessible by integration` when
+creating the release PR. Browser fallback reached GitHub sign-in; Netlify is also
+signed out. The connector reports no statuses or workflow runs on `e07f3fa`;
+CI currently triggers only for PRs and main. No PR, merge or new deployment has
+been completed. Do not bypass the documented pre-merge checks by pushing main.
+Continue from [the release comparison](https://github.com/ZhyrovDmytro/axyro/compare/main...codex/security-release)
+after GitHub sign-in. Hosted account/payment/database and deployment checks
+remain required; the goal is not complete.
 
 Supabase project `unrlqkymbdnpmgmmfltb` is Axyro and is paused. The active
 `jfnjftfiizoairfsgleb` project contains another application's court-booking tables;

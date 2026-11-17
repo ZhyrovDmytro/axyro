@@ -4,8 +4,7 @@ Scope: current source and uncommitted product changes, all API handlers,
 authentication/callback/session helpers, Stripe reconciliation, account-scoped
 persistence, SQL migrations, browser response headers, dependencies and release
 configuration. This is a code and configuration review, not proof that every
-possible vulnerability has been eliminated. Hosted account/payment/database
-verification remains necessary.
+possible vulnerability has been eliminated. Hosted payment lifecycle, recovery-email and physical-device verification remain open launch work.
 
 ## Trust boundaries and assets
 
@@ -28,18 +27,18 @@ role/entitlement escalation at these boundaries.
 
 ## Findings and fixes
 
-| ID  | Severity            | Finding                                                                                                                                    | Current result                                                                                                                                                                                                                                                                                                                                                                           |
-| --- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| S01 | Medium              | `safeNext` accepted `/\t/attacker.test`; the URL parser removes the tab and interprets an external host.                                   | Fixed: reject controls, spaces and backslashes; unit regression and production browser redirect probe pass.                                                                                                                                                                                                                                                                              |
-| S02 | High                | A confirmed owner email automatically granted admin during session reads, including after a database role revocation.                      | Fixed: remove email-based promotion; protected database role is authoritative. Existing admins retain access; regression proves owner email/metadata cannot grant privileges.                                                                                                                                                                                                            |
-| S03 | High                | Auth relied on optional Content-Length; checkout/planner read unrestricted JSON; sync/webhook checked size only after buffering.           | Fixed: one streaming byte-limited reader covers all five body-consuming routes. Limits: auth/checkout 16 KiB, planner 32 KiB, sync 4,000,000 bytes, webhook 1,000,000 bytes. Oversized streams cancel and return 413. Tests cover absent/false lengths, multibyte content and exact bounds.                                                                                              |
-| S04 | Medium              | Callback selected password-recovery authority solely from the caller-selected destination.                                                 | Fixed: bind recovery to an HttpOnly PKCE purpose cookie set by the recovery endpoint. Ordinary signup/OAuth targeting the reset page grants no recovery marker. Purpose is consumed at callback and cleared on logout.                                                                                                                                                                   |
-| S05 | Medium              | No Content-Security-Policy; inconsistent explicit API/redirect cache policy.                                                               | Baseline hardening implemented: self-origin policy, no plugins/base URI/framing, restricted form/connect/media sources, no eval in production; API/auth responses no-store; callback no-referrer. Static hydration still requires inline scripts/styles, so this is not a strict nonce CSP or a complete XSS defense.                                                                    |
-| S06 | Moderate            | npm reported eight affected packages, including Next.js and the ESLint/minimatch dependency chain.                                         | Patched Next.js/matching ESLint config to 16.4.6 and compatible tooling resolutions; npm audit reports zero vulnerabilities. No forced upgrades or install scripts.                                                                                                                                                                                                                      |
-| S07 | High                | No shared application rate/budget limit for repeated plan generation and billing provider operations; Auth also relies on provider limits. | Implemented in source: service-only atomic PostgreSQL quotas for auth, Pro planning and billing actions, with 429/Retry-After and fail-closed 503. Public Stripe prices cache for five minutes; model calls have a timeout and no SDK retries. Local SQL/API checks pass. Hosted migration, concurrency, Auth IP/CAPTCHA and budget verification remain open; see REQUEST_PROTECTION.md. |
-| S08 | High (availability) | The actual Axyro Supabase project is paused.                                                                                               | Verified in connector inventory and project dashboard. Resume was blocked by automatic approval review because of quota/billing implications; explicit operator authorization is required. No database changes made.                                                                                                                                                                     |
-| S09 | Medium              | Sandbox staging and production share subscription/profile storage.                                                                         | Existing documented testing exception, not an isolated payment environment. Remove sandbox associations or isolate storage before live payments; real cross-account/provider lifecycle remains unverified.                                                                                                                                                                               |
-| S10 | Medium              | Backup restore, retention/deletion across providers, hosted checks enforcement and rollback rehearsal lack current evidence.               | Open launch gates L04/L08/L14/L16/L19. Application deletion/export and cascade definitions exist; this does not establish complete provider/backup erasure or recovery.                                                                                                                                                                                                                  |
+| ID  | Severity            | Finding                                                                                                                                    | Current result                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| --- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S01 | Medium              | `safeNext` accepted `/\t/attacker.test`; the URL parser removes the tab and interprets an external host.                                   | Fixed: reject controls, spaces and backslashes; unit regression and production browser redirect probe pass.                                                                                                                                                                                                                                                                                                                                               |
+| S02 | High                | A confirmed owner email automatically granted admin during session reads, including after a database role revocation.                      | Fixed: remove email-based promotion; protected database role is authoritative. Existing admins retain access; regression proves owner email/metadata cannot grant privileges.                                                                                                                                                                                                                                                                             |
+| S03 | High                | Auth relied on optional Content-Length; checkout/planner read unrestricted JSON; sync/webhook checked size only after buffering.           | Fixed: one streaming byte-limited reader covers all five body-consuming routes. Limits: auth/checkout 16 KiB, planner 32 KiB, sync 4,000,000 bytes, webhook 1,000,000 bytes. Oversized streams cancel and return 413. Tests cover absent/false lengths, multibyte content and exact bounds.                                                                                                                                                               |
+| S04 | Medium              | Callback selected password-recovery authority solely from the caller-selected destination.                                                 | Fixed: bind recovery to an HttpOnly PKCE purpose cookie set by the recovery endpoint. Ordinary signup/OAuth targeting the reset page grants no recovery marker. Purpose is consumed at callback and cleared on logout.                                                                                                                                                                                                                                    |
+| S05 | Medium              | No Content-Security-Policy; inconsistent explicit API/redirect cache policy.                                                               | Baseline hardening implemented: self-origin policy, no plugins/base URI/framing, restricted form/connect/media sources, no eval in production; API/auth responses no-store; callback no-referrer. Static hydration still requires inline scripts/styles, so this is not a strict nonce CSP or a complete XSS defense.                                                                                                                                     |
+| S06 | Moderate            | npm reported eight affected packages, including Next.js and the ESLint/minimatch dependency chain.                                         | Patched Next.js/matching ESLint config to 16.4.6 and compatible tooling resolutions; npm audit reports zero vulnerabilities. No forced upgrades or install scripts.                                                                                                                                                                                                                                                                                       |
+| S07 | High                | No shared application rate/budget limit for repeated plan generation and billing provider operations; Auth also relies on provider limits. | Implemented and verified on staging: service-only atomic PostgreSQL quotas for auth, Pro planning and billing actions, with 429/Retry-After and fail-closed 503. Public Stripe prices cache for five minutes; model calls have a timeout and no SDK retries. Live migration/privilege checks, CI concurrency and staging IP spoof/429 checks pass. CAPTCHA and provider spending controls remain optional additional defenses; see REQUEST_PROTECTION.md. |
+| S08 | High (availability) | The actual Axyro Supabase project is paused.                                                                                               | Resolved after explicit operator approval: existing Free project restored to ACTIVE_HEALTHY, without an upgrade. Quota migration applied and live privilege/isolation checks passed.                                                                                                                                                                                                                                                                      |
+| S09 | Medium              | Sandbox staging and production share subscription/profile storage.                                                                         | Existing documented testing exception, not an isolated payment environment. Remove sandbox associations or isolate storage before live payments; real cross-account/provider lifecycle remains unverified.                                                                                                                                                                                                                                                |
+| S10 | Medium              | Backup restore, retention/deletion across providers, hosted checks enforcement and rollback rehearsal lack current evidence.               | Open launch gates L04/L08/L14/L16/L19. Application deletion/export and cascade definitions exist; this does not establish complete provider/backup erasure or recovery.                                                                                                                                                                                                                                                                                   |
 
 Other reviewed controls: HttpOnly/Secure/SameSite session cookies, production
 development-admin rejection, same-origin mutation checks, server authentication
@@ -75,7 +74,7 @@ same browser/OS profile. Static exercise media remains publicly served by design
 
 Release PR: [#5](https://github.com/ZhyrovDmytro/axyro/pull/5), branch
 `codex/security-release`. It includes the preserved product work, security fixes,
-shared quotas and migration. Production has not been promoted.
+shared quotas and migration. Staging is published; production promotion follows the verification below.
 
 [Hosted Release checks 44087857990](https://github.com/ZhyrovDmytro/axyro/actions/runs/44087857990)
 passed both quality and browser jobs on `23fc3ee`: 514 unit tests, all 161 browser
@@ -93,15 +92,29 @@ still lacks PR-write permission, so the PR was created through the signed-in
 browser. Rollback target, verified in Netlify before promotion:
 `6ae7c5d0d27a02b549097df1`, source `340f67a`.
 
-The actual Axyro database remains paused. Resume approval, migration application,
-production runtime client-IP/spoof checks, account isolation and remaining
-provider checks are pending. Do not merge or publish before these prerequisites
-pass; the goal is not complete.
+The operator explicitly authorized resuming the existing Free Axyro project.
+`unrlqkymbdnpmgmmfltb` is now ACTIVE_HEALTHY; the unrelated court-booking
+project was not modified. The additive quota migration was applied as hosted
+version `20261117164905` (`api_rate_limits`); its source file remains
+`20261117092915_api_rate_limits.sql`. Live SQL assertions passed for quota
+allowance/expiry/privileges and account isolation, role/billing escalation denial,
+unpaid plan protection and client quota RPC denial. Synthetic identities and
+data were transactionally rolled back.
 
-Supabase project `unrlqkymbdnpmgmmfltb` is Axyro and is paused. The active
-`jfnjftfiizoairfsgleb` project contains another application's court-booking tables;
-it is not a substitute and has not been modified. Do not change credentials, upgrade plans or accept charges to finish
-this review without specific operator authorization.
+Staging deployment `6afc85c987fe70a139886b22` publishes `5454238` at
+https://axyro-staging.netlify.app. All three mobile release smoke tests passed.
+A nonexistent `.invalid` sign-in received ten generic 400 responses, then 429
+with Retry-After. Forging Netlify client-IP and generic forwarded headers still
+returned 429. Wrong/missing Origin returned 403; oversized bodies returned 413.
+This verifies runtime SITE_ID, trusted IP handling and service-key RPC access.
+Hosted CI run `44089218480` passed both jobs on that source.
+
+Supabase security advisors retain a leaked-password-protection warning: that
+provider feature requires Pro or above, so it was not enabled under the explicit
+Free/no-upgrade authorization. The counter table's no-policy informational
+notice is intentional: clients have no access; only service_role can use it.
+Real email recovery, Stripe lifecycle, backup restore and physical-device checks
+remain open launch gates; no charge, credential change or plan upgrade occurred.
 
 References: [Next.js advisory](https://github.com/advisories/GHSA-mfr8-8qww-v76h),
 [minimatch advisory](https://github.com/advisories/GHSA-g3hv-75wg-m249),
@@ -111,7 +124,7 @@ References: [Next.js advisory](https://github.com/advisories/GHSA-mfr8-8qww-v76h
 ## Shared quotas follow-up
 
 Prepared `20261117092915_api_rate_limits.sql` using the official Supabase CLI.
-No hosted migration or resume was attempted. PGlite executed the migration and
+PGlite executed the migration and
 SQL regression assertions successfully; an actual anonymous RPC call was denied.
 Vitest now passes 514 tests across 73 files; lint and TypeScript pass. Ten
 account/form/subscription browser regressions passed. The CI PostgreSQL
@@ -121,17 +134,16 @@ release status above.
 See [request protection](REQUEST_PROTECTION.md) for quota values, retention,
 limits and deployment order. **Apply and verify the database migration before
 publishing this follow-up code**: protection fails closed when the RPC is absent.
-The existing paused database and pending resume approval still prevent
-production database/runtime verification and publication. The goal remains incomplete.
+The hosted migration and staging runtime checks above now satisfy this prerequisite.
 
 Public auth quota subjects were refined to Netlify connecting-IP/email pairs,
 plus a client-wide quota, so another IP cannot exhaust a victim's global login
 bucket simply by naming their email. Generic forwarded headers are ignored;
 missing platform identity denies work. The new boundary regressions pass.
-Hosted header-spoofing/SITE_ID checks remain an explicit deployment gate.
+Hosted header-spoofing/SITE_ID checks passed on staging as recorded above.
 
 Final follow-up static analysis: 74 Semgrep JavaScript/TypeScript rules over all
 11 changed/new quota/auth/billing targets, zero findings and no parse errors.
 The updated production webpack build passes. The privacy notice now discloses
 pseudonymous security counters and their expiry/cleanup behavior. Local SQL
-checks do not replace the still-pending hosted concurrency and header tests.
+checks are supplemented by the hosted CI concurrency and staging header tests above.

@@ -93,10 +93,9 @@ Twenty independent connections must admit exactly three requests against a
 three-request bucket. These checks need no provider credentials and do not
 contact the hosted database. Both checks passed in [Release checks 44087857990](https://github.com/ZhyrovDmytro/axyro/actions/runs/44087857990) on `23fc3ee`.
 
-For this release, apply and verify
+Applied and verified for this release:
 `supabase/migrations/20261117092915_api_rate_limits.sql` on the actual Axyro
-project before application deployment. Missing counters fail closed with 503.
+project (hosted version `20261117164905`, `api_rate_limits`). Missing counters fail closed with 503.
 Follow [request protection](REQUEST_PROTECTION.md) for migration order and live
 checks; a passing isolated SQL test does not establish hosted privileges or
-cross-instance behavior. GitHub/Netlify sign-ins are now verified. Do not promote before the production
-resume approval, migration and runtime/provider verification prerequisites pass.
+cross-instance behavior. GitHub/Netlify sign-ins, explicit Free-project resume approval, live database isolation/privilege assertions and staging runtime IP/spoof/429 checks passed. Staging `6afc85c987fe70a139886b22` / `5454238` passed all three mobile smoke tests. Real email/payment lifecycle and backup/rollback rehearsal remain open launch checks.

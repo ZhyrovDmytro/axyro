@@ -7,7 +7,11 @@ export function safeNext(value: string | null, fallback = "/"): string {
   return value &&
     value.startsWith("/") &&
     !value.startsWith("//") &&
-    !/[\\\r\n]/.test(value)
+    !value.includes("\\") &&
+    !Array.from(value).some((character) => {
+      const code = character.charCodeAt(0);
+      return code <= 32 || code === 127;
+    })
     ? value
     : fallback;
 }

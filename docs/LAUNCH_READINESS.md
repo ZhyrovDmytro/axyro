@@ -1,6 +1,6 @@
 # Paid public launch tracker
 
-Last updated: 2026-11-02 (Europe/Prague).
+Last updated: 2026-11-17 (Europe/Prague).
 
 This is the shared checklist for launching Axyro as a paid public web app.
 Current verdict: **not ready to accept public payments**. Core membership code
@@ -318,9 +318,14 @@ No owners or target dates have been assigned yet.
     through a documented process (support-assisted is acceptable initially),
     backup/provider retention is explained, and data inventory docs are current.
 
-- [ ] **L13 — Production media rights** · Open
-  - Baseline: [media credits](../MEDIA_CREDITS.md) label some imported images as
-    temporary development references to replace before release.
+- [ ] **L13 — Production media rights** · Partial
+  - 2026-11-14: operator confirmed that current exercise GIFs are generated
+    production media and need no replacement. Removed eight unused images for
+    two out-of-catalog movements and their documentation references; 34 catalog
+    and schema tests passed. Legacy imported position images are separate from
+    the current GIF demonstrations. Exercise GIF replacement is not a launch
+    task. The separate confirmation-email reference review remains unverified;
+    see [media credits](../MEDIA_CREDITS.md).
   - Complete when: replace these references with production assets or document
     appropriate commercial permissions; confirm supplied clip/person rights and
     attribution obligations. Preserve the 40-exercise contract and stable IDs.
@@ -470,3 +475,19 @@ business and markets. Recheck current requirements when completing legal tasks.
 | 2026-11-02 | L06 / L08 | Verified dedicated Stripe sandbox identity, all four active test prices and default portal settings through the API. No webhook endpoints or hosted Stripe variables exist. Added 12 signed-webhook endpoint tests and sandbox configuration/operator test instructions. All 425 unit tests, TypeScript and zero-warning lint pass. Separate hosted staging import was blocked by automatic approval review pending explicit scope/secret approval; no hosted configuration or live billing changed. L06 remains Partial and L08 Unverified. |
 
 | 2026-11-02 | L03 / L05 / L06 / L08 / L19 | Operator approved separate Free Netlify staging, sandbox secrets and temporary shared Axyro Supabase access for a dedicated regular account. Configured axyro-staging.netlify.app, exact auth callback, four sandbox prices and protected staging-only credentials. Active webhook we_1UXLcrRrXPiiRoHsSibA6eCC delivered real zero-value invoice.paid event evt_1UXLrXRrXPiiRoHsQj93OjNu with HTTP 200; no app subscription row was created. Replaced initial webhook signing configuration after tool-output exposure; old endpoint is disabled. Fixed Netlify immutable-origin handling for mutations and auth redirects, with failing-before-fix regressions. Verified 432 unit tests, 11 final account/subscription browser checks (30 earlier account/subscription/smoke checks), TypeScript, zero-warning lint and webpack build. Source e58ade5 published as 6ae8c0c451730a78a9d014d8; deployed auth/products/protections/redirect checks and both guest release smoke tests pass. Public main/billing unchanged; operator purchase/Pro/cancellation, live merchant and tax work remain open. |
+
+| 2026-11-02 | L17 | Updated paywall presentation: Monthly first/default, Yearly second; navigation Plan/Activity and Library Explore Pro open a shared modal retaining page/filter/scroll state. Verified 19 targeted browser regressions, including 320/390/1280px layouts, zero axe violations, stable dialog bounds during delayed pricing, focus trapping/restoration, pending Pro checks, unavailable prices and checkout currency/price selection. All 432 unit tests, TypeScript, zero-warning lint and webpack build passed. No deployment or real payment/device checks performed; L17 remains Partial. |
+
+| 2026-11-02 | L05 / L17 | Guests now sign in through a shared modal before plan questionnaires or other protected content. Home/plan/activity/library/paid-workout links and direct protected routes retain their destination through the existing account-isolation reset. Embedded registration/recovery reuse existing auth services; Free/Pro continuation and free-workout access are covered. Verified 433 unit tests and 141 browser regressions across full and targeted runs, mobile/desktop modal screenshots, zero axe violations on checked surfaces, TypeScript, zero-warning lint and webpack production build. Existing guest questionnaire fixtures now use authenticated Free accounts; hover/focus scans target the active modal. No deployment or fresh real Google/email/payment/device verification; L05/L17 remain Partial. |
+
+| 2026-11-02 | L17 | Added a shared 250ms CSS opacity/scale entrance and matching backdrop fade for access modals, using the existing easing token. Reduced motion keeps only the fade; dismissal stays immediate. All 28 targeted auth/paywall browser checks passed, including repeated openings, real transition events, reduced motion, Escape/focus restoration and stable settled layout; the two motion checks also passed with explicit backdrop assertions. TypeScript, lint and formatting passed. No new dependency or provider changes; physical-device motion feel and deployment remain unverified. |
+
+| 2026-11-02 | L05 / L17 | Exercise guides now require sign-in from library cards, workout-preview/editor links and direct URLs. Guests see the existing animated sign-in modal; authenticated Free users can open individual guides without Pro. Library browsing limits, guest free-workout playback, all 40 records and media paths remain unchanged. Verified 30 targeted browser regressions covering guest gating, Free/Pro continuation with sport query, library preview, optional equipment and workout editing; all 433 unit tests, TypeScript, lint and webpack build passed. Existing auth services and public static media delivery are unchanged. No deployment or fresh live Google/email/device checks. |
+
+| 2026-11-03 | L05 / L17 | Changed signed-in plan conversion to creation status → Plan-page preview → non-dismissible activation paywall. Free previews use the existing deterministic compiler and account-scoped session draft storage; paid planner API, cloud plan writes and paid execution still require Pro. Reset/deletion/activation clear previews with drafts. Pro creation and checkout resume preserve the authorized generation flow. All 435 unit tests and all 149 browser regressions passed, including locked Escape/backdrop behavior, preview reload, storage failure, cancellation and checkout continuation. TypeScript, zero-warning lint, formatting and webpack build passed; phone/desktop progress and locked-paywall screenshots reviewed with zero axe violations on checked modal surfaces. No deployment, real charge/provider or physical-device verification; L05/L17 remain Partial. |
+
+| 2026-11-03 | L17 | Created-plan paywall now confirms “Your plan is ready” and explains “Go Pro to unlock your personal plan and start training.” Other paywalls retain their context copy. All six targeted preview/checkout browser regressions, TypeScript and targeted zero-warning lint passed. Local copy change only; no deployment or provider changes. |
+
+| 2026-11-03 | L17 | Free access now covers the first 10 exercises in the shared global media/English-name order and Foundation Strength, the first quick-start workout. Signed-in catalog browsing shows all 40 summaries with Pro badges/Unlock guide actions after the free ten; direct guides and workout exercise links share the allowlist. All Pro offers now use a non-dismissible modal, while authentication forms remain closable. Created-plan confirmation is explicitly scoped to real previews. Verified all 436 unit tests and 156 full-suite browser regressions; eight targeted boundary/card/workout/browser-language tests also passed, including the added Czech-locale check. Types, zero-warning lint, formatting and webpack build passed. No catalog records/media paths, entitlement grants or paid execution APIs changed. No deployment or fresh real-provider/physical-device checks; L17 remains Partial. |
+
+| 2026-11-17 | L01 / L03 / L05 / L16 / L19 | Security release prepared: blocked control-character redirects, removed email-driven admin grants, bounded all five body-reading API routes while streaming, bound recovery privileges to recovery PKCE initiation, added baseline CSP/no-store/callback referrer policy and patched Next.js/tooling. npm audit: zero vulnerabilities. 492 unit tests, TypeScript, zero-warning lint, webpack production build and all three production smoke checks pass. Browser verification: 158/161 initially; all 30 tests in affected copy/layout suites pass after correcting stale assertions. Semgrep: zero findings from 74 rules/256 targets, with two partial test-file parses. See [security findings and remaining gates](SECURITY_AUDIT_2026-11-17.md). Actual Axyro database is paused; automatic approval review rejected resume because of quota/billing implications. No database or paid-plan changes; hosted account/payment/rate-limit/isolation verification and deployment remain open. |

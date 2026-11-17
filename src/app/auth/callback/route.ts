@@ -8,9 +8,11 @@ export async function GET(request: Request) {
   const jar = await cookies();
   const code = url.searchParams.get("code");
   const verifier = jar.get("axyro-pkce")?.value;
+  const recovery = jar.get("axyro-auth-flow")?.value === "recovery";
   const next = safeNext(jar.get("axyro-auth-next")?.value ?? null);
   jar.delete("axyro-pkce");
   jar.delete("axyro-auth-next");
+  jar.delete("axyro-auth-flow");
   if (!code || !verifier || url.searchParams.has("error"))
     return NextResponse.redirect(new URL("/signin?error=callback", origin));
   try {
@@ -20,7 +22,7 @@ export async function GET(request: Request) {
         body: { auth_code: code, code_verifier: verifier },
       }),
     );
-    if (next === "/reset-password")
+    if (recovery && next === "/reset-password")
       jar.set("axyro-password-recovery", "1", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",

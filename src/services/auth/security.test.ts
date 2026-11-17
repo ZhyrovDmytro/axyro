@@ -61,6 +61,9 @@ describe("authentication security boundaries", () => {
       "//attacker.test",
       "/\\attacker.test",
       "/\nfoo",
+      "/\t/attacker.test",
+      "/\u0000/attacker.test",
+      "/account\u007f",
     ])
       expect(safeNext(path)).toBe("/");
     expect(safeNext("/plan/setup?resume=1")).toBe("/plan/setup?resume=1");

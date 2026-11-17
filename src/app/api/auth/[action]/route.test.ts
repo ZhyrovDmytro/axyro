@@ -25,6 +25,16 @@ function request(action: string, body: unknown, origin = "https://axyro.test") {
   });
 }
 describe("auth route trust boundaries", () => {
+  it("rejects oversized bodies without Content-Length before contacting Auth", async () => {
+    const response = await POST(
+      request("signin", { data: "x".repeat(16385) }),
+      {
+        params: Promise.resolve({ action: "signin" }),
+      },
+    );
+    expect(response.status).toBe(413);
+    expect(auth.supabaseRequest).not.toHaveBeenCalled();
+  });
   afterEach(() => {
     vi.unstubAllEnvs();
     vi.clearAllMocks();

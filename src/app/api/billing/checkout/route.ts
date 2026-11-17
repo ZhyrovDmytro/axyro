@@ -1,4 +1,8 @@
 import { z } from "zod";
+import {
+  readRequestText,
+  RequestBodyTooLargeError,
+} from "@/services/http/request-body";
 import { assertSameOrigin, getAuthSession } from "@/services/auth/server";
 import {
   billingError,
@@ -37,7 +41,7 @@ export async function POST(request: Request) {
           )
           .default("/account"),
       })
-      .safeParse(await request.json());
+      .safeParse(JSON.parse(await readRequestText(request, 16384)));
     if (!parsed.success || !priceIds().includes(parsed.data.priceId))
       return Response.json(
         { error: "Choose a configured subscription." },
@@ -103,6 +107,8 @@ export async function POST(request: Request) {
     );
     return Response.json(checkout);
   } catch (error) {
+    if (error instanceof RequestBodyTooLargeError)
+      return Response.json({ error: "Request too large." }, { status: 413 });
     return billingError(error);
   }
 }

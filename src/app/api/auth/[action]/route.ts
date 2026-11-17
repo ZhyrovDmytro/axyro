@@ -2,6 +2,10 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import {
+  readRequestText,
+  RequestBodyTooLargeError,
+} from "@/services/http/request-body";
+import {
   authConfigured,
   beginPkce,
   clearSession,
@@ -29,15 +33,15 @@ const registration = z
     email,
     password,
     displayName: z.string().trim().min(1).max(100),
-    confirmPassword: z.string(),
-    next: z.string().optional(),
+    confirmPassword: z.string().max(128),
+    next: z.string().max(1000).optional(),
   })
   .refine((value) => value.password === value.confirmPassword);
 const passwordChange = z
   .object({
     password,
-    confirmPassword: z.string(),
-    currentPassword: z.string().optional(),
+    confirmPassword: z.string().max(128),
+    currentPassword: z.string().max(128).optional(),
   })
   .refine((value) => value.password === value.confirmPassword);
 function json(value: unknown, status = 200) {
@@ -103,11 +107,10 @@ export async function POST(
   } catch {
     return json({ error: "Request origin is not allowed" }, 403);
   }
-  if (Number(request.headers.get("content-length") ?? 0) > 16384)
-    return json({ error: "Request too large" }, 413);
   const { action } = await context.params;
   try {
-    const body: unknown = await request.json().catch(() => ({}));
+    const text = await readRequestText(request, 16384);
+    const body: unknown = text ? JSON.parse(text) : {};
     if (action === "signin") {
       const input = credentials.parse(body);
       if (
@@ -154,7 +157,7 @@ export async function POST(
     }
     if (action === "recover") {
       const input = z.object({ email }).parse(body);
-      const challenge = await beginPkce("/reset-password");
+      const challenge = await beginPkce("/reset-password", "recovery");
       // Always return the same response; never reveal whether an address exists.
       await supabaseRequest(
         `/auth/v1/recover?redirect_to=${encodeURIComponent(`${applicationOrigin(request)}/auth/callback`)}`,
@@ -244,6 +247,8 @@ export async function POST(
     }
     return json({ error: "Not found" }, 404);
   } catch (error) {
+    if (error instanceof RequestBodyTooLargeError)
+      return json({ error: "Request too large" }, 413);
     if (error instanceof z.ZodError)
       return json(
         {

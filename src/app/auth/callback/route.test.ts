@@ -28,6 +28,33 @@ afterEach(() => vi.unstubAllEnvs());
 
 describe("canonical auth callback redirects", () => {
   const url = "https://deploy-id--axyro-staging.netlify.app/auth/callback";
+  it.each(["signin", "recovery", undefined])(
+    "only grants password recovery for a recovery PKCE flow (%s)",
+    async (flow) => {
+      mocks.jar.get.mockImplementation((name: string) => {
+        const values: Record<string, string | undefined> = {
+          "axyro-pkce": "test-verifier",
+          "axyro-auth-next": "/reset-password",
+          "axyro-auth-flow": flow,
+        };
+        return values[name] ? { value: values[name] } : undefined;
+      });
+      mocks.supabaseRequest.mockResolvedValue({ access_token: "test-token" });
+      await GET(new Request(`${url}?code=test-code`));
+      expect(mocks.jar.delete).toHaveBeenCalledWith("axyro-auth-flow");
+      if (flow === "recovery")
+        expect(mocks.jar.set).toHaveBeenCalledWith(
+          "axyro-password-recovery",
+          "1",
+          expect.objectContaining({
+            httpOnly: true,
+            secure: true,
+            maxAge: 600,
+          }),
+        );
+      else expect(mocks.jar.set).not.toHaveBeenCalled();
+    },
+  );
   it("keeps successful sign-in on the stable application hostname", async () => {
     mocks.supabaseRequest.mockResolvedValue({ access_token: "test-token" });
     const response = await GET(new Request(`${url}?code=test-code`));

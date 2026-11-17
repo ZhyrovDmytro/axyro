@@ -95,3 +95,12 @@ existing profile and Admin access preserved. Google currently labels consent wit
 the Supabase project domain; custom brand verification and new Google-only signup
 are not verified. Localhost callbacks were not added. See
 [Google configuration and verification](SUPABASE_SETUP.md#google-oauth--2026-11-01).
+
+## Shared request quotas — 17 November 2026
+
+Production sign-in, signup, recovery, password change and account deletion use
+shared database quotas and generic 429/503 responses with Retry-After. Quotas
+are keyed by HMAC digests of Netlify client-IP/email pairs or verified user ID,
+independently of account existence; logout is not quota-gated. The additive quota migration
+must be applied before deploying these handlers. See [request protection](REQUEST_PROTECTION.md)
+for exact values, verification and the remaining hosted perimeter controls.

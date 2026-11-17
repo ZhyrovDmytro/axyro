@@ -2,6 +2,10 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import {
+  enforceAuthRateLimit,
+  enforceRateLimit,
+} from "@/services/http/rate-limit";
+import {
   readRequestText,
   RequestBodyTooLargeError,
 } from "@/services/http/request-body";
@@ -122,6 +126,12 @@ export async function POST(
         return json({ user: (await getAuthSession())?.user });
       }
       email.parse(input.email);
+      const limited = await enforceAuthRateLimit(
+        request,
+        "auth-signin",
+        input.email,
+      );
+      if (limited) return limited;
       await setProviderSession(
         await supabaseRequest("/auth/v1/token?grant_type=password", {
           method: "POST",
@@ -132,6 +142,12 @@ export async function POST(
     }
     if (action === "signup") {
       const input = registration.parse(body);
+      const limited = await enforceAuthRateLimit(
+        request,
+        "auth-signup",
+        input.email,
+      );
+      if (limited) return limited;
       const challenge = await beginPkce(
         safeNext(input.next ?? null, "/plan/setup"),
       );
@@ -157,6 +173,12 @@ export async function POST(
     }
     if (action === "recover") {
       const input = z.object({ email }).parse(body);
+      const limited = await enforceAuthRateLimit(
+        request,
+        "auth-recover",
+        input.email,
+      );
+      if (limited) return limited;
       const challenge = await beginPkce("/reset-password", "recovery");
       // Always return the same response; never reveal whether an address exists.
       await supabaseRequest(
@@ -188,6 +210,8 @@ export async function POST(
     if (!session) return json({ error: "Sign in to continue" }, 401);
     if (action === "password") {
       const input = passwordChange.parse(body);
+      const limited = await enforceRateLimit("auth-password", session.user.id);
+      if (limited) return limited;
       if (
         session.user.isDevelopmentAdmin ||
         !session.user.providers.includes("email")
@@ -233,6 +257,8 @@ export async function POST(
     }
     if (action === "delete") {
       z.object({ confirmation: z.literal("DELETE") }).parse(body);
+      const limited = await enforceRateLimit("auth-delete", session.user.id);
+      if (limited) return limited;
       if (!session.user.isDevelopmentAdmin) {
         const { cancelBillingForUser } =
           await import("@/services/billing/server");

@@ -36,6 +36,12 @@ export default function PrivacyPage() {
             details are managed by Stripe. Axyro does not store your password or
             card number.
           </p>
+          <p>
+            Abuse protection uses request counts and reset times in Supabase.
+            Counter identifiers are derived from your connecting IP address,
+            email or account ID; the counters do not store those original
+            values.
+          </p>
         </article>
         <article className="instruction-section">
           <h2>Why it is used</h2>
@@ -73,6 +79,11 @@ export default function PrivacyPage() {
             operator’s retention policies. Unattributed data from earlier
             local-only versions is preserved separately and never automatically
             assigned to an account.
+          </p>
+          <p>
+            Security counters stop applying after 15 minutes, or one hour for
+            plan generation. Expired counters are removed during later request
+            processing.
           </p>
         </article>
       </section>

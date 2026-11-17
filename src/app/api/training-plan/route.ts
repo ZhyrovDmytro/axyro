@@ -1,5 +1,6 @@
 import { getBillingAccess } from "@/services/billing/server";
 import { assertSameOrigin } from "@/services/auth/server";
+import { enforceRateLimit } from "@/services/http/rate-limit";
 import {
   readRequestText,
   RequestBodyTooLargeError,
@@ -170,6 +171,8 @@ export async function POST(rawRequest: Request) {
         { error: "Pro is required to create a personalized plan." },
         { status: 403 },
       );
+    const limited = await enforceRateLimit("planner", access.user.id);
+    if (limited) return limited;
   } catch {
     return Response.json(
       { error: "Unable to verify plan access." },
@@ -198,7 +201,11 @@ export async function POST(rawRequest: Request) {
   }
 
   const model = process.env.OPENAI_PLANNER_MODEL ?? "gpt-4o-mini";
-  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const client = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+    timeout: 20000,
+    maxRetries: 0,
+  });
   let repairErrors: string | undefined;
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {

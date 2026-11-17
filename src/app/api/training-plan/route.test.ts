@@ -1,4 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { enforceRateLimit } from "@/services/http/rate-limit";
+vi.mock("@/services/http/rate-limit", () => ({
+  enforceRateLimit: vi.fn(async (): Promise<Response | null> => null),
+}));
 
 import { defaultAdaptationProfile } from "@/domain/training-plan/adaptation-profile";
 import { painAreaValues } from "@/domain/training-plan/training-plan.schema";
@@ -6,7 +10,13 @@ import { painAreaValues } from "@/domain/training-plan/training-plan.schema";
 import { POST } from "./route";
 
 vi.mock("@/services/auth/server", () => ({ assertSameOrigin: vi.fn() }));
-vi.mock("@/services/billing/server", () => ({ getBillingAccess: vi.fn(async () => ({ user: { id: "test-user", role: "user" }, subscription: null, hasPro: true })) }));
+vi.mock("@/services/billing/server", () => ({
+  getBillingAccess: vi.fn(async () => ({
+    user: { id: "test-user", role: "user" },
+    subscription: null,
+    hasPro: true,
+  })),
+}));
 import { getBillingAccess } from "@/services/billing/server";
 
 const originalFlag = process.env.AI_PLANNER_ENABLED;
@@ -17,32 +27,82 @@ afterEach(() => {
 });
 
 describe("training plan route", () => {
+  it.each([429, 503])(
+    "does not generate a plan when quota protection returns %s",
+    async (status) => {
+      vi.mocked(enforceRateLimit).mockResolvedValueOnce(
+        new Response(null, { status }),
+      );
+      const response = await POST(
+        new Request("http://localhost/api/training-plan", { method: "POST" }),
+      );
+      expect(response.status).toBe(status);
+      expect(enforceRateLimit).toHaveBeenCalledWith("planner", "test-user");
+    },
+  );
   it("returns a recoverable response when no plan fits the selected constraints", async () => {
     process.env.AI_PLANNER_ENABLED = "false";
-    const response = await POST(new Request("http://localhost/api/training-plan", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        today: "2026-10-31",
-        adaptationProfile: defaultAdaptationProfile,
-        profile: {
-          sport: "padel", experience: "beginner", sessionsPerWeek: 3,
-          sessionDurationMinutes: 20, preferredDays: ["monday", "wednesday", "friday"],
-          equipment: ["bodyweight"], goals: ["movement-speed"],
-          developmentAreas: [], padelLimitations: [], painAreas: [...painAreaValues], matches: [],
-        },
+    const response = await POST(
+      new Request("http://localhost/api/training-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          today: "2026-10-31",
+          adaptationProfile: defaultAdaptationProfile,
+          profile: {
+            sport: "padel",
+            experience: "beginner",
+            sessionsPerWeek: 3,
+            sessionDurationMinutes: 20,
+            preferredDays: ["monday", "wednesday", "friday"],
+            equipment: ["bodyweight"],
+            goals: ["movement-speed"],
+            developmentAreas: [],
+            padelLimitations: [],
+            painAreas: [...painAreaValues],
+            matches: [],
+          },
+        }),
       }),
-    }));
+    );
     expect(response.status).toBe(422);
     expect(await response.json()).toMatchObject({ code: "unsupported-plan" });
   });
   it("rejects guests before evaluating plan input", async () => {
-    vi.mocked(getBillingAccess).mockResolvedValueOnce({ user: null, subscription: null, hasPro: false });
-    expect((await POST(new Request("http://localhost/api/training-plan", {method:"POST"}))).status).toBe(401);
+    vi.mocked(getBillingAccess).mockResolvedValueOnce({
+      user: null,
+      subscription: null,
+      hasPro: false,
+    });
+    expect(
+      (
+        await POST(
+          new Request("http://localhost/api/training-plan", { method: "POST" }),
+        )
+      ).status,
+    ).toBe(401);
   });
   it("rejects free accounts before generating a plan", async () => {
-    vi.mocked(getBillingAccess).mockResolvedValueOnce({ user: { id:"test", email:"test@example.com", displayName:"Test", avatarUrl:null, role:"user", providers:["email"], isDevelopmentAdmin:false }, subscription:null, hasPro:false });
-    expect((await POST(new Request("http://localhost/api/training-plan", {method:"POST"}))).status).toBe(403);
+    vi.mocked(getBillingAccess).mockResolvedValueOnce({
+      user: {
+        id: "test",
+        email: "test@example.com",
+        displayName: "Test",
+        avatarUrl: null,
+        role: "user",
+        providers: ["email"],
+        isDevelopmentAdmin: false,
+      },
+      subscription: null,
+      hasPro: false,
+    });
+    expect(
+      (
+        await POST(
+          new Request("http://localhost/api/training-plan", { method: "POST" }),
+        )
+      ).status,
+    ).toBe(403);
   });
   it("returns a validated deterministic plan while the feature is disabled", async () => {
     process.env.AI_PLANNER_ENABLED = "false";

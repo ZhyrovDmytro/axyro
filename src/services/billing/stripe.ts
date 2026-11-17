@@ -15,7 +15,9 @@ export async function stripeRequest(path: string, body?: URLSearchParams, idempo
       ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
     },
     body,
-    cache: "no-store",
+    ...(!body && path.startsWith("prices/")
+      ? { cache: "force-cache" as const, next: { revalidate: 300 } }
+      : { cache: "no-store" as const }),
     signal: AbortSignal.timeout(15000),
   });
   if (!response.ok) throw new Error("Billing provider request failed.");

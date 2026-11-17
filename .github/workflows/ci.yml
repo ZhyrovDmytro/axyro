@@ -21,6 +21,16 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17.11
+        env:
+          POSTGRES_PASSWORD: test-only-password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v6
         with:
@@ -34,6 +44,24 @@ jobs:
       - run: npx next typegen
       - run: npm run typecheck
       - run: npm test
+      - name: Test shared quota migration and permissions
+        env:
+          QUOTA_DB_CONTAINER: ${{ job.services.postgres.id }}
+        run: |
+          docker exec "$QUOTA_DB_CONTAINER" psql -U postgres -v ON_ERROR_STOP=1 -c 'create role anon; create role authenticated; create role service_role bypassrls;'
+          docker exec -i "$QUOTA_DB_CONTAINER" psql -U postgres -v ON_ERROR_STOP=1 < supabase/migrations/20261117092915_api_rate_limits.sql
+          docker exec -i "$QUOTA_DB_CONTAINER" psql -U postgres -v ON_ERROR_STOP=1 < tests/security/rate-limit.sql
+      - name: Verify concurrent quota consumption
+        env:
+          QUOTA_DB_CONTAINER: ${{ job.services.postgres.id }}
+        run: |
+          quota_pids=()
+          for attempt in {1..20}; do
+            docker exec "$QUOTA_DB_CONTAINER" psql -U postgres -v ON_ERROR_STOP=1 -Atc "set role service_role; select public.consume_api_rate_limit('planner:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc', 3, 900);" > "$RUNNER_TEMP/quota-$attempt" &
+            quota_pids+=("$!")
+          done
+          for quota_pid in "${quota_pids[@]}"; do wait "$quota_pid"; done
+          test "$(cat "$RUNNER_TEMP"/quota-* | awk '$0 == "0" { n++ } END { print n+0 }')" = 3
       - run: npm audit --audit-level=high
       - run: npm run build -- --webpack
       - run: npx playwright install --with-deps chromium

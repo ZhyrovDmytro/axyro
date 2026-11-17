@@ -84,3 +84,19 @@ References: [Playwright CI](https://playwright.dev/docs/ci),
 [Playwright web servers](https://playwright.dev/docs/test-webserver),
 [GitHub Node setup](https://github.com/actions/setup-node),
 [Netlify deploy management](https://docs.netlify.com/deploy/manage-deploys/manage-deploys-overview/).
+
+## Security migration prerequisite — 17 November 2026
+
+The quality job now runs the service-only quota migration and SQL privilege,
+expiry and allowance assertions against an ephemeral PostgreSQL 17 container.
+Twenty independent connections must admit exactly three requests against a
+three-request bucket. These checks need no provider credentials and do not
+contact the hosted database. Their hosted workflow execution remains pending.
+
+For this release, apply and verify
+`supabase/migrations/20261117092915_api_rate_limits.sql` on the actual Axyro
+project before application deployment. Missing counters fail closed with 503.
+Follow [request protection](REQUEST_PROTECTION.md) for migration order and live
+checks; a passing isolated SQL test does not establish hosted privileges or
+cross-instance behavior. Do not promote before the existing production resume
+approval and GitHub/Netlify access blockers have been resolved.

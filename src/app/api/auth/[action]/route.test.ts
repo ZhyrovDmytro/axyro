@@ -1,4 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { enforceAuthRateLimit } from "@/services/http/rate-limit";
+vi.mock("@/services/http/rate-limit", () => ({
+  enforceRateLimit: vi.fn(async (): Promise<Response | null> => null),
+  enforceAuthRateLimit: vi.fn(async (): Promise<Response | null> => null),
+}));
 const auth = vi.hoisted(() => ({
   setDevelopmentSession: vi.fn(),
   setProviderSession: vi.fn(),
@@ -25,6 +30,31 @@ function request(action: string, body: unknown, origin = "https://axyro.test") {
   });
 }
 describe("auth route trust boundaries", () => {
+  it.each(["signin", "signup", "recover"])(
+    "stops rate-limited %s before reaching the provider",
+    async (action) => {
+      vi.mocked(enforceAuthRateLimit).mockResolvedValueOnce(
+        new Response(null, { status: 429 }),
+      );
+      const response = await POST(
+        request(action, {
+          email: "player@example.com",
+          password: "secure-password-123",
+          confirmPassword: "secure-password-123",
+          displayName: "Player",
+        }),
+        { params: Promise.resolve({ action }) },
+      );
+      expect(response.status).toBe(429);
+      expect(enforceAuthRateLimit).toHaveBeenCalledWith(
+        expect.any(Request),
+        `auth-${action}`,
+        "player@example.com",
+      );
+      expect(auth.supabaseRequest).not.toHaveBeenCalled();
+      expect(auth.setProviderSession).not.toHaveBeenCalled();
+    },
+  );
   it("rejects oversized bodies without Content-Length before contacting Auth", async () => {
     const response = await POST(
       request("signin", { data: "x".repeat(16385) }),

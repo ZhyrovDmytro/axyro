@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { enforceRateLimit } from "@/services/http/rate-limit";
 import {
   readRequestText,
   RequestBodyTooLargeError,
@@ -24,6 +25,8 @@ export async function POST(request: Request) {
     const session = await getAuthSession();
     if (!session)
       return Response.json({ error: "Sign in to subscribe." }, { status: 401 });
+    const limited = await enforceRateLimit("billing", session.user.id);
+    if (limited) return limited;
     const parsed = z
       .object({
         priceId: z.string(),

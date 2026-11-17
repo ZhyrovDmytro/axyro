@@ -1,4 +1,5 @@
 import { assertSameOrigin, getAuthSession } from "@/services/auth/server";
+import { enforceRateLimit } from "@/services/http/rate-limit";
 import {
   billingError,
   billingRow,
@@ -11,6 +12,8 @@ export async function POST(request: Request) {
     const session = await getAuthSession();
     if (!session)
       return Response.json({ error: "Sign in first." }, { status: 401 });
+    const limited = await enforceRateLimit("billing", session.user.id);
+    if (limited) return limited;
     const row = await billingRow(session.user.id);
     if (row) await reconcileCustomer(row.customer_id);
     const { subscription, hasPro } = await getBillingAccess(session);

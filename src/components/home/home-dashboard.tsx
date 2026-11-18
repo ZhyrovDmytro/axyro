@@ -86,15 +86,9 @@ function DiscoverHome() {
             minutes.
           </p>
           <div className="home-landing-actions">
-            <PaywallLink
-              className="button button--primary"
-              href="/plan/setup"
-              context="plan"
-              returnTo="/plan/setup"
-              requirePro={false}
-            >
+            <Link className="button button--primary" href="/plan/setup">
               Build my plan <UiIcon name="arrow-right" />
-            </PaywallLink>
+            </Link>
             <Link className="text-link" href="/workouts">
               Start a quick workout
             </Link>
@@ -286,15 +280,9 @@ function DiscoverHome() {
             and recovery.
           </p>
         </div>
-        <PaywallLink
-          className="button button--primary"
-          href="/plan/setup"
-          context="plan"
-          returnTo="/plan/setup"
-          requirePro={false}
-        >
+        <Link className="button button--primary" href="/plan/setup">
           Create my plan <UiIcon name="arrow-right" />
-        </PaywallLink>
+        </Link>
       </section>
     </div>
   );
@@ -458,14 +446,9 @@ export function HomeDashboard() {
                 Review next training <UiIcon name="arrow-right" />
               </Link>
             ) : (
-              <PaywallLink
-                className="button button--dark"
-                href="/plan"
-                context="plan"
-                returnTo="/plan"
-              >
+              <Link className="button button--dark" href="/plan">
                 Review completed block <UiIcon name="arrow-right" />
-              </PaywallLink>
+              </Link>
             )}
           </div>
         </div>
@@ -612,14 +595,9 @@ export function HomeDashboard() {
           </p>
         </div>
         <div>
-          <PaywallLink
-            className="button button--secondary"
-            href="/plan"
-            context="plan"
-            returnTo="/plan"
-          >
+          <Link className="button button--secondary" href="/plan">
             Manage plan
-          </PaywallLink>
+          </Link>
           <PaywallLink
             className="text-link"
             href="/activity"

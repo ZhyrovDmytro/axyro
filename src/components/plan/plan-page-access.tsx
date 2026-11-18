@@ -6,6 +6,7 @@ import { useEntitlement } from "@/components/membership/entitlement-provider";
 import { usePaywallModal } from "@/components/membership/paywall-modal";
 import { ProGate } from "@/components/membership/pro-gate";
 import { createBrowserPlanPreviewRepository } from "@/services/persistence/session-plan-preview-repository";
+import { createBrowserTrainingPlanRepository } from "@/services/persistence/local-training-plan-repository";
 import { TrainingPlanDashboard } from "./training-plan-dashboard";
 
 export function PlanPageAccess() {
@@ -14,7 +15,13 @@ export function PlanPageAccess() {
   const [preview] = useState(() =>
     user ? createBrowserPlanPreviewRepository(user.id).load() : null,
   );
-  if (!user || hasPro || !preview || loading) {
+  const [hasSavedPlan] = useState(() =>
+    Boolean(user && createBrowserTrainingPlanRepository().load()),
+  );
+  if (!user || hasPro || (!preview && !hasSavedPlan)) {
+    return <TrainingPlanDashboard />;
+  }
+  if (!preview || loading) {
     return (
       <ProGate returnTo="/plan">
         <TrainingPlanDashboard />

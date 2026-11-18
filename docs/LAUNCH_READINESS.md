@@ -1,6 +1,6 @@
 # Paid public launch tracker
 
-Last updated: 2026-11-17 (Europe/Prague).
+Last updated: 2026-11-18 (Europe/Prague).
 
 This is the shared checklist for launching Axyro as a paid public web app.
 Current verdict: **not ready to accept public payments**. Core membership code
@@ -37,7 +37,15 @@ No owners or target dates have been assigned yet.
 
 ## Required before accepting payments
 
-- [x] **L01 — Dependency security** · Done
+- [ ] **L01 — Dependency security** · Partial
+  - 2026-11-18 release recheck: production audit reports zero vulnerabilities,
+    but the full audit now flags GHSA-fc5q-39xc-vjpf / CVE-2026-112366 in
+    picomatch <=4.0.7 (17 high-severity dependency paths, all development-only
+    in the lockfile). Upstream lists no patched version; npm's forced downgrade
+    does not remove the affected glob matcher and is not applied. The existing
+    full-audit release gate remains enabled. This finding needs an explicit
+    owner release exception or an upstream fix before release promotion.
+    Reference: https://github.com/advisories/GHSA-fc5q-39xc-vjpf.
   - Baseline: production dependency audit reported Next.js critical and Zod high
     severity advisories for the installed versions. This is an affected-version
     finding, not proof of an exploitable application path.
@@ -191,6 +199,14 @@ No owners or target dates have been assigned yet.
     See [authentication operations](AUTHENTICATION.md).
 
 - [ ] **L06 — Stripe merchant and subscription setup** · Partial
+  - 2026-11-18: operator-approved sandbox billing is now active on `axyro.app`.
+    Production-only protected Stripe credentials and four non-live prices are
+    deployed in `6afd9acb6453f9376a0634e2` from existing source `3f4f106`.
+    Dedicated webhook `we_1Ud7M5RrXPiiRoHsW3ZLs8KY` and real zero-value sandbox
+    delivery passed. Exact public-price-ID scanning exceptions were explicitly
+    approved; actual credential scanning remains enabled. Full application
+    purchase lifecycle and live merchant setup remain open. See the public-site
+    section of [sandbox verification](BILLING_SANDBOX_TEST.md).
   - 2026-11-02 follow-up: created the approved staging webhook with all seven
     required events and `2025-06-30.basil` snapshot payloads. Active endpoint is
     `we_1UXLcrRrXPiiRoHsSibA6eCC`. The first endpoint was disabled and signing
@@ -502,3 +518,24 @@ business and markets. Recheck current requirements when completing legal tasks.
 | 2026-11-17 | L03 / L04 / L05 / L16 / L19 | Explicit operator authorization received to resume existing Free Axyro project; now ACTIVE_HEALTHY, no plan upgrade. Applied quota migration as hosted version 20261117164905. Live isolation, role/billing escalation denial, unpaid-plan guard and quota privileges passed with all synthetic fixtures rolled back. Staging deploy 6afc85c987fe70a139886b22 / 5454238 passed all three mobile release smoke tests and real 10-allowed/11th-429 sign-in quota with forged platform/forwarded IP headers still denied. Wrong/missing Origin 403 and oversized body 413 verified. CI run 44089218480 passed both jobs. Leaked-password protection requires Pro, so its advisor warning remains under Free/no-upgrade authorization. Real email/payment, backup and device launch gates remain open. |
 
 | 2026-11-17 | L02 / L03 / L05 / L16 / L19 | PR #5 merged as 1549150970c838ef546a75cf5e70e322d0332992 after final Release checks 44131764773 passed quality and browser. Netlify published 6afc89280149db91f5bdb3bc at https://axyro.app. All three production mobile security/public-page/free-player smoke tests passed. Production quota admitted ten invalid .invalid sign-ins, returned 429 on the eleventh and rejected forged platform-IP bypass. Previous deploy 6ae7c5d0d27a02b549097df1 / 340f67a retained as rollback target; no rollback rehearsal, real email/payment lifecycle or physical-device verification. No paid-plan upgrade or live charge. |
+
+
+| 2026-11-18 | L05 / L17 | Opened the Plan landing page and initial questionnaire to guests; final Create My Plan submission now requires sign-in and resumes generation with validated, tab-scoped answers after the identity reset or a same-tab provider return. Free users reach the existing account-scoped preview and locked “Your plan is ready” paywall; Pro generation and paid execution remain authorized by existing server checks. Submitted guest answers supersede an older account draft and clear after transfer; blocked storage prevents a lossy auth handoff. Verified 514 unit tests, TypeScript, zero-warning lint and webpack production build. Full browser run passed 161/163 checks; two obsolete immediate-Plan-paywall expectations were moved to the upgrade route, then all 12 affected design/guest-flow checks passed, including seven guest/Free creation cases with non-default duration, sign-in/signup, full-page return and blocked storage. Existing auth/paywall/checkout regressions and mobile/desktop auth screenshots with zero axe violations also passed. No deployment, real provider/email/payment or physical-device verification; L05/L17 remain Partial. |
+
+
+| 2026-11-18 | L05 / L06 / L17 | Ordinary header sign-in, standalone sign-in/registration and default registration PKCE continuation now land on Home; explicit protected-content and questionnaire submission continuations are preserved. Regular upgrade offers now expose a close control and support Escape/backdrop dismissal; only actual generated-plan activation remains locked. Reduced dialog height to 40rem on desktop/44rem on phones, with existing auth sizing and viewport bounds. Verified 518 unit tests, TypeScript, zero-warning lint and webpack production build; 57 affected browser cases passed across targeted runs after updating preserved-search/default-destination assertions. Reviewed desktop unavailable-pricing and phone paywall screenshots; checked modal axe scans report zero violations. Read-only production GET https://axyro.app/api/billing/products returned HTTP 200 with an empty products array, which the current server produces when no Stripe price IDs are configured in its runtime. No billing configuration, deployment, real provider login or payment changes; L05/L06/L17 remain Partial. |
+
+
+| 2026-11-18 | L06 / L08 | Read-only Stripe setup inspection reconfirmed existing Axyro sandbox acct_1UWlxJRrXPiiRoHs, all four approved active non-live prices and the enabled seven-event staging webhook we_1UXLcrRrXPiiRoHsSibA6eCC pinned to 2025-06-30.basil. The staging public products endpoint returns all four prices. Production Netlify environment inventory has no Stripe variables; production-vs-test payment mode choice is pending before any credential/configuration/deployment change. No Stripe resources, charges, subscriptions or hosted settings changed. L06 remains Partial and real checkout/entitlement/cancellation verification remains open. |
+
+
+| 2026-11-18 | L06 / L08 | Operator selected test payments on axyro.app. Created dedicated non-live webhook we_1Ud7M5RrXPiiRoHsW3ZLs8KY at https://axyro.app/api/billing/webhook with the seven documented events and 2025-06-30.basil snapshot version; staging webhook remains separate. Reverified the default sandbox customer portal supports payment-method updates and subscription cancellation. Prepared only the six Stripe values in a protected temporary import, and selected secret values/Production-only Netlify contexts with previews, branch deploys, agent runners and local CLI excluded. Browser-required confirmation to transmit/store credentials and redeploy is pending; no Netlify variables saved, no new app deployment or checkout yet. |
+
+
+| 2026-11-18 | L06 / L08 | Operator explicitly approved storing the sandbox API key/signing secret and redeploying existing production source. Saved six protected Stripe variables in axyro-training's Production context; other contexts remain empty. Redeploy 6afd9662903d87be4a46bd64 of existing main source 3f4f106 compiled successfully but secret scanning blocked four public Price IDs already recorded in this tracker; neither credential was flagged. Current published rollback remains 6afc89de9e1c011f4ca687e2 / 3f4f106. Saved secret flags are immutable in Netlify. Prepared a Production-only SECRETS_SCAN_OMIT_KEYS exception containing exactly the four Price-ID variable names; automatic approval rejected saving this security setting without exact authorization. Explicit operator approval is pending, the exception remains unsaved, and the previous app deployment continues serving an empty product list. Credentials/signature values remain protected and absent from logs/source. |
+
+
+| 2026-11-18 | L06 / L08 | Explicit operator approval received for exactly four public Price-ID scan exceptions. Saved Production-only SECRETS_SCAN_OMIT_KEYS with those four names, retaining protected credentials and credential scanning. Retry 6afd9acb6453f9376a0634e2 compiled, passed scanning and published unchanged source 3f4f106; rollback is 6afc89de9e1c011f4ca687e2. Public products now returns all four approved sandbox prices and real USD/EUR UI choices render. Checkout/portal/restore reject guests with 401; forged webhook signatures return 400 and the configured signature returns 200. Disposable unlinked customer cus_VeQwli9wt8z3Yp and zero-value invoice in_1Ud84aRrXPiiRoHsnaBfyBPT generated actual non-live invoice.paid event evt_1Ud84cRrXPiiRoHsJChpDSSb, with pending_webhooks=0 after delivery. No email, card, app-user association, money movement or entitlement grant. Customer portal configuration remains verified. No local UI changes published, live charges enabled, or full purchase/Pro/cancellation lifecycle claimed. L06 remains Partial; L08 remains Unverified. |
+
+
+| 2026-11-18 | L01 / L05 / L17 / L19 | Prepared latest auth/plan/UI fixes on codex/release-auth-plan-flow: public guest questionnaire with sign-in at generation, preserved answers/continuation, ordinary account logins to Home, dismissible smaller upgrade offers, input placeholders and sign-out spacing. Self-review found no code blockers. Local checks: 518 unit tests, all 167 browser regressions, all three built-production smoke checks, TypeScript, zero-warning lint and webpack build pass. Production dependency audit is clean. Full audit identifies one unpatched picomatch ReDoS advisory through 17 development-only dependency entries; all affected lockfile nodes were verified dev-only. Full audit gate is unchanged; release remains pending its hosted results and explicit owner exception or upstream remediation. Current sandbox billing deployment 6afd9acb6453f9376a0634e2 / 3f4f106 remains published and is the rollback target. No live payments enabled. |

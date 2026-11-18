@@ -5,6 +5,47 @@ to accept live payments. The operator approved a separate Free Netlify staging
 site, sandbox secret storage and temporary reuse of the existing Axyro Supabase
 connection for a new regular test account.
 
+## Public-site sandbox configuration — 18 November 2026
+
+The operator approved test payments on `https://axyro.app`, protected credential
+storage and redeployment of the existing production source. This does not enable
+live charges or establish paid public-launch readiness.
+
+- Netlify project: `axyro-training`. The six Stripe variables are protected,
+  populated only in Production, and unavailable to Deploy Previews, branch
+  deploys, Preview Server/Agent Runners and local CLI contexts. The API key uses
+  the existing **Axyro sandbox** account `acct_1UWlxJRrXPiiRoHs` and its four
+  approved non-live prices listed below. No Supabase setting was changed.
+- Dedicated public-origin webhook: `we_1Ud7M5RrXPiiRoHsW3ZLs8KY`,
+  `https://axyro.app/api/billing/webhook`, with all seven documented events and
+  `2025-06-30.basil`. Its signing secret is separate from staging's. Both origins
+  use the same sandbox/database, so event reconciliation remains idempotent.
+- Published deployment: `6afd9acb6453f9376a0634e2`, unchanged production source
+  `3f4f106f3fe8cef6ac3c83dbaef5f9e15fe3f390`. Previous published deploy
+  `6afc89de9e1c011f4ca687e2` is the rollback target. Earlier local UI/login-flow
+  changes in this chat have not been published by this billing-only redeploy.
+- Initial deployment `6afd9662903d87be4a46bd64` failed because the bulk import
+  marked the public Price IDs as secrets and the IDs already appear in the
+  launch tracker. Netlify secret flags cannot be removed after creation. With
+  explicit operator approval, Production `SECRETS_SCAN_OMIT_KEYS` contains only
+  `STRIPE_MONTHLY_PRICE_ID`, `STRIPE_YEARLY_PRICE_ID`,
+  `STRIPE_USD_MONTHLY_PRICE_ID`, and `STRIPE_USD_YEARLY_PRICE_ID`. No credential
+  key or file path is excluded; secret scanning remains enabled. The retry
+  compiled, passed scanning and published successfully.
+- Deployed checks: products returns all four exact amounts/intervals; both USD
+  and EUR choices render in the real app; unauthenticated checkout, portal and
+  restore return 401. A forged webhook signature returns 400, while a correctly
+  signed no-customer configuration check returns 200 with `received: true`.
+- Actual Stripe delivery: disposable unlinked customer `cus_VeQwli9wt8z3Yp`
+  has no email or payment method. Zero-value invoice `in_1Ud84aRrXPiiRoHsnaBfyBPT`
+  generated non-live `invoice.paid` event `evt_1Ud84cRrXPiiRoHsJChpDSSb`;
+  Stripe reports `pending_webhooks: 0`. No app user was linked, no money was
+  charged and no entitlement was granted. This is webhook infrastructure
+  verification, not the full purchase/Pro/portal/cancellation lifecycle.
+- The operator purchase checklist below still applies. Use test card details
+  and a dedicated regular account. Live merchant/tax/legal readiness and L08
+  remain open.
+
 ## Hosted staging configuration
 
 - Test origin: `https://axyro-staging.netlify.app`, separate Netlify project
@@ -68,8 +109,9 @@ connection for a new regular test account.
   USD 7.99/month and USD 69.99/year.
 - Default portal `bpc_1UX7ChRrXPiiRoHsuyG3chKX` is active, with payment-method
   updates, invoice history and cancellation at period end enabled.
-- No sandbox webhook endpoints existed at initial inspection. The existing public
-  Netlify project has no Stripe variables configured.
+- No sandbox webhook endpoints existed at initial inspection. The public Netlify
+  project had no Stripe variables then; its approved 18 November test-mode setup
+  is documented above.
 
 ## Deployment verification
 

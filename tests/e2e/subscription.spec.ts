@@ -264,7 +264,7 @@ test("registration mismatch and reset email use account API boundaries", async (
     page
       .getByRole("status")
       .getByRole("link", { name: "Sign in", exact: true }),
-  ).toHaveAttribute("href", "/signin?next=%2Fplan%2Fsetup");
+  ).toHaveAttribute("href", "/signin?next=%2F");
   await expect(
     page.getByRole("status").getByRole("link", { name: "reset your password" }),
   ).toHaveAttribute("href", "/forgot-password");

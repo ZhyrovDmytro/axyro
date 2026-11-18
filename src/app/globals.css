@@ -7928,6 +7928,9 @@ h3 {
   border-top: 1px solid var(--border);
   padding-block: 1.5rem;
 }
+.account-section > h2 + .button {
+  margin-top: 1rem;
+}
 .account-fine-print {
   font-size: 0.8rem;
   color: var(--muted);
@@ -8653,7 +8656,7 @@ textarea::placeholder {
   position: fixed;
   inset: 0;
   width: min(64rem, calc(100% - 2rem));
-  height: min(54rem, calc(100dvh - 2rem));
+  height: min(40rem, calc(100dvh - 2rem));
   max-width: none;
   max-height: none;
   margin: auto;
@@ -8728,7 +8731,7 @@ textarea::placeholder {
 @media (max-width: 35rem) {
   .paywall-modal {
     width: calc(100% - 1rem);
-    height: calc(100dvh - 1rem);
+    height: min(44rem, calc(100dvh - 1rem));
   }
 }
 

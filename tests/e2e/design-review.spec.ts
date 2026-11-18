@@ -19,7 +19,7 @@ test("unavailable subscriptions explain account limits and offer a free workout"
   await page.route("**/api/billing/products", (route) =>
     route.fulfill({ status: 503, json: { error: "Unavailable" } }),
   );
-  await page.goto("/plan");
+  await page.goto("/upgrade?context=plan");
   await expect(page.locator(".paywall").getByRole("alert")).toContainText(
     "Subscriptions are currently unavailable",
   );
@@ -69,7 +69,7 @@ test("signed-in members get a working fallback when the membership list is empty
   await page.route("**/api/billing/products", (route) =>
     route.fulfill({ json: { products: [] } }),
   );
-  await page.goto("/plan");
+  await page.goto("/upgrade?context=plan");
   await expect(
     page.getByRole("link", { name: "Try the free workout", exact: true }),
   ).toBeVisible();

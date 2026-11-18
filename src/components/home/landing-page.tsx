@@ -1,5 +1,4 @@
 "use client";
-import { PaywallLink } from "@/components/membership/paywall-modal";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -84,15 +83,9 @@ const questions = [
 
 function PlanLink() {
   return (
-    <PaywallLink
-      href="/plan/setup"
-      context="plan"
-      returnTo="/plan/setup"
-      requirePro={false}
-      className={styles.cta}
-    >
+    <Link href="/plan/setup" className={styles.cta}>
       Create my plan <UiIcon name="arrow-right" />
-    </PaywallLink>
+    </Link>
   );
 }
 

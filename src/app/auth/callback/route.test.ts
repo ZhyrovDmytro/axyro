@@ -28,6 +28,21 @@ afterEach(() => vi.unstubAllEnvs());
 
 describe("canonical auth callback redirects", () => {
   const url = "https://deploy-id--axyro-staging.netlify.app/auth/callback";
+  it.each([undefined, "/plan/setup?resume=1&generate=1"])(
+    "lands ordinary sign-in on Home and preserves explicit plan continuation (%s)",
+    async (next) => {
+      mocks.jar.get.mockImplementation((name: string) => {
+        if (name === "axyro-pkce") return { value: "test-verifier" };
+        if (name === "axyro-auth-next" && next) return { value: next };
+        return undefined;
+      });
+      mocks.supabaseRequest.mockResolvedValue({ access_token: "test-token" });
+      const response = await GET(new Request(`${url}?code=test-code`));
+      expect(response.headers.get("location")).toBe(
+        `https://axyro-staging.netlify.app${next ?? "/"}`,
+      );
+    },
+  );
   it.each(["signin", "recovery", undefined])(
     "only grants password recovery for a recovery PKCE flow (%s)",
     async (flow) => {

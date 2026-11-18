@@ -360,15 +360,9 @@ export function TrainingPlanDashboardContent({
             </div>
           </div>
           <div className="button-row">
-            <PaywallLink
-              className="button button--primary"
-              href="/plan/setup"
-              context="plan"
-              returnTo="/plan/setup"
-              requirePro={false}
-            >
+            <Link className="button button--primary" href="/plan/setup">
               Create my plan <UiIcon name="arrow-right" />
-            </PaywallLink>
+            </Link>
             <Link className="text-link" href="/workouts">
               Try a quick workout
             </Link>

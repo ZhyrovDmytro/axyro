@@ -1,5 +1,5 @@
 "use client";
-import { PaywallLink } from "@/components/membership/paywall-modal";
+import Link from "next/link";
 
 import { applyBudgetedEffort } from "@/domain/workout/daily-duration";
 
@@ -32,14 +32,9 @@ export function PlannedWorkoutLauncher({
       <main className="page-shell plan-empty">
         <section>
           <h1>Session not found.</h1>
-          <PaywallLink
-            className="button button--primary"
-            href="/plan"
-            context="plan"
-            returnTo="/plan"
-          >
+          <Link className="button button--primary" href="/plan">
             Back to plan
-          </PaywallLink>
+          </Link>
         </section>
       </main>
     );

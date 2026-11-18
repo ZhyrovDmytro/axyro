@@ -8,7 +8,7 @@ export default async function SignInPage({
   return (
     <AuthForm
       mode="signin"
-      next={query.next ?? "/account"}
+      next={query.next ?? "/"}
       initialError={
         query.error ? "Sign-in could not be completed. Please try again." : ""
       }

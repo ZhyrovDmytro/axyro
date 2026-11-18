@@ -52,6 +52,21 @@ fills the remaining budget after count-ins and side changes. Effort changes
 work/recovery allocation within the budget. Personalized plans include warm-up
 and cooldown and retain their existing bounded timing tolerance.
 
+Separate-side exercises always receive a complete left interval, an automatic
+side-switch countdown, and an equal right interval in each set. One set already
+contains these two intervals; setting two sets would repeat both sides twice.
+This applies to Dumbbell Forearm Rotation, Dumbbell Wrist Extension, Fire Hydrant,
+Lateral Lunge, Open-book Rotation, Side Plank with Rotation, Side-Lying Dumbbell
+External Rotation, Single-Arm Dumbbell Overhead Press, Single-arm Dumbbell Row,
+Single-Arm Prone Shoulder Arc, Single-leg Calf Raise, Standing Dumbbell Wood Chop,
+Split Squat, Suitcase March, and Thread the Needle. Quick-start duration/effort
+changes and generated-plan timing adjustments must preserve the pair, including
+when these movements appear in warm-up or cooldown. Regression coverage lives in
+`src/domain/workout/separate-side-coverage.test.ts`.
+Workout overviews and editable plan timing show rounds/sets and work as
+“per side”, with “Left → switch → right. Both sides included.” beside the
+movement. Editing the set count continues to adjust complete left/right pairs.
+
 The home page introduces the daily habit without claiming ten minutes meets
 all health needs. Onboarding starts at ten; schedule/refinement and workout
 previews use the same three duration choices. Plan overview makes the selected

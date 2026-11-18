@@ -1,5 +1,6 @@
 "use client";
 
+import { PageSkeleton } from "@/components/page-skeleton";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -69,7 +70,13 @@ export function ActivityHistory() {
   }, [activities]);
 
   if (activities === null) {
-    return <main className="page-shell activity-page">Loading activity…</main>;
+    return (
+      <PageSkeleton
+        title="Activity"
+        message="Loading your activity…"
+        layout="list"
+      />
+    );
   }
 
   return (

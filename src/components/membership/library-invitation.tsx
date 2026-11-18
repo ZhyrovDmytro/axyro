@@ -1,7 +1,7 @@
 "use client";
 import { useAuth } from "@/components/auth/auth-provider";
 import { PaywallLink } from "./paywall-modal";
-import { FREE_LIBRARY_LIMIT } from "@/lib/library-access";
+import { FREE_LIBRARY_LIMIT, GUEST_LIBRARY_LIMIT } from "@/lib/library-access";
 
 export function LibraryInvitation({ total }: { total: number }) {
   const { user } = useAuth();
@@ -17,8 +17,9 @@ export function LibraryInvitation({ total }: { total: number }) {
       <div className="library-invitation-copy">
         <h2 id="library-invitation-title">Unlock the full library with Pro.</h2>
         <p>
-          {total - FREE_LIBRARY_LIMIT} more exercises, with movement demos and
-          clear technique cues. Explore the full library with Pro.
+          {total - (user ? FREE_LIBRARY_LIMIT : GUEST_LIBRARY_LIMIT)} more
+          exercises, with movement demos and clear technique cues. Explore the
+          full library with Pro.
         </p>
         <div className="account-actions">
           <PaywallLink

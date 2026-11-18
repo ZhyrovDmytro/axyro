@@ -1,4 +1,5 @@
 "use client";
+import { LoadingStatus } from "@/components/loading-status";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
@@ -15,12 +16,12 @@ export function AccountPanel() {
   const [error, setError] = useState("");
   const [passwordNotice, setPasswordNotice] = useState("");
   const [passwordError, setPasswordError] = useState("");
-  const [pending, setPending] = useState<"account" | "password" | null>(null);
+  const [pending, setPending] = useState<string | null>(null);
   const busy = pending !== null;
   const [deleting, setDeleting] = useState(false);
-  async function action(task: () => Promise<void>) {
+  async function action(message: string, task: () => Promise<void>) {
     if (busy) return;
-    setPending("account");
+    setPending(message);
     setError("");
     try {
       await task();
@@ -61,7 +62,7 @@ export function AccountPanel() {
   async function saveProfile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    await action(async () => {
+    await action("Saving your name…", async () => {
       await authRequest("profile", { displayName: data.get("displayName") });
       await refresh();
     });
@@ -97,7 +98,7 @@ export function AccountPanel() {
   }
 
   async function manage() {
-    await action(async () => {
+    await action("Opening subscription management…", async () => {
       const response = await fetch("/api/billing/portal", { method: "POST" });
       const data = await response.json();
       if (!response.ok)
@@ -108,7 +109,7 @@ export function AccountPanel() {
   async function remove(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    await action(async () => {
+    await action("Deleting your account…", async () => {
       await authRequest("delete", { confirmation: data.get("confirmation") });
       removeUserStorage(user!.id);
       window.localStorage.setItem("axyro:identity-event", String(Date.now()));
@@ -135,6 +136,9 @@ export function AccountPanel() {
           <p role="alert" className="form-error">
             {error}
           </p>
+        )}
+        {pending && pending !== "password" && (
+          <LoadingStatus>{pending}</LoadingStatus>
         )}
         {user.isDevelopmentAdmin && (
           <p className="safety-note">
@@ -169,11 +173,13 @@ export function AccountPanel() {
         </section>
         <section className="account-section">
           <h2>Membership</h2>
-          <p>
-            {hasPro
-              ? "Pro · Your personal training workspace"
-              : "Free · One complete starter workout"}
-          </p>
+          {!loading && (
+            <p>
+              {hasPro
+                ? "Pro · Your personal training workspace"
+                : "Free · One complete starter workout"}
+            </p>
+          )}
           {subscription?.expiresAt && (
             <p>
               {subscription.cancelAtPeriodEnd
@@ -191,7 +197,7 @@ export function AccountPanel() {
           {user.role === "admin" ? (
             <p>Administrator access includes Pro.</p>
           ) : loading ? (
-            <p role="status">Checking membership…</p>
+            <LoadingStatus>Checking membership…</LoadingStatus>
           ) : hasPro || (subscription && subscription.status !== "free") ? (
             <button
               className="button button--dark"
@@ -290,7 +296,7 @@ export function AccountPanel() {
           <button
             className="button button--secondary"
             disabled={busy}
-            onClick={() => void action(signOut)}
+            onClick={() => void action("Signing out…", signOut)}
           >
             Sign out
           </button>

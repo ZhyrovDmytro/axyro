@@ -88,7 +88,13 @@ function reviewedExercise(options: DraftOptions): CatalogExercise {
             version: "1",
           }
         : options.videoUrl
-          ? { videoUrl: options.videoUrl }
+          ? {
+              type: "video" as const,
+              uri: options.videoUrl,
+              aspectRatio: "16 / 9",
+              loop: true,
+              version: "1",
+            }
           : {}),
       requiredViews: ["front or three-quarter", "side for joint alignment"],
       notes: `Record a silent, tightly framed loop that clearly shows ${options.name.toLowerCase()} setup and finish positions.`,
@@ -126,6 +132,7 @@ export const padelMovementExercises: CatalogExercise[] = [
     equipment: ["two_dumbbells"],
     equipmentFreeVariantId: "bodyweight-hip-hinge",
     videoUrl: "/videos/dumbbell-romanian-deadlift.mov",
+    posterUri: "/images/exercises/dumbbell-romanian-deadlift-preview.png",
     substitutionGroup: "hip-hinge",
   }),
   reviewedExercise({

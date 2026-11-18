@@ -90,6 +90,29 @@ async function seedHardWeek(page: Page, origin: string) {
   return plan;
 }
 
+test("a completed access check does not leave a planned workout loading forever", async ({
+  page,
+}, testInfo) => {
+  const plan = await seedHardWeek(
+    page,
+    new URL(String(testInfo.project.use.baseURL)).origin,
+  );
+  await page.route("**/api/billing/status", (route) =>
+    route.fulfill({ json: { hasPro: false, subscription: null } }),
+  );
+  await page.route("**/api/billing/products", (route) =>
+    route.fulfill({ json: { products: [] } }),
+  );
+  const session = plan.sessions.find((item) => item.weekNumber === 2)!;
+  await page.goto(`/plan/workouts/${session.id}/start`);
+  await expect(
+    page.getByRole("dialog", { name: "Axyro Pro membership" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("status").filter({ hasText: "Checking your plan access…" }),
+  ).toHaveCount(0);
+});
+
 test("reviews and accepts next-week changes before a direct workout start", async ({
   page,
 }, testInfo) => {

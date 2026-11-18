@@ -108,15 +108,17 @@ test("free preview search explains its scope and can be reset", async ({
 }) => {
   await page.goto("/exercises?q=shoulder");
   await expect(
-    page.getByRole("heading", { name: "No free-preview guides match" }),
+    page.getByRole("heading", { name: "No preview exercises match" }),
   ).toBeVisible();
   await expect(
-    page.getByText(
-      "Search covers the 10 free guides. Pro opens all 40 exercises.",
-    ),
+    page
+      .getByRole("main")
+      .getByText(
+        "Search covers the 6 preview exercises. Sign in to browse all 40.",
+      ),
   ).toBeVisible();
   await page.getByRole("link", { name: "Clear all filters" }).click();
-  await expect(page.locator(".exercise-card")).toHaveCount(10);
+  await expect(page.locator(".exercise-card")).toHaveCount(6);
 });
 
 test("completion counts unique movements instead of repeated intervals", async ({

@@ -1,5 +1,7 @@
 "use client";
 
+import { LoadingStatus } from "@/components/loading-status";
+import { ProGate } from "@/components/membership/pro-gate";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import type { ReactNode } from "react";
 import { useEntitlement } from "@/components/membership/entitlement-provider";
@@ -154,12 +156,18 @@ export function WeeklyPlanAdaptation({
   }
 
   if (!hasPro)
-    return entryWeek === undefined ? null : (
-      <p role="status">Checking your plan access…</p>
+    return entryWeek === undefined ? null : loading ? (
+      <LoadingStatus>Checking your plan access…</LoadingStatus>
+    ) : (
+      <ProGate returnTo="/plan">{children}</ProGate>
     );
   if (entryWeek !== undefined && admitted) return <>{children}</>;
   if (entryWeek !== undefined && evaluatedPlan !== plan) {
-    return <p role="status">{error || "Reviewing your training week…"}</p>;
+    return error ? (
+      <p role="alert">{error}</p>
+    ) : (
+      <LoadingStatus>Reviewing your training week…</LoadingStatus>
+    );
   }
   return (
     <>
@@ -201,7 +209,7 @@ export function WeeklyPlanAdaptation({
               disabled={saving}
               onClick={() => void resolve(proposal.id, "ACCEPTED")}
             >
-              Adjust my plan
+              {saving ? "Saving your choice…" : "Adjust my plan"}
             </button>
             <button
               className="button button--secondary"
@@ -215,6 +223,7 @@ export function WeeklyPlanAdaptation({
         </section>
       ))}
       {error && <p role="alert">{error}</p>}
+      {saving && <LoadingStatus>Saving your choice…</LoadingStatus>}
       {(entryWeek === undefined || pending.length === 0) && children}
     </>
   );

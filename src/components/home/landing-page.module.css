@@ -1,5 +1,4 @@
 .landing {
-  padding-bottom: calc(5rem + env(safe-area-inset-bottom));
   background: var(--canvas);
   overflow: clip;
 }

@@ -1,3 +1,4 @@
+import { openNavigation } from "./helpers/navigation";
 import { expect, test, type Page } from "@playwright/test";
 import { installDeterministicPlanner } from "./helpers/planner";
 
@@ -93,6 +94,7 @@ for (const pro of [false, true]) {
         return route.fulfill({ json: { user } });
       });
       await page.goto("/exercises");
+      await openNavigation(page);
       await page
         .getByRole("navigation", { name: "Primary navigation" })
         .getByRole("link", { name: "Plan", exact: true })
@@ -275,11 +277,12 @@ for (const mode of ["signin", "signup"] as const) {
       })
       .click();
     await expect(page).toHaveURL(/\/$/);
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await openNavigation(page);
     await expect(
       page
         .getByRole("navigation", { name: "Primary navigation" })
         .getByRole("link", { name: "Home", exact: true }),
     ).toHaveAttribute("aria-current", "page");
-    await expect(page.getByRole("dialog")).toHaveCount(0);
   });
 }

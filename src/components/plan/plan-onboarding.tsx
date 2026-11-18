@@ -1,4 +1,5 @@
 "use client";
+import { PageSkeleton } from "@/components/page-skeleton";
 import Link from "next/link";
 import { usePaywallModal } from "@/components/membership/paywall-modal";
 
@@ -568,9 +569,11 @@ export function PlanOnboarding({
 
   if (!ready) {
     return (
-      <main className="onboarding-shell plan-loading" aria-live="polite">
-        Loading your profile…
-      </main>
+      <PageSkeleton
+        title="Your training profile"
+        message="Loading your profile…"
+        layout="form"
+      />
     );
   }
 

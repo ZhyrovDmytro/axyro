@@ -1,4 +1,5 @@
 "use client";
+import { PageSkeleton } from "@/components/page-skeleton";
 import { PaywallLink } from "@/components/membership/paywall-modal";
 
 import Link from "next/link";
@@ -320,9 +321,7 @@ export function TrainingPlanDashboardContent({
 
   if (!ready) {
     return (
-      <main className="page-shell plan-loading" aria-live="polite">
-        Loading your plan…
-      </main>
+      <PageSkeleton title="Your training plan" message="Loading your plan…" />
     );
   }
 

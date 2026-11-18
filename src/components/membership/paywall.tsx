@@ -1,4 +1,5 @@
 "use client";
+import { LoadingStatus } from "@/components/loading-status";
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";
 import { UiIcon } from "@/components/ui-icon";
@@ -32,7 +33,7 @@ export function Paywall({
   const { hasPro, refresh } = useEntitlement();
   const [products, setProducts] = useState<Product[]>([]);
   const [selected, setSelected] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<"checkout" | "restore" | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [productsUnavailable, setProductsUnavailable] = useState(false);
@@ -71,7 +72,7 @@ export function Paywall({
     if (hasPro && onUnlocked) onUnlocked();
   }, [hasPro, onUnlocked]);
   async function purchase() {
-    setBusy(true);
+    setBusy("checkout");
     setError("");
     try {
       const response = await fetch("/api/billing/checkout", {
@@ -87,11 +88,11 @@ export function Paywall({
       window.location.assign(payload.url);
     } catch (error) {
       setError(error instanceof Error ? error.message : "Please try again.");
-      setBusy(false);
+      setBusy(null);
     }
   }
   async function restore() {
-    setBusy(true);
+    setBusy("restore");
     setError("");
     try {
       const response = await fetch("/api/billing/restore", { method: "POST" });
@@ -103,7 +104,7 @@ export function Paywall({
     } catch (error) {
       setError(error instanceof Error ? error.message : "Please try again.");
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   }
   const titles = {
@@ -166,9 +167,9 @@ export function Paywall({
       <div className="paywall-checkout">
         <h2 className="paywall-membership-title">Axyro Pro</h2>
         {!products.length && !productsUnavailable && (
-          <p role="status" className="paywall-loading">
+          <LoadingStatus className="paywall-loading">
             Loading memberships…
-          </p>
+          </LoadingStatus>
         )}
         {products.length > 0 && (
           <>
@@ -179,7 +180,7 @@ export function Paywall({
                   id={`${id}-membership-currency`}
                   className="plan-input"
                   value={selectedProduct?.currency}
-                  disabled={busy}
+                  disabled={!!busy}
                   onChange={(event) => {
                     const options = products.filter(
                       (product) => product.currency === event.target.value,
@@ -202,7 +203,7 @@ export function Paywall({
                 </select>
               </div>
             )}
-            <fieldset className="membership-products" disabled={busy}>
+            <fieldset className="membership-products" disabled={!!busy}>
               <legend>Choose your membership</legend>
               {products
                 .filter(
@@ -262,7 +263,7 @@ export function Paywall({
                 autoCapitalize="characters"
                 spellCheck={false}
                 maxLength={64}
-                disabled={busy}
+                disabled={!!busy}
                 aria-describedby={`${id}-membership-promo-help`}
               />
               <small id={`${id}-membership-promo-help`}>
@@ -296,11 +297,11 @@ export function Paywall({
         {user && !productsUnavailable && products.length > 0 && (
           <button
             className="button button--primary button--full"
-            disabled={busy || !selected}
+            disabled={!!busy || !selected}
             onClick={() => void purchase()}
           >
-            {busy
-              ? "Please wait…"
+            {busy === "checkout"
+              ? "Opening checkout…"
               : context === "plan"
                 ? "Unlock My Plan"
                 : "Start Pro"}
@@ -315,6 +316,13 @@ export function Paywall({
               ? "Create a free account"
               : "Create account to continue"}
           </Link>
+        )}
+        {busy && (
+          <LoadingStatus>
+            {busy === "checkout"
+              ? "Opening checkout…"
+              : "Checking your subscription…"}
+          </LoadingStatus>
         )}
         {!user && (
           <p className="auth-return">
@@ -336,7 +344,7 @@ export function Paywall({
           <Link href="/terms">Terms</Link>
           <Link href="/privacy">Privacy</Link>
           {user && (
-            <button disabled={busy} onClick={() => void restore()}>
+            <button disabled={!!busy} onClick={() => void restore()}>
               Restore purchases
             </button>
           )}

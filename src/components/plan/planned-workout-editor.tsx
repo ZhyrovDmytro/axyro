@@ -1,4 +1,5 @@
 "use client";
+import { PageSkeleton } from "@/components/page-skeleton";
 import { freeExerciseIds } from "@/lib/library-access";
 import { PaywallLink } from "@/components/membership/paywall-modal";
 
@@ -103,7 +104,13 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
   });
 
   if (!ready)
-    return <main className="page-shell plan-loading">Loading session…</main>;
+    return (
+      <PageSkeleton
+        title="Edit session"
+        message="Loading your session…"
+        layout="list"
+      />
+    );
   if (!source)
     return (
       <main className="page-shell plan-empty">
@@ -635,10 +642,13 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
                         {exercise.name}
                       </PaywallLink>
                       <p>{exercise.shortDescription}</p>
+                      {item.prescription.perSide && (
+                        <p>Left → switch → right. Both sides included.</p>
+                      )}
                       {isEditing && (
                         <div className="timing-fields">
                           <label>
-                            Sets
+                            Sets{item.prescription.perSide ? " per side" : ""}
                             <input
                               max="10"
                               min="1"
@@ -652,7 +662,10 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
                             />
                           </label>
                           <label>
-                            Work <span>sec</span>
+                            Work{" "}
+                            <span>
+                              sec{item.prescription.perSide ? " per side" : ""}
+                            </span>
                             <input
                               max="600"
                               min="5"
@@ -710,11 +723,17 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
                       <dl className="plan-timing planned-workout-timing">
                         <div className="plan-timing-value">
                           <dt>Sets</dt>
-                          <dd>{item.sets}</dd>
+                          <dd>
+                            {item.sets}
+                            {item.prescription.perSide ? " per side" : ""}
+                          </dd>
                         </div>
                         <div className="plan-timing-value">
                           <dt>Work</dt>
-                          <dd>{item.prescription.durationSeconds}s</dd>
+                          <dd>
+                            {item.prescription.durationSeconds}s
+                            {item.prescription.perSide ? " per side" : ""}
+                          </dd>
                         </div>
                         <div className="plan-timing-value">
                           <dt>Between sets</dt>

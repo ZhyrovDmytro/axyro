@@ -142,7 +142,9 @@ in the deterministic compiler; the catalog still contains 40 exercises.
 `librarySelection` defines the global media/name order and `freeExerciseIds`
 contains its first ten stable exercise IDs. The same allowlist is used by cards,
 exercise guide routes and workout exercise links. Authenticated server catalog
-requests include all summaries; guests receive only the preview. Free exercise
+requests include all summaries; signed-out users see only the first six exercises
+on the exercise page, selected before search and pagination. This preview limit
+does not change the ten free guide IDs or the 40-exercise catalog. Free exercise
 access is independent of current search, sport query and pagination.
 
 Paid-content entry points, including existing paid plans, Activity, Explore Pro,

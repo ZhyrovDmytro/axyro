@@ -131,67 +131,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
   return (
     <AuthContext.Provider value={{ ...state, refresh, signOut }}>
-      {state.loading ? (
-        <main className="account-loading">
-          <div className="account-loading__content" role="status">
-            <div className="account-loading__mark" aria-hidden="true">
-              <span className="account-loading__ring" />
-              <span className="account-loading__letter">A</span>
-            </div>
-            <p className="account-loading__brand" aria-hidden="true">
-              Axyro
+      <div>
+        {syncError && (
+          <aside className="safety-note sync-notice" role="alert">
+            <p>
+              {syncConflict
+                ? "Your account has newer changes from another session. Your unsaved changes are still on this device. Reloading cloud data will replace them."
+                : "Your latest training changes could not be synced. Keep this tab open and retry saving to preserve your changes."}
             </p>
-            <h1>Loading your account…</h1>
-            <p className="account-loading__hint">
-              Getting your training ready.
-            </p>
-          </div>
-        </main>
-      ) : state.error ? (
-        <main className="page-shell">
-          <p role="alert">{state.error}</p>
-          <button
-            className="button button--dark"
-            onClick={() => void refresh()}
-          >
-            Try again
-          </button>
-        </main>
-      ) : (
-        <div key={state.user?.id ?? "guest"}>
-          {syncError && (
-            <aside className="safety-note sync-notice" role="alert">
-              <p>
-                {syncConflict
-                  ? "Your account has newer changes from another session. Your unsaved changes are still on this device. Reloading cloud data will replace them."
-                  : "Your latest training changes could not be synced. Keep this tab open and retry saving to preserve your changes."}
-              </p>
-              <button
-                className="text-link"
-                disabled={retryingSync}
-                onClick={() => {
-                  if (!syncConflict) {
-                    void retrySync();
-                  } else if (
-                    window.confirm(
-                      "Replace this device’s unsaved training changes with the saved cloud data? This cannot be undone.",
-                    )
-                  ) {
-                    void refresh();
-                  }
-                }}
-              >
-                {retryingSync
-                  ? "Saving…"
-                  : syncConflict
-                    ? "Reload saved cloud data"
-                    : "Retry saving"}
-              </button>
-            </aside>
-          )}
-          {children}
-        </div>
-      )}
+            <button
+              className="text-link"
+              disabled={retryingSync}
+              onClick={() => {
+                if (!syncConflict) {
+                  void retrySync();
+                } else if (
+                  window.confirm(
+                    "Replace this device’s unsaved training changes with the saved cloud data? This cannot be undone.",
+                  )
+                ) {
+                  void refresh();
+                }
+              }}
+            >
+              {retryingSync
+                ? "Saving…"
+                : syncConflict
+                  ? "Reload saved cloud data"
+                  : "Retry saving"}
+            </button>
+          </aside>
+        )}
+        {children}
+      </div>
     </AuthContext.Provider>
   );
 }

@@ -1,4 +1,5 @@
 "use client";
+import { PageSkeleton } from "@/components/page-skeleton";
 import { PaywallLink } from "@/components/membership/paywall-modal";
 
 import { useEffect, useState } from "react";
@@ -63,7 +64,12 @@ export function ActivityDetail({ activityId }: { activityId: string }) {
   }, [activityId]);
 
   if (activity === undefined) {
-    return <main className="page-shell activity-page">Loading activity…</main>;
+    return (
+      <PageSkeleton
+        title="Workout activity"
+        message="Loading this workout’s activity…"
+      />
+    );
   }
   if (!activity) {
     return (

@@ -28,6 +28,16 @@ test("mobile exercise overview shows the full image without a dark side gutter",
   await expect(overview).toBeVisible();
   await expect(overview.getByText("Unchanged", { exact: true })).toHaveCount(0);
   const rows = overview.locator(".workout-plan > li");
+  const sideItem = plan.sessions[0].sections
+    .flatMap((section) => section.items)
+    .find((item) => item.prescription.perSide)!;
+  expect(sideItem).toBeDefined();
+  const sideRow = rows.filter({
+    has: page.locator(`a[href="/exercises/${sideItem.exerciseId}"]`),
+  });
+  await expect(sideRow).toContainText(`${sideItem.sets} per side`);
+  await expect(sideRow).toContainText(`${sideItem.prescription.durationSeconds} sec per side`);
+  await expect(sideRow).toContainText("Left → switch → right. Both sides included.");
   for (const width of [320, 390, 768, 1280]) {
     await page.setViewportSize({ width, height: 900 });
     await rows.first().scrollIntoViewIfNeeded();
@@ -71,6 +81,9 @@ test("mobile exercise overview shows the full image without a dark side gutter",
     }
   }
   await page.setViewportSize({ width: 390, height: 844 });
-  await rows.first().scrollIntoViewIfNeeded();
+  await sideRow.scrollIntoViewIfNeeded();
   await page.screenshot({ path: "/tmp/axyro-exercise-overview-mobile.png" });
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await sideRow.scrollIntoViewIfNeeded();
+  await page.screenshot({ path: "/tmp/axyro-exercise-overview-desktop.png" });
 });

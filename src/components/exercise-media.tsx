@@ -246,11 +246,14 @@ export function ExerciseMedia({
 
   return (
     <div className={className} style={style} data-media-state={mediaState}>
-      {mediaState === "loading" && (
+      {mediaState === "loading" && (!compact || !media.posterUri) && (
         <div
           className="exercise-media__loading"
-          aria-label="Loading movement demonstration"
-        />
+          role={compact ? undefined : "status"}
+          aria-hidden={compact || undefined}
+        >
+          {!compact && "Loading movement demo…"}
+        </div>
       )}
       {mediaState === "error" && (
         <div className="exercise-media__error" role="status">

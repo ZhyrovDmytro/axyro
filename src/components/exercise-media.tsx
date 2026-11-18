@@ -46,6 +46,37 @@ export function ExerciseMedia({
   const isAnimation = media.type === "animation";
   const mediaPreload = preload ?? (compact ? "metadata" : "auto");
   const showMovementFrames = !media.uri;
+  const showVideo = isVideo && Boolean(media.uri) && mediaState !== "fallback";
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!compact || !showVideo || !video) return;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let visible = false;
+    const updatePlayback = () => {
+      if (visible && !document.hidden && !reducedMotion.matches) {
+        void video.play().catch(() => setMediaState("paused"));
+      } else {
+        video.pause();
+      }
+    };
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        visible = entry.isIntersecting;
+        updatePlayback();
+      },
+      { threshold: 0.15 },
+    );
+    observer.observe(video);
+    document.addEventListener("visibilitychange", updatePlayback);
+    reducedMotion.addEventListener("change", updatePlayback);
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", updatePlayback);
+      reducedMotion.removeEventListener("change", updatePlayback);
+      video.pause();
+    };
+  }, [compact, showVideo, media.uri, retryKey]);
 
   useEffect(() => {
     const element = framesRef.current;

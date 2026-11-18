@@ -22,6 +22,9 @@ content.
   Compact video previews show their authored poster immediately without a loading
   overlay covering it. The Romanian Deadlift poster is a frame from its existing
   reference clip; opening the exercise guide is not needed to populate the card.
+  Video previews play muted and loop when visible. They pause offscreen, in a
+  hidden tab, or when reduced motion is enabled; metadata preloading and the
+  poster keep the card useful before playback or when autoplay is blocked.
 - Keep shared navigation and public catalogs available. A page loading state does
   not replace the app shell. Dialog dismissal remains available while membership
   products load. Preserve current form values, errors, and retry paths.

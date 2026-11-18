@@ -1,22 +1,79 @@
 import { expect, test } from "@playwright/test";
 
-test("video card shows its poster on a cold visit when the clip cannot load", async ({ page }, testInfo) => {
+test("video previews play while visible and pause offscreen or with reduced motion", async ({
+  page,
+}, testInfo) => {
   const login = await page.request.post("/api/auth/signin", {
     headers: { Origin: new URL(String(testInfo.project.use.baseURL)).origin },
     data: { email: "admin", password: "admin" },
   });
   expect(login.ok()).toBe(true);
-  await page.route("**/videos/dumbbell-romanian-deadlift.mov", (route) => route.abort());
   await page.goto("/exercises?q=Dumbbell+Romanian+Deadlift");
-  const card = page.locator(".exercise-card:visible").filter({ hasText: "Dumbbell Romanian Deadlift" });
+  const video = page.locator(".exercise-card:visible video");
+  for (const width of [390, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    await video.scrollIntoViewIfNeeded();
+    await expect
+      .poll(() =>
+        video.evaluate((video) => !(video as HTMLVideoElement).paused),
+      )
+      .toBe(true);
+    const time = await video.evaluate(
+      (video) => (video as HTMLVideoElement).currentTime,
+    );
+    await expect
+      .poll(() =>
+        video.evaluate((video) => (video as HTMLVideoElement).currentTime),
+      )
+      .not.toBe(time);
+    await expect(video).toHaveJSProperty("muted", true);
+    await expect(video).toHaveJSProperty("loop", true);
+    await page.setViewportSize({ width, height: 300 });
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    await expect
+      .poll(() => video.evaluate((video) => (video as HTMLVideoElement).paused))
+      .toBe(true);
+  }
+  await page.setViewportSize({ width: 390, height: 900 });
+  await video.scrollIntoViewIfNeeded();
+  await expect
+    .poll(() => video.evaluate((video) => !(video as HTMLVideoElement).paused))
+    .toBe(true);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect
+    .poll(() => video.evaluate((video) => (video as HTMLVideoElement).paused))
+    .toBe(true);
+});
+
+test("video card shows its poster on a cold visit when the clip cannot load", async ({
+  page,
+}, testInfo) => {
+  const login = await page.request.post("/api/auth/signin", {
+    headers: { Origin: new URL(String(testInfo.project.use.baseURL)).origin },
+    data: { email: "admin", password: "admin" },
+  });
+  expect(login.ok()).toBe(true);
+  await page.route("**/videos/dumbbell-romanian-deadlift.mov", (route) =>
+    route.abort(),
+  );
+  await page.goto("/exercises?q=Dumbbell+Romanian+Deadlift");
+  const card = page
+    .locator(".exercise-card:visible")
+    .filter({ hasText: "Dumbbell Romanian Deadlift" });
   await expect(card).toBeVisible();
   const poster = "/images/exercises/dumbbell-romanian-deadlift-preview.png";
-  await expect.poll(async () => {
-    const video = card.locator("video");
-    if (await video.count()) return video.getAttribute("poster");
-    const fallback = card.locator("img");
-    return (await fallback.getAttribute("src"))?.includes(encodeURIComponent(poster)) ? poster : null;
-  }).toBe(poster);
+  await expect
+    .poll(async () => {
+      const video = card.locator("video");
+      if (await video.count()) return video.getAttribute("poster");
+      const fallback = card.locator("img");
+      return (await fallback.getAttribute("src"))?.includes(
+        encodeURIComponent(poster),
+      )
+        ? poster
+        : null;
+    })
+    .toBe(poster);
   await expect(card.locator(".exercise-media__loading")).toHaveCount(0);
   const response = await page.request.get(poster);
   expect(response.ok()).toBe(true);
@@ -26,7 +83,11 @@ test("video card shows its poster on a cold visit when the clip cannot load", as
   if (await video.count()) await video.dispatchEvent("error");
   const fallback = card.locator(".exercise-media--fallback img");
   await expect(fallback).toBeVisible();
-  await expect.poll(() => fallback.evaluate((image) => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+  await expect
+    .poll(() =>
+      fallback.evaluate((image) => (image as HTMLImageElement).naturalWidth),
+    )
+    .toBeGreaterThan(0);
   await card.scrollIntoViewIfNeeded();
   await page.screenshot({ path: "/tmp/axyro-video-preview-mobile.png" });
   await page.setViewportSize({ width: 1280, height: 900 });

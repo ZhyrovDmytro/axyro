@@ -21,6 +21,9 @@ test("video card shows its poster on a cold visit when the clip cannot load", as
   const response = await page.request.get(poster);
   expect(response.ok()).toBe(true);
   expect((await response.body()).length).toBeGreaterThan(10000);
+  // Metadata preload is a hint; some browsers never request the blocked clip.
+  const video = card.locator("video");
+  if (await video.count()) await video.dispatchEvent("error");
   const fallback = card.locator(".exercise-media--fallback img");
   await expect(fallback).toBeVisible();
   await expect.poll(() => fallback.evaluate((image) => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);

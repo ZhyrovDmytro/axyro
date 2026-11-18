@@ -1,4 +1,3 @@
-import { ProGate } from "@/components/membership/pro-gate";
 import type { Metadata } from "next";
 
 import { PlanOnboarding } from "@/components/plan/plan-onboarding";
@@ -10,9 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function PlanSetupPage() {
-  return (
-    <ProGate requirePro={false} returnTo="/plan/setup">
-      <PlanOnboarding />
-    </ProGate>
-  );
+  return <PlanOnboarding />;
 }

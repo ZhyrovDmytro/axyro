@@ -101,7 +101,7 @@ function PaywallModal({
   if (authMode === undefined && !authLoading)
     setAuthMode(user ? null : initialAuthMode);
   const router = useRouter();
-  const dismissible = authMode !== null;
+  const dismissible = authMode !== null || !planCreated;
   const dismiss = useCallback(() => {
     if (dismissible) onClose();
   }, [dismissible, onClose]);

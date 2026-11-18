@@ -134,10 +134,10 @@ for (const width of [320, 390, 1280]) {
     const search = page.getByRole("searchbox");
     await search.fill("shoulder");
     const nav = page.getByRole("navigation", { name: "Primary navigation" });
-    await nav.getByRole("link", { name: "Plan", exact: true }).click();
+    await nav.getByRole("link", { name: "Activity", exact: true }).click();
     const modal = page.getByRole("dialog", { name: "Axyro Pro membership" });
     await expect(modal).toBeVisible();
-    await expect(page).toHaveURL(/\/exercises$/);
+    await expect(page).toHaveURL(/\/exercises(?:\?q=shoulder)?$/);
     await expect(modal.getByRole("status")).toHaveText("Loading memberships…");
     await expect(
       modal.getByRole("heading", { level: 2 }).first(),
@@ -151,17 +151,20 @@ for (const width of [320, 390, 1280]) {
     await expect(modal.getByRole("radio").first()).toBeChecked();
     expect(await modal.boundingBox()).toEqual(before);
     await expect(
-      modal.getByRole("button", { name: "Unlock My Plan" }),
+      modal.getByRole("button", { name: "Start Pro" }),
     ).toBeEnabled();
-    await expect(
-      modal.getByRole("button", { name: "Close paywall" }),
-    ).toHaveCount(0);
+    const close = modal.getByRole("button", { name: "Close paywall" });
+    await expect(close).toBeVisible();
     const first = modal.getByRole("radio").first();
     await first.focus();
+    await page.keyboard.press("Shift+Tab");
+    await expect(close).toBeFocused();
     await page.keyboard.press("Shift+Tab");
     await expect(
       modal.getByRole("link", { name: "Manage membership", exact: true }),
     ).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(close).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(first).toBeFocused();
     expect(
@@ -172,22 +175,20 @@ for (const width of [320, 390, 1280]) {
       path: testInfo.outputPath(`paywall-modal-${width}.png`),
     });
     await page.keyboard.press("Escape");
-    await page.mouse.click(2, 2);
-    await expect(modal).toBeVisible();
+    await expect(modal).toHaveCount(0);
+    await expect(
+      nav.getByRole("link", { name: "Activity", exact: true }),
+    ).toBeFocused();
     await expect(search).toHaveValue("shoulder");
-    expect(await page.evaluate(() => document.body.style.overflow)).toBe(
-      "hidden",
-    );
-    await page.goto("/exercises");
+    expect(await page.evaluate(() => document.body.style.overflow)).toBe("");
     await nav.getByRole("link", { name: "Activity", exact: true }).click();
     await expect(
       modal.getByRole("heading", {
         name: "Unlock your full training progress",
       }),
     ).toBeVisible();
-    await page.keyboard.press("Escape");
-    await expect(modal).toBeVisible();
-    await page.goto("/exercises");
+    await page.mouse.click(2, 2);
+    await expect(modal).toHaveCount(0);
     await page
       .locator(".library-invitation")
       .getByRole("link", { name: "Explore Pro", exact: true })
@@ -195,11 +196,12 @@ for (const width of [320, 390, 1280]) {
     await expect(
       modal.getByRole("heading", { name: "Your complete movement library" }),
     ).toBeVisible();
-    await expect(page).toHaveURL(/\/exercises$/);
+    await expect(page).toHaveURL(/\/exercises(?:\?q=shoulder)?$/);
     await expect(
       modal.getByRole("button", { name: "Start Pro" }),
     ).toBeEnabled();
-    await expect(modal.getByRole("button", { name: /Close/ })).toHaveCount(0);
+    await modal.getByRole("button", { name: "Close paywall" }).click();
+    await expect(modal).toHaveCount(0);
   });
 }
 
@@ -264,4 +266,32 @@ test("unavailable memberships retain the fallback and close on account navigatio
   await page.goBack();
   await expect(page).toHaveURL(/\/exercises$/);
   await expect(modal).toHaveCount(0);
+});
+
+test("unavailable memberships have a visible close control in a smaller desktop dialog", async ({
+  page,
+}, testInfo) => {
+  await page.setViewportSize({ width: 1280, height: 1000 });
+  await page.route("**/api/billing/products", (route) =>
+    route.fulfill({ json: { products: [] } }),
+  );
+  await page.goto("/exercises");
+  const trigger = page
+    .getByRole("navigation", { name: "Primary navigation" })
+    .getByRole("link", { name: "Activity", exact: true });
+  await trigger.click();
+  const modal = page.getByRole("dialog", { name: "Axyro Pro membership" });
+  await expect(modal.getByRole("alert")).toContainText(
+    "Subscriptions are currently unavailable",
+  );
+  const close = modal.getByRole("button", { name: "Close paywall" });
+  await expect(close).toBeInViewport();
+  expect((await modal.boundingBox())!.height).toBeLessThanOrEqual(640);
+  await page.screenshot({
+    path: testInfo.outputPath("unavailable-memberships-desktop.png"),
+  });
+  await close.click();
+  await expect(modal).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+  await expect(page).toHaveURL(/\/exercises$/);
 });

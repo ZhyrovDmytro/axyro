@@ -40,10 +40,12 @@ for (const index of [0, 9, 10, 39]) {
       const modal = page.getByRole("dialog", { name: "Axyro Pro membership" });
       await expect(modal).toBeVisible();
       await expect(page.locator(".exercise-detail-hero")).toHaveCount(0);
-      await expect(modal.getByRole("button", { name: /Close/ })).toHaveCount(0);
+      await expect(
+        modal.getByRole("button", { name: "Close paywall" }),
+      ).toBeVisible();
       await page.keyboard.press("Escape");
-      await page.mouse.click(2, 2);
-      await expect(modal).toBeVisible();
+      await expect(modal).toHaveCount(0);
+      await expect(page.locator(".exercise-detail-hero")).toHaveCount(0);
       await page.reload();
       await expect(modal).toBeVisible();
     }
@@ -71,9 +73,11 @@ test("only the first workout is accessible to Free accounts", async ({
   await page.goto(`/workouts/${starterWorkouts[1].slug}`);
   const modal = page.getByRole("dialog");
   await expect(modal).toBeVisible();
-  await expect(modal.getByRole("button", { name: /Close/ })).toHaveCount(0);
+  await expect(
+    modal.getByRole("button", { name: "Close paywall" }),
+  ).toBeVisible();
   await page.keyboard.press("Escape");
-  await expect(modal).toBeVisible();
+  await expect(modal).toHaveCount(0);
   await page.goto("/workouts");
   await page.getByRole("link", { name: /Pro ·/ }).first().click();
   await expect(modal).toBeVisible();
@@ -100,7 +104,7 @@ test("loaded catalog cards retain the first-ten boundary when membership is Free
   await expect(modal).toBeVisible();
   await expect(page).toHaveURL(/\/exercises$/);
   await page.keyboard.press("Escape");
-  await expect(modal).toBeVisible();
+  await expect(modal).toHaveCount(0);
 });
 
 test.describe("Czech browser language", () => {

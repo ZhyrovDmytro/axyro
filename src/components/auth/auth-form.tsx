@@ -9,7 +9,7 @@ import { UiIcon } from "@/components/ui-icon";
 export type AuthMode = "signin" | "signup" | "recover" | "password";
 export function AuthForm({
   mode,
-  next = "/plan/setup",
+  next = "/",
   initialError = "",
   embedded = false,
   onModeChange,
@@ -33,7 +33,7 @@ export function AuthForm({
   const target =
     next.startsWith("/") && !next.startsWith("//") && !next.includes("\\")
       ? next
-      : "/plan/setup";
+      : "/";
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busy) return;
@@ -208,7 +208,7 @@ export function AuthForm({
                       placeholder={
                         developmentAdminEnabled && mode === "signin"
                           ? "Email or login"
-                          : "you@example.com"
+                          : "Enter your email"
                       }
                       autoCapitalize="none"
                       spellCheck={false}

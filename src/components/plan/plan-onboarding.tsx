@@ -1,5 +1,6 @@
 "use client";
-import { PaywallLink } from "@/components/membership/paywall-modal";
+import Link from "next/link";
+import { usePaywallModal } from "@/components/membership/paywall-modal";
 
 import { DurationOptions } from "@/components/workout/duration-options";
 import { parseDailyDuration } from "@/domain/workout/daily-duration";
@@ -194,6 +195,7 @@ export function PlanOnboarding({
   mode?: "initial" | "refine";
 }) {
   const router = useRouter();
+  const openAccess = usePaywallModal();
   const { user } = useAuth();
   const { hasPro, loading: membershipLoading } = useEntitlement();
   const continued = useRef(false);
@@ -210,15 +212,15 @@ export function PlanOnboarding({
         const query = new URLSearchParams(window.location.search);
         const own = window.sessionStorage.getItem(draftKey);
         const guest =
-          user && query.get("resume") === "1"
+          user && query.get("resume") === "1" && query.get("generate") === "1"
             ? window.sessionStorage.getItem("veyro.plan-draft.guest")
             : null;
         const parsed = athleteProfileDraftSchema.safeParse(
-          JSON.parse(own ?? guest ?? "null"),
+          JSON.parse(guest ?? own ?? "null"),
         );
         if (guest && parsed.success) {
           window.sessionStorage.setItem(draftKey, JSON.stringify(parsed.data));
-          window.sessionStorage.removeItem("veyro.plan-draft.guest");
+          clearPlanDraft(null);
         }
         return parsed.success ? parsed.data : null;
       } catch {
@@ -294,7 +296,7 @@ export function PlanOnboarding({
       continued.current ||
       membershipLoading ||
       !ready ||
-      !hasPro ||
+      !user ||
       !profileOverride ||
       step !== steps.length - 1
     )
@@ -303,12 +305,21 @@ export function PlanOnboarding({
     if (query.get("resume") !== "1" && query.get("checkout") !== "success")
       return;
     // Submit only after the restored review step has committed its current handler.
+    if (!hasPro && query.get("generate") !== "1") return;
     const timer = window.setTimeout(() => {
       continued.current = true;
       formRef.current?.requestSubmit();
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [hasPro, membershipLoading, profileOverride, ready, step, steps.length]);
+  }, [
+    user,
+    hasPro,
+    membershipLoading,
+    profileOverride,
+    ready,
+    step,
+    steps.length,
+  ]);
   const currentPadelOptions = isPadelPriorityStep(currentStep)
     ? padelOptionsByStep[currentStep]
     : [];
@@ -460,6 +471,20 @@ export function PlanOnboarding({
       setError("Check your answers before creating the plan.");
       return;
     }
+    if (!user) {
+      try {
+        window.sessionStorage.setItem(draftKey, JSON.stringify(result.data));
+      } catch {
+        setError(
+          "Allow browser storage to keep your answers through sign-in, then try again.",
+        );
+        return;
+      }
+      const returnTo = "/plan/setup?resume=1&generate=1";
+      router.replace(returnTo);
+      openAccess({ context: "plan", returnTo, requirePro: false });
+      return;
+    }
     const today = new Date();
     const adaptationProfile = createBrowserAdaptationProfileRepository().load();
     setIsGenerating(true);
@@ -559,15 +584,9 @@ export function PlanOnboarding({
             Start with the essentials, then add padel-specific priorities and
             match dates once your first session is ready.
           </p>
-          <PaywallLink
-            className="button button--dark"
-            href="/plan/setup"
-            context="plan"
-            returnTo="/plan/setup"
-            requirePro={false}
-          >
+          <Link className="button button--dark" href="/plan/setup">
             Create my plan <UiIcon name="arrow-right" />
-          </PaywallLink>
+          </Link>
         </section>
       </main>
     );

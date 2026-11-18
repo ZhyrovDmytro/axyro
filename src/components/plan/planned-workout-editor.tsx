@@ -110,14 +110,9 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
         <section>
           <p className="kicker">Session unavailable</p>
           <h1>We couldn’t find that workout.</h1>
-          <PaywallLink
-            className="button button--primary"
-            href="/plan"
-            context="plan"
-            returnTo="/plan"
-          >
+          <Link className="button button--primary" href="/plan">
             Back to plan
-          </PaywallLink>
+          </Link>
         </section>
       </main>
     );
@@ -302,14 +297,9 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
 
   return (
     <main className="page-shell page-shell--detail page-shell--workout-detail editor-page">
-      <PaywallLink
-        className="back-link"
-        href="/plan"
-        context="plan"
-        returnTo="/plan"
-      >
+      <Link className="back-link" href="/plan">
         <UiIcon name="arrow-left" /> Training plan
-      </PaywallLink>
+      </Link>
       <section className="detail-hero detail-hero--workout planned-workout-hero">
         <div>
           <div className="tag-row">

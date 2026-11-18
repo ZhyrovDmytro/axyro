@@ -2,6 +2,12 @@
 
 Axyro is a Next.js web application. Supabase Auth owns passwords, Google OAuth, email verification and refresh tokens. The application uses Supabase's documented REST API and PKCE flow without adding a browser auth SDK. Tokens stay in HttpOnly SameSite=Lax cookies and are verified against `/auth/v1/user`. Cookies use Secure in production. Every authenticated request reads the trusted profile role; signup metadata cannot assign an admin role.
 
+Ordinary sign-in and registration default to Home (`/`), including the header
+Sign in link and the stored PKCE continuation. Explicit protected-content
+requests retain their destination. In particular, a guest who submits the plan
+questionnaire resumes `/plan/setup?resume=1&generate=1` after authentication;
+ordinary account creation does not open an upgrade offer automatically.
+
 Production mutation origins must match the canonical server-configured `APP_URL`
 when set; otherwise they match the request URL. This handles Netlify forwarding an
 immutable deployment URL to the server while the browser uses the stable public

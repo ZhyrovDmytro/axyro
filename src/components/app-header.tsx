@@ -25,9 +25,7 @@ export function AppHeader() {
     : ["/signin", "/signup", "/forgot-password", "/reset-password"].includes(
         pathname,
       );
-  const accountHref = user
-    ? "/account"
-    : `/signin?next=${encodeURIComponent(accountActive ? "/" : pathname)}`;
+  const accountHref = user ? "/account" : "/signin";
 
   return (
     <header className="site-header">
@@ -50,11 +48,11 @@ export function AppHeader() {
             "aria-current": active ? ("page" as const) : undefined,
             children: link.label,
           };
-          return link.href === "/plan" || link.href === "/activity" ? (
+          return link.href === "/activity" ? (
             <PaywallLink
               {...props}
               key={link.href}
-              context={link.href === "/activity" ? "progress" : "plan"}
+              context="progress"
               returnTo={link.href}
             />
           ) : (

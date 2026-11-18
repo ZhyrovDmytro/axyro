@@ -1,5 +1,5 @@
 "use client";
-import { PaywallLink } from "@/components/membership/paywall-modal";
+import Link from "next/link";
 
 import { useState } from "react";
 import Image from "next/image";
@@ -27,15 +27,9 @@ export function PlanStory() {
             your answers into a personalized 60-day training plan, with a clear
             next session waiting for you.
           </p>
-          <PaywallLink
-            href="/plan/setup"
-            context="plan"
-            returnTo="/plan/setup"
-            requirePro={false}
-            className={styles.cta}
-          >
+          <Link href="/plan/setup" className={styles.cta}>
             Create my plan <UiIcon name="arrow-right" />
-          </PaywallLink>
+          </Link>
           <span className={styles.reassurance}>
             Personalized planning is included with Axyro Pro.
           </span>
@@ -119,15 +113,9 @@ export function PlanStory() {
                 Open your plan, see what’s next, and follow the guided player.
                 Refine the plan as your schedule changes.
               </p>
-              <PaywallLink
-                href="/plan/setup"
-                context="plan"
-                returnTo="/plan/setup"
-                requirePro={false}
-                className={styles.planLink}
-              >
+              <Link href="/plan/setup" className={styles.planLink}>
                 Build around my goals <UiIcon name="arrow-right" />
-              </PaywallLink>
+              </Link>
             </div>
           </li>
         </ol>
@@ -219,15 +207,12 @@ export function PlanStory() {
               your revised availability and matches to shape upcoming training.
               Your real schedule depends on the days you choose.
             </p>
-            <PaywallLink
+            <Link
               href="/plan/setup"
-              context="plan"
-              returnTo="/plan/setup"
-              requirePro={false}
               className={`${styles.cta} ${styles.ctaDark}`}
             >
               Create my plan <UiIcon name="arrow-right" />
-            </PaywallLink>
+            </Link>
           </div>
         </div>
       </section>

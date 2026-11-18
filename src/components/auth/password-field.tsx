@@ -22,6 +22,7 @@ export function PasswordField({
         <input
           id={id}
           name={name}
+          placeholder={label}
           type={visible ? "text" : "password"}
           autoComplete={autoComplete}
           minLength={minLength}

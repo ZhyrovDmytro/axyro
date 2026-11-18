@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
 const account = {
@@ -10,6 +10,18 @@ const account = {
   providers: ["email"],
   isDevelopmentAdmin: false,
 };
+
+async function finishQuestionnaire(page: Page) {
+  for (let step = 0; step < 12; step++) {
+    const create = page.getByRole("button", {
+      name: "Create My Plan",
+      exact: true,
+    });
+    if (await create.isVisible()) return create;
+    await page.getByRole("button", { name: "Continue", exact: true }).click();
+  }
+  throw new Error("Plan review was not reached");
+}
 
 test.beforeEach(async ({ page }) => {
   await page.route("**/api/auth/session", (route) =>
@@ -23,21 +35,22 @@ test.beforeEach(async ({ page }) => {
 });
 
 for (const width of [390, 1280]) {
-  test(`Home plan entry requires modal sign-in at ${width}px`, async ({
+  test(`Home plan entry asks for sign-in only after the questionnaire at ${width}px`, async ({
     page,
   }, testInfo) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/");
-    const create = page
+    await page
       .getByRole("link", { name: "Create my plan", exact: true })
-      .first();
+      .first()
+      .click();
+    await expect(page).toHaveURL(/\/plan\/setup$/);
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    const create = await finishQuestionnaire(page);
     await create.click();
     const modal = page.getByRole("dialog", { name: "Sign in to continue" });
     await expect(modal.getByRole("heading", { name: "Sign in" })).toBeVisible();
-    await expect(page).toHaveURL(/\/$/);
-    await expect(
-      page.getByRole("button", { name: "Continue", exact: true }),
-    ).toHaveCount(0);
+    await expect(page).toHaveURL(/\/plan\/setup\?resume=1&generate=1$/);
     await expect(modal.getByLabel("Email", { exact: true })).toBeVisible();
     await modal
       .getByRole("link", { name: "Create account", exact: true })
@@ -77,9 +90,7 @@ for (const width of [390, 1280]) {
 
 for (const path of [
   "/exercises/bodyweight-squat?sport=padel",
-  "/plan/setup",
   "/plan/refine",
-  "/plan",
   "/activity",
   "/upgrade",
   "/workouts/lower-body-control",
@@ -99,7 +110,7 @@ test("guest entry points open sign-in and free content remains available", async
   page,
 }) => {
   await page.goto("/exercises");
-  for (const label of ["Plan", "Activity", "Explore Pro"]) {
+  for (const label of ["Activity", "Explore Pro"]) {
     await page.getByRole("link", { name: label, exact: true }).click();
     await expect(
       page.getByRole("dialog", { name: "Sign in to continue" }),
@@ -128,7 +139,6 @@ test("guest entry points open sign-in and free content remains available", async
 
 for (const destination of [
   "/activity",
-  "/plan/setup",
   "/exercises/bodyweight-squat?sport=padel",
   "/activity?direct=1",
 ]) {
@@ -178,12 +188,6 @@ for (const destination of [
         destination.startsWith("/exercises/")
       ) {
         await page.goto(destination);
-      } else if (destination === "/plan/setup") {
-        await page.goto("/");
-        await page
-          .getByRole("link", { name: "Create my plan", exact: true })
-          .first()
-          .click();
       } else {
         await page.goto("/exercises");
         await page.getByRole("link", { name: "Activity", exact: true }).click();
@@ -192,11 +196,7 @@ for (const destination of [
       await modal.getByLabel("Email", { exact: true }).fill(account.email);
       await modal.getByLabel("Password", { exact: true }).fill("test-password");
       await modal.getByRole("button", { name: "Sign in", exact: true }).click();
-      if (
-        pro ||
-        destination === "/plan/setup" ||
-        destination.startsWith("/exercises/")
-      ) {
+      if (pro || destination.startsWith("/exercises/")) {
         await expect(page).toHaveURL(
           new RegExp(
             `${destination.split("?")[0]}${destination.startsWith("/exercises/") ? "\\?sport=padel" : ""}$`,
@@ -207,11 +207,11 @@ for (const destination of [
           await expect(page.locator(".exercise-detail-hero")).toBeVisible();
       } else if (destination === "/activity?direct=1") {
         await expect(modal).toBeVisible();
-        await expect(modal.getByRole("button", { name: /Close/ })).toHaveCount(
-          0,
-        );
+        await expect(
+          modal.getByRole("button", { name: "Close paywall" }),
+        ).toBeVisible();
         await page.keyboard.press("Escape");
-        await expect(modal).toBeVisible();
+        await expect(modal).toHaveCount(0);
       } else {
         await expect(
           modal.getByRole("heading", {
@@ -243,9 +243,7 @@ for (const reduced of [false, true]) {
       });
     });
     await page.goto("/");
-    const create = page
-      .getByRole("link", { name: "Create my plan", exact: true })
-      .first();
+    const create = page.getByRole("link", { name: "Activity", exact: true });
     for (let opening = 0; opening < 2; opening++) {
       await page.evaluate(() => {
         document.documentElement.dataset.modalTransitions = "";

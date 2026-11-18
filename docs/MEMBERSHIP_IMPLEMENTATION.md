@@ -22,16 +22,25 @@ For owner production testing, the server automatically assigns the trusted admin
 
 ## Conversion
 
-Plan setup requires sign-in. The final Create My Plan action validates answers,
-shows creation status, and builds a deterministic local preview for Free users.
+The Plan landing page and initial questionnaire are public. Guests see the same
+Create my plan action as signed-in users without an existing plan. The final
+Create My Plan action validates and saves answers in tab-scoped sessionStorage,
+then opens the shared sign-in modal. After sign-in or registration, including a
+same-browser email/OAuth return, `/plan/setup?resume=1&generate=1` transfers the
+submitted guest answers to the signed-in account and continues generation.
+The submitted guest draft takes precedence over an older account draft and is
+removed after transfer. Blocked session storage stops the handoff with a retryable
+error so answers are not silently lost. Closing sign-in leaves the review editable.
+
+Generation shows creation status and builds a deterministic local preview for Free users.
 The preview is kept beside the account-owned questionnaire draft in sessionStorage;
 it is not an active plan, is not synced to the account, and never calls the paid
 planner endpoint. The Plan page shows the generated schedule as an inert backdrop
 and automatically opens the common paywall without a close action. Escape and
 backdrop clicks cannot dismiss it. Reloading or returning to Plan in the same tab
 restores this state. Links to account/legal/free-workout pages and browser navigation
-still work. All Pro paywalls use the same non-dismissible behavior; sign-in
-forms remain dismissible.
+still work. Only this generated-plan activation paywall is non-dismissible;
+regular upgrade offers and sign-in forms can be closed.
 
 Pro users see the same creation status while the existing authorized planner API
 runs, then enter their active plan without a paywall. After checkout or restore,
@@ -56,13 +65,14 @@ Legal pages describe implemented behavior; the product owner must supply busines
 
 ## Paywall entry points — 2 November 2026
 
-The shared navigation’s Plan and Activity links, Library’s Explore Pro link and
-paid workout cards open a shared access modal over the current page. Guests see
+The shared navigation’s Plan link opens the Plan page. Activity, Library’s
+Explore Pro link and paid workout cards open a shared access modal over the current page. Guests see
 sign-in first; authenticated Free members see membership offers. Sign-in can be
-closed while preserving the route, filters and scroll position. Pro offers cannot
-be dismissed with a close control, Escape or backdrop click. The
+closed while preserving the route, filters and scroll position. Regular Pro offers
+also close with the visible close button, Escape or a backdrop click. The generated-plan
+activation offer remains non-dismissible. The
 native dialog makes background content inert; the existing focus trap handles
-Tab and Shift+Tab; Escape closes only authentication forms. Focus returns to the
+Tab and Shift+Tab; Escape closes authentication forms and regular upgrade offers. Focus returns to the
 trigger when those forms close. The background cannot
 scroll while the modal is open. Following an account/legal link closes the modal
 when the route changes. Pro members navigate directly; membership checks still
@@ -72,17 +82,18 @@ Membership choices show Monthly first (selected by default), then Yearly. USD
 remains the default currency when available, and changing currency preserves the
 chosen billing period. Dialog dimensions stay fixed while membership/pricing
 loads; the pricing loading state reserves space to reduce content jumps. Direct protected routes and `/upgrade` show guests the same sign-in modal;
-authenticated Free visitors see the same non-dismissible Pro modal. Checkout,
+authenticated Free visitors see the same dismissible Pro modal. Checkout,
 restore, access enforcement and the inactive promo-code field are unchanged.
 
 ## Sign-in before protected content — 2 November 2026
 
-All plan-creation links require an account before opening the questionnaire.
-`/plan/setup` and `/plan/refine` also guard direct visits, so anonymous visitors
-cannot start or restore questionnaire steps. Signed-in Free members retain the
+Initial plan-creation links and `/plan/setup` allow guests to complete and restore
+the questionnaire; sign-in is required at final submission as described above.
+`/plan/refine` still requires an account. Signed-in Free members retain the
 questionnaire-before-purchase flow; activating or executing a personal plan
-still requires Pro. The local preview flow is described above. All links into Plan and Activity use the shared access
-link. Paid workout cards open the access modal; the free workout keeps guest
+still requires Pro. The local preview flow is described above. Plan links navigate
+to the route, which enforces access for existing paid plans and saved previews;
+Activity links use the shared access link. Paid workout cards open the access modal; the free workout keeps guest
 access. Individual exercise guides now require sign-in, as described below.
 Library’s explicit
 account links open registration/sign-in in that same modal.
@@ -114,7 +125,6 @@ free-workout playback remain available without an account, and the 40 exercise
 records and their existing media paths are unchanged. This is a page-access rule;
 static media URLs remain public.
 
-
 ## Creation status
 
 Creation uses an indeterminate spinner and real lifecycle states: validated
@@ -127,7 +137,6 @@ Preview storage failure prevents navigation and offers a retry. The existing
 runtime content/schema validation, authored timing and pain constraints remain
 in the deterministic compiler; the catalog still contains 40 exercises.
 
-
 ## Stable free-content boundary — 3 November 2026
 
 `librarySelection` defines the global media/name order and `freeExerciseIds`
@@ -136,11 +145,11 @@ exercise guide routes and workout exercise links. Authenticated server catalog
 requests include all summaries; guests receive only the preview. Free exercise
 access is independent of current search, sport query and pagination.
 
-All Pro entry points, including Plan, Activity, Explore Pro, paid workouts and
-exercise 11 onward, now use a non-dismissible modal. Direct protected URLs also
+Paid-content entry points, including existing paid plans, Activity, Explore Pro,
+paid workouts and exercise 11 onward, use a dismissible upgrade modal. Direct protected URLs also
 open this modal instead of an inline paywall. Authentication screens remain
-closable before sign-in; after sign-in a blocked destination shows the locked
-Pro offer. Only the actual generated-preview entry supplies `planCreated`, so
+closable before and after sign-in. Dismissal does not mount protected content;
+the route retains its access prompt. The generated-plan activation offer remains locked. Only the actual generated-preview entry supplies `planCreated`, so
 other Plan invitations do not incorrectly claim a plan has already been created.
 Account/legal/free-workout links and browser navigation remain available. Pro
 accounts and trusted admin overrides retain full access.

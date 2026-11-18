@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { enforceAuthRateLimit } from "@/services/http/rate-limit";
+import { beginPkce } from "@/services/auth/server";
 vi.mock("@/services/http/rate-limit", () => ({
   enforceRateLimit: vi.fn(async (): Promise<Response | null> => null),
   enforceAuthRateLimit: vi.fn(async (): Promise<Response | null> => null),
@@ -30,6 +31,24 @@ function request(action: string, body: unknown, origin = "https://axyro.test") {
   });
 }
 describe("auth route trust boundaries", () => {
+  it.each([undefined, "/plan/setup?resume=1&generate=1"])(
+    "defaults registration to Home while retaining explicit destinations (%s)",
+    async (next) => {
+      auth.supabaseRequest.mockResolvedValueOnce({});
+      const response = await POST(
+        request("signup", {
+          email: "player@example.com",
+          password: "secure-password-123",
+          confirmPassword: "secure-password-123",
+          displayName: "Player",
+          next,
+        }),
+        { params: Promise.resolve({ action: "signup" }) },
+      );
+      expect(response.status).toBe(200);
+      expect(beginPkce).toHaveBeenCalledWith(next ?? "/");
+    },
+  );
   it.each(["signin", "signup", "recover"])(
     "stops rate-limited %s before reaching the provider",
     async (action) => {

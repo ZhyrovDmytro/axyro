@@ -148,9 +148,7 @@ export async function POST(
         input.email,
       );
       if (limited) return limited;
-      const challenge = await beginPkce(
-        safeNext(input.next ?? null, "/plan/setup"),
-      );
+      const challenge = await beginPkce(safeNext(input.next ?? null));
       const result = await supabaseRequest(
         `/auth/v1/signup?redirect_to=${encodeURIComponent(`${applicationOrigin(request)}/auth/callback`)}`,
         {

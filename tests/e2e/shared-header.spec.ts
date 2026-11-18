@@ -93,12 +93,12 @@ for (const signedIn of [false, true]) {
       });
       await expect(accountLink).toHaveAttribute(
         "href",
-        signedIn ? "/account" : "/signin?next=%2Fworkouts",
+        signedIn ? "/account" : "/signin",
       );
       await accountLink.press("Enter");
       await expect(accountLink).toHaveAttribute("aria-current", "page");
       if (!signedIn)
-        await expect(accountLink).toHaveAttribute("href", "/signin?next=%2F");
+        await expect(accountLink).toHaveAttribute("href", "/signin");
       await page.goto("/workouts/foundation-strength/start");
       await expect(page.getByRole("timer")).toBeVisible();
       await expect(page.getByRole("banner")).toHaveCount(0);

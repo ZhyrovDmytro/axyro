@@ -1,5 +1,4 @@
 "use client";
-import { PaywallLink } from "@/components/membership/paywall-modal";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -87,14 +86,9 @@ export function ActivityHistory() {
           <p>
             Complete, skip, or pass a planned training day to build your record.
           </p>
-          <PaywallLink
-            className="button button--primary"
-            href="/plan"
-            context="plan"
-            returnTo="/plan"
-          >
+          <Link className="button button--primary" href="/plan">
             View plan
-          </PaywallLink>
+          </Link>
         </section>
       ) : (
         <div className="activity-groups">

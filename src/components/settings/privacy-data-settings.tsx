@@ -1,5 +1,4 @@
 "use client";
-import { PaywallLink } from "@/components/membership/paywall-modal";
 
 import Link from "next/link";
 import { useAuth } from "@/components/auth/auth-provider";
@@ -215,15 +214,9 @@ export function PrivacyDataSettings() {
         </fieldset>
         {!profile && planReady && (
           <p>
-            <PaywallLink
-              className="text-link"
-              href="/plan/setup"
-              context="plan"
-              returnTo="/plan/setup"
-              requirePro={false}
-            >
+            <Link className="text-link" href="/plan/setup">
               Set up your plan
-            </PaywallLink>{" "}
+            </Link>{" "}
             to choose its default session length.
           </p>
         )}

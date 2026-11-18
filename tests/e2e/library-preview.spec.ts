@@ -1,16 +1,16 @@
 import { expect, test } from "@playwright/test";
 
-test("guest preview keeps ten real guides and offers account actions after the gradient", async ({
+test("guest preview keeps six real guides and offers account actions after the gradient", async ({
   page,
 }) => {
   await page.goto("/exercises?page=3");
   const cards = page.locator(".exercise-card");
-  await expect(cards).toHaveCount(10);
+  await expect(cards).toHaveCount(6);
   await expect(
     page.getByRole("link", { name: "Explore Pro", exact: true }),
   ).toHaveAttribute("href", "/upgrade?context=library&returnTo=/exercises");
   await expect(page.locator(".library-invitation")).toContainText(
-    "30 more exercises",
+    "34 more exercises",
   );
   await expect(page.getByText("Locked guide", { exact: false })).toHaveCount(0);
   await expect(cards.first().locator("img, video").first()).toBeVisible();
@@ -66,7 +66,7 @@ test("Free member sees Explore Pro instead of registration in the library", asyn
     route.fulfill({ json: { hasPro: false, subscription: null } }),
   );
   await page.goto("/exercises");
-  await expect(page.locator(".exercise-card")).toHaveCount(10);
+  await expect(page.locator(".exercise-card")).toHaveCount(6);
   await expect(
     page.getByRole("link", { name: "Explore Pro", exact: true }),
   ).toBeVisible();

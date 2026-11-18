@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 
 import { AuthProvider } from "@/components/auth/auth-provider";
+import { AccountContent } from "@/components/auth/account-content";
 import { EntitlementProvider } from "@/components/membership/entitlement-provider";
 
 import {
@@ -37,7 +38,7 @@ export default function RootLayout({
                 </a>
                 <AppHeader />
                 <div id="main-content" tabIndex={-1}>
-                  {children}
+                  <AccountContent>{children}</AccountContent>
                 </div>
               </div>
             </EntitlementProvider>

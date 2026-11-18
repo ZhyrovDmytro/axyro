@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { LoadingStatus } from "@/components/loading-status";
 
 import { ExerciseCard } from "@/components/exercise-card";
 import { ExerciseFilters } from "@/components/exercise-filters";
@@ -8,7 +9,11 @@ import { UiIcon } from "@/components/ui-icon";
 import { publishedExercises as exercises } from "@/content/exercises";
 import { bodyAreaSchema } from "@/domain/exercise/exercise.schema";
 import { titleCase } from "@/lib/format";
-import { FREE_LIBRARY_LIMIT, librarySelection } from "@/lib/library-access";
+import {
+  FREE_LIBRARY_LIMIT,
+  GUEST_LIBRARY_LIMIT,
+  librarySelection,
+} from "@/lib/library-access";
 import { getAuthSession } from "@/services/auth/server";
 import { getBillingAccess } from "@/services/billing/server";
 import { LibraryInvitation } from "@/components/membership/library-invitation";
@@ -44,11 +49,12 @@ export default async function ExercisesPage({
   const session = await getAuthSession({ refresh: false });
   const hasPro = session ? (await getBillingAccess(session)).hasPro : false;
   const showingFullCatalog = Boolean(session);
-  const exerciseRows = librarySelection(exercises, Boolean(session)).map(
-    (exercise) => ({
-      exercise,
-    }),
-  );
+  const catalog = librarySelection(exercises, true);
+  const exerciseRows = (
+    session ? catalog : catalog.slice(0, GUEST_LIBRARY_LIMIT)
+  ).map((exercise) => ({
+    exercise,
+  }));
   const bodyAreas = [
     ...new Set(exercises.flatMap((exercise) => exercise.bodyAreas)),
   ];
@@ -100,7 +106,7 @@ export default async function ExercisesPage({
       <Suspense
         fallback={
           <div className="exercise-filter-panel" aria-label="Exercise filters">
-            Loading filters…
+            <LoadingStatus>Loading filters…</LoadingStatus>
           </div>
         }
       >
@@ -118,8 +124,9 @@ export default async function ExercisesPage({
 
       {!hasPro && (
         <p className="library-preview-note">
-          {FREE_LIBRARY_LIMIT} free guides · {exercises.length} exercises with
-          Pro.
+          {session
+            ? `${FREE_LIBRARY_LIMIT} free guides · ${exercises.length} exercises with Pro.`
+            : `Showing ${GUEST_LIBRARY_LIMIT} of ${exercises.length} exercises. Sign in to browse the full library.`}
         </p>
       )}
       <section aria-labelledby="exercise-results-heading">
@@ -128,7 +135,7 @@ export default async function ExercisesPage({
           <span className="result-count" role="status">
             {filteredExercises.length} result
             {filteredExercises.length === 1 ? "" : "s"}
-            {!showingFullCatalog && " in the free preview"}
+            {!showingFullCatalog && " in the preview"}
           </span>
         </div>
         {filteredExercises.length ? (
@@ -142,12 +149,12 @@ export default async function ExercisesPage({
             <h2>
               {showingFullCatalog
                 ? "No exercises found"
-                : "No free-preview guides match"}
+                : "No preview exercises match"}
             </h2>
             <p>
               {showingFullCatalog
                 ? "Try clearing one or more filters."
-                : `Search covers the ${FREE_LIBRARY_LIMIT} free guides. Pro opens all ${exercises.length} exercises.`}
+                : `Search covers the ${GUEST_LIBRARY_LIMIT} preview exercises. Sign in to browse all ${exercises.length}.`}
             </p>
             <Link className="text-link" href="/exercises">
               Clear all filters

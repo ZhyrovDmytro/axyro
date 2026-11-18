@@ -1,5 +1,6 @@
 "use client";
 import { PaywallLink } from "@/components/membership/paywall-modal";
+import { PageSkeleton } from "@/components/page-skeleton";
 
 import { getPlanProgress } from "@/domain/training-plan/plan-progress";
 
@@ -289,7 +290,7 @@ function DiscoverHome() {
 }
 
 export function HomeDashboard() {
-  const { hasPro } = useEntitlement();
+  const { hasPro, loading: membershipLoading } = useEntitlement();
   const trainingPlan = useTrainingPlan();
   const { plan, ready, needsCatalogRefresh } = trainingPlan;
   const activeSession = useActiveWorkoutSession();
@@ -303,16 +304,8 @@ export function HomeDashboard() {
   const today = toDateKey(new Date());
   const activity = useWorkoutActivityHistory(today);
 
-  if (!ready) {
-    return (
-      <main className="page-shell home-loading" aria-live="polite">
-        <span className="sr-only">Loading your training…</span>
-        <div className="home-loading__line home-loading__line--short" />
-        <div className="home-loading__line home-loading__line--title" />
-        <div className="home-loading__line" />
-        <div className="home-loading__panel" />
-      </main>
-    );
+  if (!ready || membershipLoading) {
+    return <PageSkeleton />;
   }
 
   if (!plan || !hasPro) {

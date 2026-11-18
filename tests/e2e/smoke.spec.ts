@@ -4,7 +4,7 @@ import { installDeterministicPlanner } from "./helpers/planner";
 test.beforeEach(async ({ page }, testInfo) => {
   const guestScenarios = new Set([
     "loads the application shell",
-    "keeps mobile navigation to one safe five-item row",
+    "opens mobile navigation over the page without moving content",
     "browses a workout and previews its plan",
   ]);
   if (!guestScenarios.has(testInfo.title)) {
@@ -45,9 +45,12 @@ test("loads the application shell", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("keeps mobile navigation to one safe five-item row", async ({ page }) => {
+test("opens mobile navigation over the page without moving content", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/workouts");
+  await page.getByRole("button", { name: "Menu", exact: true }).click();
 
   const primaryNavigation = page.getByRole("navigation", {
     name: "Primary navigation",
@@ -64,7 +67,7 @@ test("keeps mobile navigation to one safe five-item row", async ({ page }) => {
     .evaluateAll((links) =>
       links.map((link) => link.getBoundingClientRect().top),
     );
-  expect(new Set(linkBoxes.map(Math.round)).size).toBe(1);
+  expect(new Set(linkBoxes.map(Math.round)).size).toBe(5);
 
   await expect(
     page

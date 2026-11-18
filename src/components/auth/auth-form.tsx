@@ -30,6 +30,12 @@ export function AuthForm({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(initialError);
   const [message, setMessage] = useState("");
+  const pendingMessage = {
+    signin: "Signing in…",
+    signup: "Creating your account…",
+    recover: "Sending reset link…",
+    password: "Updating password…",
+  }[mode];
   const target =
     next.startsWith("/") && !next.startsWith("//") && !next.includes("\\")
       ? next
@@ -300,9 +306,7 @@ export function AuthForm({
                     <span className="button-spinner" aria-hidden="true" />
                   )}
                   {busy
-                    ? mode === "password"
-                      ? "Updating password…"
-                      : "Please wait…"
+                    ? pendingMessage
                     : {
                         signin: "Sign in",
                         signup: "Create account",
@@ -313,6 +317,11 @@ export function AuthForm({
               </fieldset>
             </form>
           )}
+        {busy && mode !== "password" && (
+          <p className="sr-only" role="status">
+            {pendingMessage}
+          </p>
+        )}
         {(mode === "signin" || mode === "signup") && configured && (
           <div className="auth-social">
             <p className="auth-divider">or continue with</p>

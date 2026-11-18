@@ -1,3 +1,4 @@
+import { openNavigation } from "./helpers/navigation";
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
@@ -75,6 +76,7 @@ test("guest landing offers a working free workout and accessible preview", async
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "Home training for your next padel match",
   );
+  await openNavigation(page);
   await expect(
     page.getByRole("navigation", { name: "Primary navigation" }),
   ).toBeVisible();
@@ -133,6 +135,7 @@ test("signed-in members retain the existing home", async ({ page }) => {
     route.fulfill({ json: { userId: user.id, data: {}, revision: 0 } }),
   );
   await page.goto("/");
+  await openNavigation(page);
   await expect(
     page.getByRole("navigation", { name: "Primary navigation" }),
   ).toBeVisible();

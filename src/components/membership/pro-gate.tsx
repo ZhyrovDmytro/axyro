@@ -1,5 +1,6 @@
 "use client";
 import { useEffect } from "react";
+import { PageSkeleton } from "@/components/page-skeleton";
 import { useAuth } from "@/components/auth/auth-provider";
 import { PaywallLink, usePaywallModal } from "./paywall-modal";
 import { useEntitlement } from "./entitlement-provider";
@@ -19,12 +20,14 @@ export function ProGate({
 }) {
   const { user, loading: authLoading } = useAuth();
   const { hasPro, loading } = useEntitlement();
-  const Container = embedded ? "section" : "main";
   if (authLoading || (user && requirePro && loading))
     return (
-      <Container className="page-shell" role="status">
-        Checking membership…
-      </Container>
+      <PageSkeleton
+        embedded={embedded}
+        title={context === "progress" ? "Activity" : "Your training"}
+        message="Checking your access…"
+        layout={context === "progress" ? "list" : "dashboard"}
+      />
     );
   if (!user || (requirePro && !hasPro))
     return (

@@ -11,6 +11,7 @@ export type UiIconName =
   | "grip"
   | "incomplete"
   | "minus"
+  | "menu"
   | "pause"
   | "play"
   | "plus"
@@ -106,11 +107,13 @@ export function UiIcon({ name, ...props }: UiIconProps) {
     );
   }
 
-  if (name === "close") {
+  if (name === "close" || name === "menu") {
     return (
       <svg {...commonProps}>
         <path
-          d="m7 7 10 10M17 7 7 17"
+          d={
+            name === "menu" ? "M5 6h14M5 12h14M5 18h14" : "m7 7 10 10M17 7 7 17"
+          }
           stroke="currentColor"
           strokeLinecap="round"
           strokeWidth="1.8"

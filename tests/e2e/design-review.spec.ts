@@ -117,10 +117,8 @@ test("phone library cards fit their content and show the first name without scro
   const first = page.locator(".exercise-card").first();
   await expect(first.getByRole("heading")).toBeInViewport();
   const title = await first.getByRole("heading").boundingBox();
-  const navigation = await page
-    .getByRole("navigation", { name: "Primary navigation" })
-    .boundingBox();
-  expect(title!.y + title!.height).toBeLessThan(navigation!.y);
+  const navigation = await page.getByRole("banner").boundingBox();
+  expect(title!.y).toBeGreaterThan(navigation!.y + navigation!.height);
   const box = await first.boundingBox();
   expect(box!.height).toBeLessThan(430);
   await first.click();

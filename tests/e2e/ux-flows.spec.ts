@@ -1,3 +1,4 @@
+import { openNavigation } from "./helpers/navigation";
 import { mockFreeMember } from "./helpers/free-member";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
@@ -37,6 +38,7 @@ test("keyboard users can skip navigation and reach Activity", async ({
   ).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.locator("#main-content")).toBeFocused();
+  await openNavigation(page);
   await page
     .getByRole("navigation", { name: "Primary navigation" })
     .getByRole("link", { name: "Activity" })

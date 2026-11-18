@@ -4,6 +4,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { useAuth } from "@/components/auth/auth-provider";
@@ -20,31 +21,37 @@ export function EntitlementProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const userId = user?.id ?? null;
+  const requestGeneration = useRef(0);
   const [state, setState] = useState({
     hasPro: false,
-    loading: true,
+    userId: undefined as string | null | undefined,
     subscription: null as Subscription | null,
   });
   const refresh = useCallback(async () => {
+    const generation = ++requestGeneration.current;
     try {
       const response = await fetch("/api/billing/status", {
         cache: "no-store",
       });
       if (!response.ok) throw new Error("Membership unavailable");
       const payload = await response.json();
+      if (generation !== requestGeneration.current) return false;
       setState({
         hasPro: payload.hasPro === true,
         subscription: payload.subscription,
-        loading: false,
+        userId,
       });
       return payload.hasPro === true;
     } catch {
-      setState({ hasPro: false, loading: false, subscription: null });
+      if (generation !== requestGeneration.current) return false;
+      setState({ hasPro: false, userId, subscription: null });
       return false;
     }
-  }, []);
+  }, [userId]);
   useEffect(() => {
+    if (authLoading) return;
     const initial = window.setTimeout(() => {
       void refresh();
     }, 0);
@@ -71,9 +78,17 @@ export function EntitlementProvider({
       window.clearInterval(interval);
       window.removeEventListener("focus", check);
     };
-  }, [refresh, user]);
+  }, [refresh, user, authLoading]);
+  const ready = !authLoading && state.userId === userId;
   return (
-    <EntitlementContext.Provider value={{ ...state, refresh }}>
+    <EntitlementContext.Provider
+      value={{
+        hasPro: ready && state.hasPro,
+        loading: !ready,
+        subscription: ready ? state.subscription : null,
+        refresh,
+      }}
+    >
       {children}
     </EntitlementContext.Provider>
   );

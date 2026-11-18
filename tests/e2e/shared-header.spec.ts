@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
 for (const signedIn of [false, true]) {
-  for (const width of [320, 768, 1280]) {
+  for (const width of [320, 390, 768, 1280]) {
     test(`${signedIn ? "member" : "guest"} shares navigation at ${width}px`, async ({
       page,
     }) => {
@@ -36,9 +36,47 @@ for (const signedIn of [false, true]) {
         header.getByRole("link", { name: "Axyro home" }),
       ).toBeVisible();
       await expect(page).toHaveTitle(/Axyro/);
-      const nav = header.getByRole("navigation", {
+      await expect(
+        header.getByRole("link", {
+          name: signedIn ? "Account" : "Sign in",
+          exact: true,
+        }),
+      ).toBeVisible();
+      const nav = page.getByRole("navigation", {
         name: "Primary navigation",
       });
+      const menu = header.getByRole("button", { name: /^(Menu|Close)$/ });
+      if (width < 768) {
+        await expect(nav).toBeHidden();
+        const headerBefore = await header.boundingBox();
+        const contentBefore = await page.locator("#main-content").boundingBox();
+        await menu.click();
+        await expect(menu).toHaveAttribute("aria-expanded", "true");
+        await expect(
+          page.getByRole("dialog", { name: "Navigation", exact: true }),
+        ).toBeVisible();
+        expect(await header.boundingBox()).toEqual(headerBefore);
+        expect(await page.locator("#main-content").boundingBox()).toEqual(
+          contentBefore,
+        );
+        await nav.getByRole("link", { name: "Home", exact: true }).focus();
+        await page.keyboard.press("Escape");
+        await expect(menu).toBeFocused();
+        await expect(nav).toBeHidden();
+        await menu.press("Enter");
+        const headerBox = await header.boundingBox();
+        const navBox = await nav.boundingBox();
+        expect(headerBox).not.toBeNull();
+        expect(navBox).not.toBeNull();
+        expect(navBox!.y).toBeGreaterThanOrEqual(
+          headerBox!.y + headerBox!.height,
+        );
+        await page.mouse.click(4, 400);
+        await expect(nav).toBeHidden();
+        await menu.click();
+      } else {
+        await expect(menu).toBeHidden();
+      }
       await expect(nav.getByRole("link")).toHaveText([
         "Home",
         "Plan",
@@ -70,14 +108,23 @@ for (const signedIn of [false, true]) {
         targets.every((rect) => rect.width >= 44 && rect.height >= 44),
       ).toBe(true);
       expect(
-        (await new AxeBuilder({ page }).include(".site-header").analyze())
-          .violations,
+        (
+          await new AxeBuilder({ page })
+            .include(".site-header")
+            .include(width < 768 ? ".mobile-nav-popup" : ".primary-nav")
+            .analyze()
+        ).violations,
       ).toEqual([]);
       await page.screenshot({
         path: `/tmp/axyro-nav-${signedIn ? "member" : "guest"}-${width}.png`,
         scale: "css",
       });
       await nav.getByRole("link", { name: "Workouts", exact: true }).click();
+      if (width < 768) {
+        await expect(nav).toBeHidden();
+        await expect(menu).toHaveAttribute("aria-expanded", "false");
+        await menu.click();
+      }
       await expect(
         nav.getByRole("link", { name: "Workouts", exact: true }),
       ).toHaveAttribute("aria-current", "page");

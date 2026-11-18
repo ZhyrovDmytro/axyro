@@ -110,6 +110,8 @@ describe("ExerciseMedia", () => {
       "/videos/dumbbell-romanian-deadlift.mov",
     );
     expect(markup).toContain('preload="metadata"');
+    expect(markup).toContain('poster="/images/exercises/dumbbell-romanian-deadlift-preview.png"');
+    expect(markup).not.toContain('class="exercise-media__loading"');
     expect(markup).not.toContain("Play demo");
     expect(markup).not.toContain("Replay");
   });

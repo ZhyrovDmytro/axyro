@@ -242,16 +242,22 @@ export function WorkoutConfigurator({
                       </PaywallLink>
                     </div>
                     <p>{exercise.shortDescription}</p>
+                    {item.prescription.perSide && (
+                      <p>Left → switch → right. Both sides included.</p>
+                    )}
                   </div>
                   <div className="plan-timing">
                     <span className="plan-timing-value">
                       <small>Rounds</small>
-                      <strong>{item.sets}</strong>
+                      <strong>
+                        {item.sets}
+                        {item.prescription.perSide ? " per side" : ""}
+                      </strong>
                     </span>
                     <TimingValue
                       label="Work"
                       seconds={workSeconds}
-                      suffix={item.prescription.perSide ? " / side" : ""}
+                      suffix={item.prescription.perSide ? " per side" : ""}
                     />
                     {setRestSeconds !== undefined && (
                       <TimingValue

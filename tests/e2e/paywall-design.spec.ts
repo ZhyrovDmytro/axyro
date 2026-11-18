@@ -1,3 +1,4 @@
+import { openNavigation } from "./helpers/navigation";
 import { mockFreeMember } from "./helpers/free-member";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
@@ -133,6 +134,8 @@ for (const width of [320, 390, 1280]) {
     await page.goto("/exercises");
     const search = page.getByRole("searchbox");
     await search.fill("shoulder");
+    await expect(page).toHaveURL(/\/exercises\?q=shoulder$/);
+    await openNavigation(page);
     const nav = page.getByRole("navigation", { name: "Primary navigation" });
     await nav.getByRole("link", { name: "Activity", exact: true }).click();
     const modal = page.getByRole("dialog", { name: "Axyro Pro membership" });
@@ -177,10 +180,13 @@ for (const width of [320, 390, 1280]) {
     await page.keyboard.press("Escape");
     await expect(modal).toHaveCount(0);
     await expect(
-      nav.getByRole("link", { name: "Activity", exact: true }),
+      width < 768
+        ? page.getByRole("button", { name: "Menu", exact: true })
+        : nav.getByRole("link", { name: "Activity", exact: true }),
     ).toBeFocused();
     await expect(search).toHaveValue("shoulder");
     expect(await page.evaluate(() => document.body.style.overflow)).toBe("");
+    await openNavigation(page);
     await nav.getByRole("link", { name: "Activity", exact: true }).click();
     await expect(
       modal.getByRole("heading", {
@@ -212,10 +218,12 @@ test("Pro members navigate to Plan and Activity without a paywall", async ({
     route.fulfill({ json: { hasPro: true, subscription: null } }),
   );
   await page.goto("/exercises");
+  await openNavigation(page);
   const nav = page.getByRole("navigation", { name: "Primary navigation" });
   await nav.getByRole("link", { name: "Activity", exact: true }).click();
   await expect(page).toHaveURL(/\/activity$/);
   await expect(page.getByRole("dialog")).toHaveCount(0);
+  await openNavigation(page);
   await nav.getByRole("link", { name: "Plan", exact: true }).click();
   await expect(page).toHaveURL(/\/plan$/);
   await expect(page.getByRole("dialog")).toHaveCount(0);
@@ -233,15 +241,21 @@ test("a pending Pro check continues to the requested page without flashing offer
     await route.fulfill({ json: { hasPro: true, subscription: null } });
   });
   await page.goto("/exercises");
+  await openNavigation(page);
   await page
     .getByRole("navigation", { name: "Primary navigation" })
     .getByRole("link", { name: "Activity", exact: true })
     .click();
   const modal = page.getByRole("dialog");
-  await expect(modal.getByRole("status")).toHaveText("Checking membership…");
-  await expect(modal.locator(".paywall")).toHaveCount(0);
+  await expect(page).toHaveURL(/\/activity$/);
+  await expect(page.getByRole("main")).toHaveAttribute("aria-busy", "true");
+  await expect(
+    page.getByRole("status").filter({ hasText: "Checking your access…" }),
+  ).toHaveCount(1);
+  await expect(modal).toHaveCount(0);
   releaseStatus();
   await expect(page).toHaveURL(/\/activity$/);
+  await expect(page.locator(".page-skeleton")).toHaveCount(0);
   await expect(modal).toHaveCount(0);
 });
 
@@ -276,6 +290,7 @@ test("unavailable memberships have a visible close control in a smaller desktop 
     route.fulfill({ json: { products: [] } }),
   );
   await page.goto("/exercises");
+  await openNavigation(page);
   const trigger = page
     .getByRole("navigation", { name: "Primary navigation" })
     .getByRole("link", { name: "Activity", exact: true });

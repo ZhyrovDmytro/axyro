@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadingStatus } from "@/components/loading-status";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -70,13 +71,13 @@ export function PaywallLink({
   ...props
 }: ComponentProps<typeof Link> & Omit<PaywallRequest, "planCreated">) {
   const open = usePaywallModal();
-  const { user } = useAuth();
-  const { hasPro } = useEntitlement();
+  const { user, loading: authLoading } = useAuth();
+  const { hasPro, loading } = useEntitlement();
   return (
     <Link
       {...props}
       onNavigate={(event) => {
-        if (user && (!requirePro || hasPro)) return;
+        if (!authLoading && user && (loading || !requirePro || hasPro)) return;
         event.preventDefault();
         open({ context, returnTo, requirePro, initialAuthMode });
       }}
@@ -166,9 +167,9 @@ function PaywallModal({
           </div>
         )}
         {authMode === undefined || (!authMode && loading) ? (
-          <p className="paywall-membership-loading" role="status">
+          <LoadingStatus className="paywall-membership-loading">
             Checking membership…
-          </p>
+          </LoadingStatus>
         ) : authMode ? (
           <AuthForm
             key={authMode}

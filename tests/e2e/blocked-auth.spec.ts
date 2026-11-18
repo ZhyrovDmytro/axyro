@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { openNavigation } from "./helpers/navigation";
 
 const account = {
   id: "a0000000-0000-4000-8000-000000000000",
@@ -111,6 +112,7 @@ test("guest entry points open sign-in and free content remains available", async
 }) => {
   await page.goto("/exercises");
   for (const label of ["Activity", "Explore Pro"]) {
+    if (label === "Activity") await openNavigation(page);
     await page.getByRole("link", { name: label, exact: true }).click();
     await expect(
       page.getByRole("dialog", { name: "Sign in to continue" }),
@@ -190,6 +192,7 @@ for (const destination of [
         await page.goto(destination);
       } else {
         await page.goto("/exercises");
+        await openNavigation(page);
         await page.getByRole("link", { name: "Activity", exact: true }).click();
       }
       const modal = page.getByRole("dialog");
@@ -245,6 +248,7 @@ for (const reduced of [false, true]) {
     await page.goto("/");
     const create = page.getByRole("link", { name: "Activity", exact: true });
     for (let opening = 0; opening < 2; opening++) {
+      await openNavigation(page);
       await page.evaluate(() => {
         document.documentElement.dataset.modalTransitions = "";
       });
@@ -265,7 +269,7 @@ for (const reduced of [false, true]) {
       if (reduced) await expect(modal).toHaveCSS("transform", "none");
       await page.keyboard.press("Escape");
       await expect(modal).toHaveCount(0);
-      await expect(create).toBeFocused();
+      await expect(page.getByRole("button", { name: "Menu", exact: true })).toBeFocused();
     }
   });
 }

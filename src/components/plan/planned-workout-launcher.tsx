@@ -1,4 +1,5 @@
 "use client";
+import { PageSkeleton } from "@/components/page-skeleton";
 import Link from "next/link";
 
 import { applyBudgetedEffort } from "@/domain/workout/daily-duration";
@@ -22,9 +23,11 @@ export function PlannedWorkoutLauncher({
   const { plan, ready, updatePlan } = useTrainingPlan();
   if (!ready)
     return (
-      <main className="player-shell player-loading">
-        Preparing your workout…
-      </main>
+      <PageSkeleton
+        title="Your workout"
+        message="Preparing your workout…"
+        layout="player"
+      />
     );
   const session = plan?.sessions.find((item) => item.id === sessionId);
   if (!plan || !session)

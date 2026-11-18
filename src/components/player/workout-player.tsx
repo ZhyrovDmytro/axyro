@@ -1,5 +1,6 @@
 "use client";
 
+import { PageSkeleton } from "@/components/page-skeleton";
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -232,9 +233,11 @@ export function WorkoutPlayer(props: WorkoutPlayerProps) {
 
   if (!continuity) {
     return (
-      <main className="player-shell player-loading" aria-live="polite">
-        Restoring your workout…
-      </main>
+      <PageSkeleton
+        title="Your workout"
+        message="Restoring your workout…"
+        layout="player"
+      />
     );
   }
 
@@ -1139,7 +1142,7 @@ function WorkoutPlayerRuntime({
             <div className="offline-media-row">
               <span>
                 <strong>Current workout media</strong>
-                <small>
+                <small role="status">
                   {mediaCache.status === "ready"
                     ? "Saved for this browser’s offline cache."
                     : mediaCache.status === "caching"

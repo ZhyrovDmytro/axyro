@@ -271,7 +271,8 @@ No owners or target dates have been assigned yet.
     request does not enable automatic tax collection; explicitly decide and
     implement applicable tax handling.
 
-- [ ] **L08 — Real payment lifecycle verification** · Unverified
+- [ ] **L08 — Real payment lifecycle verification** · Partial
+  - 2026-11-21: staging sandbox checkout unlocked Pro and account deletion canceled the linked test subscription. Live billing and renewal remain unverified.
   - 2026-11-02 infrastructure check: a zero-value invoice for a disposable
     sandbox customer with no app association, email or payment details generated
     real event `evt_1UXLrXRrXPiiRoHsQj93OjNu` (`invoice.paid`). Stripe records
@@ -553,3 +554,5 @@ business and markets. Recheck current requirements when completing legal tasks.
 | 2026-11-18 | L17 / L19 | Follow-up correction: compact video previews now play muted and loop while visible, with automatic pausing offscreen, in hidden tabs and under reduced motion. The existing poster and autoplay/error fallback remain. Added a browser regression that first reproduced the static preview, then verified advancing video time at 390px/1280px, muted looping, offscreen pausing and live reduced-motion changes. Both targeted media browser tests, 537 unit tests, TypeScript, zero-warning lint and webpack build pass; complete browser/hosted release checks are pending. No new media clips, dependencies or timing changes. Current production rollback is `6afe1ea4f177d84c3539f056` / `e3b186c`. |
 
 | 2026-11-18 | L17 / L19 | [PR #8](https://github.com/ZhyrovDmytro/axyro/pull/8) merged as `cd6553dfcf8225ac15687ea96a009e4076de66b2` after [Release checks 44407094220](https://github.com/ZhyrovDmytro/axyro/actions/runs/44407094220) passed quality and all 188 browser regressions, including real video-time advancement in visible previews and offscreen/reduced-motion pausing. Netlify published `6afe214a8c838bde1fabd4f9` at https://axyro.app; all three deployed mobile smoke checks passed (12.6s). Local 537 unit tests, lint/types, webpack build, 188 browser tests and built-production smoke also pass. Rollback remains `6afe1ea4f177d84c3539f056` / `e3b186c`. This documentation-only follow-up records the verified application release; physical-device/autoplay-policy verification remains open, with the poster retained when playback is blocked. No dependencies, media clips, provider settings or payment-mode changes. |
+
+| 2026-11-21 | L05 / L06 / L08 | Verified signup, confirmed email, sandbox monthly checkout, fresh password sign-in after change, plan reset, server-backed five-minute refinement and training-data deletion. Account deletion rejected subsequent login and Stripe confirmed sandbox cancellation. Large-plan sync fix and corrected data deletion disclosure published to staging. |

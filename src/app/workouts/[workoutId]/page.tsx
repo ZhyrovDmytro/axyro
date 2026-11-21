@@ -1,3 +1,4 @@
+import { publicMetadata } from "@/lib/publishing";
 import { WorkoutAccess } from "@/components/membership/workout-access";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -26,10 +27,11 @@ export async function generateMetadata({
   const workout = getWorkoutBySlug(workoutId);
 
   return workout
-    ? {
-        title: `${workout.name} | Axyro`,
-        description: workout.shortDescription,
-      }
+    ? publicMetadata(
+        `/workouts/${workout.slug}`,
+        `${workout.name} | Axyro`,
+        workout.shortDescription,
+      )
     : {};
 }
 

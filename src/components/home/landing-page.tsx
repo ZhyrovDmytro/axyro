@@ -83,7 +83,7 @@ function LandingDemo({ exercise, playing }: { exercise: (typeof exercises)[numbe
   const { firstFrameUri, playbackUri } = exercise.media;
   const label = `${exercise.name} movement demonstration`;
   return playing && playbackUri && failedUri !== playbackUri ? (
-    <video role="img" aria-label={label} autoPlay muted loop playsInline
+    <video aria-label={label} autoPlay muted loop playsInline
       poster={firstFrameUri} src={playbackUri} onError={() => setFailedUri(playbackUri)} />
   ) : (
     <Image alt={label} src={firstFrameUri!} fill unoptimized />
@@ -164,7 +164,7 @@ export function LandingPage() {
         <section className={styles.hero}>
           <div className={styles.heroCopy}>
             <h1 className={styles.heroHeadline}>
-              Between padel matches
+              Train anywhere. Win on court.
             </h1>
             <p>
               Practise the side step, the turn and the stop at home. Pick a
@@ -372,7 +372,8 @@ export function LandingPage() {
           Axyro
         </Link>
         <span>Make room for movement.</span>
-        <nav aria-label="Legal">
+        <nav aria-label="Support and legal">
+          <Link href="/help">Help</Link>
           <Link href="/privacy">Privacy</Link>
           <Link href="/terms">Terms</Link>
           <Link href="/signin">Sign in</Link>

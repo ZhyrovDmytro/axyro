@@ -468,7 +468,7 @@ export function PlanOnboarding() {
         return;
       }
       const returnTo = "/plan/setup?resume=1&generate=1";
-      router.replace(returnTo);
+      window.history.replaceState(null, "", returnTo);
       openAccess({ context: "plan", returnTo, requirePro: false });
       return;
     }

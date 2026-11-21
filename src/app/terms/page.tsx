@@ -1,4 +1,12 @@
 import Link from "next/link";
+import { publicMetadata } from "@/lib/publishing";
+
+export const metadata = publicMetadata(
+  "/terms",
+  "Membership terms | Axyro",
+  "How free workouts, Pro subscriptions, cancellation and account deletion work.",
+);
+
 export default function TermsPage() {
   return (
     <main className="page-shell account-shell">
@@ -13,7 +21,7 @@ export default function TermsPage() {
         <p>
           Subscription prices, billing period and renewal terms are shown by
           Stripe before purchase. No free subscription trial is offered. Cancel
-          through Account → Manage subscription. Access continues through the
+          through Account → Membership in the Stripe customer portal. Access continues through the
           paid period unless the provider reports a payment problem or
           termination.
         </p>
@@ -25,6 +33,11 @@ export default function TermsPage() {
           Account deletion removes your stored profile and training data and
           cancels the linked Stripe subscription immediately. You must
           explicitly confirm deletion.
+        </p>
+        <p>
+          <Link className="text-link" href="/help">
+            Get help with billing or account access
+          </Link>
         </p>
         <Link className="text-link" href="/privacy">
           Read the privacy notice

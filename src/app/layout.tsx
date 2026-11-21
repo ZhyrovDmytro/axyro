@@ -11,9 +11,12 @@ import {
 
 import { AppHeader } from "@/components/app-header";
 
+import { publicOrigin } from "@/lib/publishing";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(publicOrigin),
+  robots: { index: false, follow: false },
   title: "Axyro",
   description: "Mobile-first guided workouts for focused training at home.",
 };

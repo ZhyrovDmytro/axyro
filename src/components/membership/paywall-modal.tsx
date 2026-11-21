@@ -30,7 +30,7 @@ type PaywallRequest = {
 type ModalRequest = PaywallRequest & { pathname: string };
 const PaywallModalContext = createContext<{
   request: ModalRequest | null;
-  open: (request: PaywallRequest) => void;
+  open: (request: PaywallRequest, automatic?: boolean) => void;
   close: () => void;
 } | null>(null);
 
@@ -38,11 +38,30 @@ export function PaywallProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [request, setRequest] = useState<ModalRequest | null>(null);
   if (request && request.pathname !== pathname) setRequest(null);
-  const open = useCallback(
-    (next: PaywallRequest) => setRequest({ ...next, pathname }),
+  // A sign-in can remount the same gate after its dialog was dismissed.
+  const dismissed = useRef<ModalRequest | null>(null);
+  useEffect(
+    () => () => {
+      dismissed.current = null;
+    },
     [pathname],
   );
-  const close = useCallback(() => setRequest(null), []);
+  const open = useCallback(
+    (next: PaywallRequest, automatic = false) => {
+      if (
+        automatic &&
+        dismissed.current?.pathname === pathname &&
+        dismissed.current.returnTo === next.returnTo
+      )
+        return;
+      setRequest({ ...next, pathname });
+    },
+    [pathname],
+  );
+  const close = useCallback(() => {
+    dismissed.current = request;
+    setRequest(null);
+  }, [request]);
   return (
     <PaywallModalContext.Provider value={{ request, open, close }}>
       {children}

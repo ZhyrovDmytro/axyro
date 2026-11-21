@@ -7,6 +7,8 @@ purchase checklist, see [sandbox billing handoff](BILLING_SANDBOX_TEST.md).
 
 Required server environment: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_MONTHLY_PRICE_ID` and/or `STRIPE_YEARLY_PRICE_ID`, `APP_URL` (canonical deployment origin), plus the Supabase server configuration in the authentication setup. Keep secrets out of `NEXT_PUBLIC_*` variables. Apply all SQL migrations in filename order. Enable subscription management/cancellation in Stripe's Customer Portal.
 
+Subscribers open Account → Membership → Manage or cancel subscription and confirm cancellation in Stripe. Configure the portal for cancellation at the end of the paid period.
+
 Approved regional membership prices are EUR 6.99/month or EUR 59.99/year and
 USD 7.99/month or USD 69.99/year. The original monthly/yearly environment
 variables hold EUR prices; optional `STRIPE_USD_MONTHLY_PRICE_ID` and

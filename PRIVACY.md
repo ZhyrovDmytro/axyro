@@ -11,7 +11,7 @@ part of application source or browser assets. Live email delivery/retention
 verification and the publishable provider disclosures remain launch work under
 L05/L09/L12.
 
-> Current account/subscription extension: see [Membership implementation](docs/MEMBERSHIP_IMPLEMENTATION.md), [Authentication](docs/AUTHENTICATION.md), [Billing](docs/billing.md), and [Multi-user data](docs/MULTI_USER_DATA_ARCHITECTURE.md). These replace earlier local-only/no-account scope statements below. Guest access is the single free starter; personalized plans and full access require Pro.
+> Current account/subscription extension: see [Membership implementation](docs/MEMBERSHIP_IMPLEMENTATION.md), [Authentication](docs/AUTHENTICATION.md), [Billing](docs/billing.md), and [Multi-user data](docs/MULTI_USER_DATA_ARCHITECTURE.md). These describe account storage and subscription handling. Guest access is the single free starter; personalized plans and full access require Pro.
 
 
 This document describes the current Axyro MVP implementation. It is an
@@ -32,8 +32,8 @@ The planner stores only fields tied to current product behavior:
 | Sore or uncomfortable areas                  | No              | Exclude affected loading and pause conflicting progression |
 | Upcoming match dates and importance          | No              | Protect recovery space around competition                  |
 
-Axyro does not ask for or retain sex, age, height, weight, identity/contact
-details, precise location, or free-form health notes. The current generator has
+The training questionnaire does not ask for sex, age, height, weight, contact
+details, precise location, or free-form health notes. Accounts separately store email and profile details. The current generator has
 no behavior that requires those fields. Legacy locally stored profile and plan
 objects are parsed through the current runtime schema and rewritten into the
 normalized field/value vocabulary without obsolete fields when read.
@@ -41,7 +41,7 @@ Human-readable questionnaire labels are never stored as profile values.
 
 ## Browser storage inventory
 
-All user-generated state is stored in the current browser's `localStorage`:
+The following keys describe browser training data. Signed-in accounts use an account-scoped cache and synchronize training records to Supabase. Guest training data stays in the browser:
 
 | Key                           | Contents                                                                        | Purpose                                                |
 | ----------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------ |
@@ -52,15 +52,13 @@ All user-generated state is stored in the current browser's `localStorage`:
 | `veyro.preferences.v1`        | Audio and preferred effort settings                                             | Restore user-selected guidance behavior                |
 | `veyro.adaptation-profile.v1` | Difficulty trend and bounded preferred/avoided exercise IDs                     | Adapt only future plan proposals                       |
 
-Data remains until the user deletes it in **Settings → Privacy & data**, clears
-site storage, or removes the app/browser data. Resetting a plan removes the
+Clearing browser storage removes the local copy. Signed-in training data can sync back from Supabase. Use the in-app data controls to change account data. Resetting a plan removes the
 current plan and active workout but deliberately retains the profile, history,
 feedback and preferences. **Delete all my data** removes every key listed above.
 
 ## Off-device and third-party audit
 
-The application has no account system, cloud synchronization, advertising,
-analytics, or crash-reporting SDK. When `AI_PLANNER_ENABLED` is false (the
+Netlify hosts the application. Supabase manages identity and synchronized account data, Resend delivers authentication email, and Stripe manages subscriptions. Google processes sign-in when selected. The application has no advertising, analytics or crash-reporting SDK. When `AI_PLANNER_ENABLED` is false (the
 default), planning is deterministic and no planning data is sent to OpenAI.
 
 When an operator explicitly enables the AI planner, the browser sends the
@@ -70,12 +68,12 @@ rendering of those answers and adaptation context plus up to 100 eligible compac
 exercise candidates to OpenAI with response storage disabled.
 It does not send workout history records, media, coaching instructions, common
 mistakes, or the API key to the browser. The accepted compiled plan is returned
-to the browser and stored locally. OpenAI processing and retention are governed
+to the browser and saved through the training repository. OpenAI processing and retention are governed
 by the operator's OpenAI API agreement and configuration.
 
 This audit covers both Axyro code and declared runtime dependencies, not only
 the persistence adapters. Before adding telemetry, remote media personalized by
-user state, authentication, cloud sync, or another third-party integration,
+user state or another third-party integration,
 repeat this audit and update the in-product notice and release disclosures.
 
 ## Safety boundary

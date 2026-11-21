@@ -129,6 +129,21 @@ describe("identity-owned browser persistence", () => {
     expect(createBrowserUserStorage("development-admin")).not.toBeNull();
   });
 
+  it("uploads large training snapshots without keepalive", async () => {
+    const owner = "a0000000-0000-4000-8000-000000000000";
+    const request = vi.fn()
+      .mockResolvedValueOnce(Response.json({ userId: owner, data: {}, revision: 0 }))
+      .mockResolvedValueOnce(Response.json({ revision: 1 }));
+    vi.stubGlobal("fetch", request);
+    await initializeUserStorage(owner);
+    const plan = "é".repeat(40_000);
+    createBrowserUserStorage()!.setItem("veyro.training-plan.v1", plan);
+    await flushUserStorage();
+    const options = request.mock.calls[1][1];
+    expect(options.keepalive).toBe(false);
+    expect(JSON.parse(options.body).data["veyro.training-plan.v1"]).toBe(plan);
+  });
+
   it("never adopts unattributed legacy data", async () => {
     localStorage.setItem(key, "legacy");
     await initializeUserStorage(null);

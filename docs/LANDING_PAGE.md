@@ -12,7 +12,7 @@ preview → guided-player explanation → one Pro plan example → exercise libr
 FAQ → closing action. The repeated benefits, duration and static-week sections
 were removed following the [design review](design-review-2026-10-23.md).
 
-The hero opens with “Between padel matches” beside an interactive exercise
+The hero opens with “Train anywhere. Win on court.” beside an interactive exercise
 preview. Its caption names the selected movement, and the counter follows the
 exercise picker. Session lengths appear in the introduction.
 The primary action is Create my plan; a secondary link offers the free workout.
@@ -87,3 +87,5 @@ closing actions, viewport overflow and automated accessibility.
 
 All FAQ answers start collapsed. Each question independently opens or closes its
 answer using native `details`/`summary` controls, with pointer and keyboard support.
+
+The public homepage renders its heading and workout links in the initial HTML while account initialization runs. A confirmed signed-in session switches to the training dashboard.

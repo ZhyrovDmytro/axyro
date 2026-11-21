@@ -1,12 +1,13 @@
-import type { Metadata } from "next";
+import { publicMetadata } from "@/lib/publishing";
 
 import { WorkoutLibrary } from "@/components/workout/workout-library";
 import { starterWorkouts as workouts } from "@/content/workouts";
 
-export const metadata: Metadata = {
-  title: "Quick-start workouts | Axyro",
-  description: "Start a short, basic guided workout without creating a plan.",
-};
+export const metadata = publicMetadata(
+  "/workouts",
+  "Quick-start workouts | Axyro",
+  "Start a short, basic guided workout without creating a plan.",
+);
 
 export default function WorkoutsPage() {
   return (

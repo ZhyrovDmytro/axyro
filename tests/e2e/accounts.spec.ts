@@ -322,3 +322,17 @@ test("recovery password replacement shows progress and an explicit completion sc
   await page.getByRole("link", { name: "Continue to account" }).click();
   await expect(page).toHaveURL(/\/account$/);
 });
+
+test("subscriber can find cancellation and enter the billing portal", async ({ page }) => {
+  await mockAccount(page, () => alice);
+  await page.route("**/api/billing/status", route => route.fulfill({
+    json: { hasPro: true, subscription: { status: "active", cancelAtPeriodEnd: false, expiresAt: null } },
+  }));
+  await page.route("**/api/billing/portal", route => route.fulfill({
+    json: { url: "/test-billing-portal" },
+  }));
+  await page.route("**/test-billing-portal", route => route.fulfill({ body: "Billing portal" }));
+  await page.goto("/account");
+  await page.getByRole("button", { name: "Manage or cancel subscription" }).click();
+  await expect(page).toHaveURL(/\/test-billing-portal$/);
+});

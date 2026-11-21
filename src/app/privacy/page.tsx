@@ -1,12 +1,13 @@
-import type { Metadata } from "next";
+import { publicMetadata } from "@/lib/publishing";
 import Link from "next/link";
 
 import { UiIcon } from "@/components/ui-icon";
 
-export const metadata: Metadata = {
-  title: "Privacy notice | Axyro",
-  description: "How Axyro handles training data and optional AI planning.",
-};
+export const metadata = publicMetadata(
+  "/privacy",
+  "Privacy notice | Axyro",
+  "How Axyro handles training data and optional AI planning.",
+);
 
 export default function PrivacyPage() {
   return (
@@ -18,8 +19,8 @@ export default function PrivacyPage() {
         <p className="kicker">Privacy notice</p>
         <h1>Your training belongs to your account.</h1>
         <p>
-          This notice describes the current implementation and is not legal
-          advice.
+          How Axyro stores your workout history, handles account data and uses
+          your planning preferences.
         </p>
       </header>
       <section className="instruction-grid">
@@ -58,7 +59,7 @@ export default function PrivacyPage() {
             Axyro stores account-owned training data in Supabase with an
             isolated browser cache. Guest workout settings and progress remain
             in this browser. Supabase handles account identity and Google login;
-            Stripe handles subscriptions. There is no advertising or analytics
+            Resend delivers confirmation and password-reset emails. Netlify hosts Axyro and serves workout media. Stripe handles subscriptions. There is no advertising or analytics
             integration.
           </p>
           <p>
@@ -75,8 +76,7 @@ export default function PrivacyPage() {
             Your training data remains when Pro expires. Account deletion
             removes the account and linked profile/training records and cancels
             the linked Stripe subscription. Settings can reset training data.
-            Provider billing records and infrastructure backups follow the
-            operator’s retention policies. Unattributed data from earlier
+            Separate billing records and infrastructure backups may remain after account deletion. Unattributed data from earlier
             local-only versions is preserved separately and never automatically
             assigned to an account.
           </p>
@@ -87,6 +87,7 @@ export default function PrivacyPage() {
           </p>
         </article>
       </section>
+      <Link className="text-link" href="/help">Get help with your data</Link>
     </main>
   );
 }

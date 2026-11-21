@@ -1,12 +1,12 @@
-import type { Metadata } from "next";
+import { publicMetadata } from "@/lib/publishing";
 import { Suspense } from "react";
 import { ExerciseLibrary } from "@/components/exercise-library";
 
-export const metadata: Metadata = {
-  title: "Exercises | Axyro",
-  description:
-    "Browse home exercise instructions, technique cues, and equipment.",
-};
+export const metadata = publicMetadata(
+  "/exercises",
+  "Exercises | Axyro",
+  "Browse home exercise instructions, technique cues, and equipment.",
+);
 
 export default function ExercisesPage() {
   return (

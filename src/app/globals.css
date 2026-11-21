@@ -8176,6 +8176,15 @@ h3 {
 .account-section > h2 + .button {
   margin-top: 1rem;
 }
+.account-membership {
+  display: grid;
+  gap: 0.5rem;
+}
+.account-membership > .button {
+  justify-self: start;
+  margin-top: 0.5rem;
+  max-width: 100%;
+}
 .account-fine-print {
   font-size: 0.8rem;
   color: var(--muted);

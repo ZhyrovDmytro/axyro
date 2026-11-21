@@ -30,7 +30,7 @@ test("loads the application shell", async ({ page }) => {
 
   await expect(
     page.getByRole("heading", {
-      name: /Between padel matches/,
+      name: "Train anywhere. Win on court.",
     }),
   ).toBeVisible();
   await expect(

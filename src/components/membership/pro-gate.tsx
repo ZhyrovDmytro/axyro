@@ -55,7 +55,7 @@ function AccessPrompt({
   const open = usePaywallModal();
   const { user } = useAuth();
   useEffect(() => {
-    open({ context, returnTo, requirePro });
+    open({ context, returnTo, requirePro }, true);
   }, [open, context, returnTo, requirePro]);
   const Container = embedded ? "section" : "main";
   const Heading = embedded ? "h2" : "h1";

@@ -69,12 +69,30 @@ test.beforeEach(async ({ page }) => {
   );
 });
 
+test("cold homepage includes the free workout link before JavaScript starts", async ({
+  browser,
+  baseURL,
+}) => {
+  const page = await browser.newPage({ baseURL, javaScriptEnabled: false });
+  try {
+    await page.goto("/");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "Train anywhere. Win on court.",
+    );
+    await expect(
+      page.getByRole("link", { name: "Try a free workout first" }).first(),
+    ).toBeVisible();
+  } finally {
+    await page.close();
+  }
+});
+
 test("guest landing offers a working free workout and accessible preview", async ({
   page,
 }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "Between padel matches",
+    "Train anywhere. Win on court.",
   );
   await openNavigation(page);
   await expect(
@@ -86,9 +104,7 @@ test("guest landing offers a working free workout and accessible preview", async
     await expect(link).toHaveAttribute("href", "/plan/setup");
   }
   await expect(
-    page.getByRole("img", {
-      name: "Standing Dumbbell Wood Chop movement demonstration",
-    }),
+    page.getByLabel("Standing Dumbbell Wood Chop movement demonstration", { exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Pause preview" }),
@@ -228,37 +244,37 @@ test("hero rotates exercises and pause holds the current poster", async ({
   await expect(
     page.getByRole("button", { name: "Pause preview" }),
   ).toBeVisible();
-  await expect(demo.getByRole("img")).toHaveAttribute(
+  await expect(demo.locator("video, img")).toHaveAttribute(
     "aria-label",
     "Standing Dumbbell Wood Chop movement demonstration",
   );
   await page.clock.fastForward(3500);
-  await expect(demo.getByRole("img")).toHaveAttribute("src", /lateral-stick/);
+  await expect(demo.locator("video, img")).toHaveAttribute("src", /lateral-stick/);
   await page.getByRole("button", { name: "Pause preview" }).click();
-  await expect(demo.getByRole("img")).toHaveAttribute(
+  await expect(demo.locator("video, img")).toHaveAttribute(
     "src",
     /lateral-stick.webp/,
   );
   await page.clock.fastForward(7000);
-  await expect(demo.getByRole("img")).toHaveAttribute(
+  await expect(demo.locator("video, img")).toHaveAttribute(
     "src",
     /lateral-stick.webp/,
   );
   await page.getByRole("button", { name: "Play movement" }).click();
   await page.clock.fastForward(3500);
-  await expect(demo.getByRole("img")).toHaveAttribute("src", /bird-dog/);
+  await expect(demo.locator("video, img")).toHaveAttribute("src", /bird-dog/);
   await page.clock.fastForward(3500);
-  await expect(demo.getByRole("img")).toHaveAttribute(
+  await expect(demo.locator("video, img")).toHaveAttribute(
     "src",
     /dynamic-court-march/,
   );
   await page.clock.fastForward(3500);
-  await expect(demo.getByRole("img")).toHaveAttribute(
+  await expect(demo.locator("video, img")).toHaveAttribute(
     "src",
     /side-plank-rotation/,
   );
   await page.clock.fastForward(3500);
-  await expect(demo.getByRole("img")).toHaveAttribute(
+  await expect(demo.locator("video, img")).toHaveAttribute(
     "src",
     /standing-dumbbell-wood-chop/,
   );
@@ -275,24 +291,24 @@ test("hero does not auto-rotate with reduced motion or while offscreen", async (
     page.getByRole("button", { name: "Play movement" }),
   ).toBeVisible();
   await page.clock.fastForward(7000);
-  await expect(demo.getByRole("img")).toHaveAttribute(
+  await expect(demo.locator("video, img")).toHaveAttribute(
     "src",
     /wood-chop.webp/,
   );
   await page.getByRole("button", { name: "Play movement" }).click();
   await page.clock.fastForward(7000);
-  await expect(demo.getByRole("img")).toHaveAttribute(
+  await expect(demo.locator("video, img")).toHaveAttribute(
     "src",
     /standing-dumbbell-wood-chop/,
   );
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.locator("footer").last().scrollIntoViewIfNeeded();
-  await expect(demo.getByRole("img")).toHaveAttribute(
+  await expect(demo.locator("video, img")).toHaveAttribute(
     "src",
     /wood-chop.webp/,
   );
   await page.clock.fastForward(7000);
-  await expect(demo.getByRole("img")).toHaveAttribute(
+  await expect(demo.locator("video, img")).toHaveAttribute(
     "src",
     /wood-chop.webp/,
   );

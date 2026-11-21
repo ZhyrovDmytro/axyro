@@ -56,6 +56,7 @@ export function AccountPanel() {
               Workout settings
             </Link>
           </p>
+          <Link className="text-link" href="/help">Help with Axyro</Link>
         </section>
       </main>
     );
@@ -171,7 +172,7 @@ export function AccountPanel() {
             </button>
           </form>
         </section>
-        <section className="account-section">
+        <section className="account-section account-membership">
           <h2>Membership</h2>
           {!loading && (
             <p>
@@ -183,7 +184,7 @@ export function AccountPanel() {
           {subscription?.expiresAt && (
             <p>
               {subscription.cancelAtPeriodEnd
-                ? "Access until"
+                ? "Renewal cancelled. Access until"
                 : "Current period ends"}{" "}
               {new Date(subscription.expiresAt).toLocaleDateString()}
             </p>
@@ -200,15 +201,17 @@ export function AccountPanel() {
             <LoadingStatus>Checking membership…</LoadingStatus>
           ) : hasPro || (subscription && subscription.status !== "free") ? (
             <button
-              className="button button--dark"
+              className="button button--primary"
               disabled={busy}
               onClick={() => void manage()}
             >
-              Manage subscription
+              {hasPro && !subscription?.cancelAtPeriodEnd
+                ? "Manage or cancel subscription"
+                : "Manage subscription"} on Stripe
             </button>
           ) : (
             <Link
-              className="button button--dark"
+              className="button button--primary"
               href="/upgrade?returnTo=/account"
             >
               Upgrade to Pro
@@ -293,6 +296,7 @@ export function AccountPanel() {
         </section>
         <section className="account-section">
           <h2>Account controls</h2>
+          <Link className="text-link" href="/help">Help with Axyro</Link>
           <button
             className="button button--secondary"
             disabled={busy}

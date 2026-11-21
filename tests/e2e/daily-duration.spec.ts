@@ -7,7 +7,7 @@ test("daily duration controls and responsive screens", async ({ page }) => {
   await page.goto("/");
   await expect(
     page.getByRole("heading", {
-      name: /Between padel matches/,
+      name: "Train anywhere. Win on court.",
     }),
   ).toBeVisible();
   await page.screenshot({ path: "/tmp/axyro-home-mobile.png", fullPage: true });

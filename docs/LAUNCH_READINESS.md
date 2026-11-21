@@ -1,6 +1,6 @@
 # Paid public launch tracker
 
-Last updated: 2026-11-18 (Europe/Prague).
+Last updated: 2026-11-21 (Europe/Prague).
 
 This is the shared checklist for launching Axyro as a paid public web app.
 Current verdict: **not ready to accept public payments**. Core membership code
@@ -271,7 +271,8 @@ No owners or target dates have been assigned yet.
     request does not enable automatic tax collection; explicitly decide and
     implement applicable tax handling.
 
-- [ ] **L08 — Real payment lifecycle verification** · Unverified
+- [ ] **L08 — Real payment lifecycle verification** · Partial
+  - 2026-11-21: staging signup, operator email confirmation, password sign-in and Stripe sandbox USD 7.99/month checkout succeeded. The account accessed plan setup and retained its 25-session schedule after browser reload. Live billing and cancellation remain unverified.
   - 2026-11-02 infrastructure check: a zero-value invoice for a disposable
     sandbox customer with no app association, email or payment details generated
     real event `evt_1UXLrXRrXPiiRoHsQj93OjNu` (`invoice.paid`). Stripe records
@@ -346,7 +347,8 @@ No owners or target dates have been assigned yet.
     appropriate commercial permissions; confirm supplied clip/person rights and
     attribution obligations. Preserve the 40-exercise contract and stable IDs.
 
-- [ ] **L14 — Customer support and administration** · Open
+- [ ] **L14 — Customer support and administration** · Partial
+  - [Customer support procedures](CUSTOMER_SUPPORT.md) cover access, refunds, privacy, failed deletion and complaints. External inbox delivery and ownership remain unverified.
   - Complete when: publish a monitored support contact and document procedures
     for refunds, access issues, complaints, privacy requests and failed deletion.
     Restrict operator access to Supabase/Stripe. A dedicated admin UI is not
@@ -372,7 +374,7 @@ No owners or target dates have been assigned yet.
     network loss and cross-device conflicts. Check keyboard, screen-reader and
     contrast basics across the final account/purchase/player flows.
 
-- [ ] **L18 — Publishing metadata and mobile performance** · Open
+- [ ] **L18 — Publishing metadata and mobile performance** · Partial
   - Baseline: generic root metadata; no favicon/social preview/sitemap/robots
     implementation was found. `public` measured approximately 241 MB; that is
     total asset storage, not initial page download size.
@@ -553,3 +555,15 @@ business and markets. Recheck current requirements when completing legal tasks.
 | 2026-11-18 | L17 / L19 | Follow-up correction: compact video previews now play muted and loop while visible, with automatic pausing offscreen, in hidden tabs and under reduced motion. The existing poster and autoplay/error fallback remain. Added a browser regression that first reproduced the static preview, then verified advancing video time at 390px/1280px, muted looping, offscreen pausing and live reduced-motion changes. Both targeted media browser tests, 537 unit tests, TypeScript, zero-warning lint and webpack build pass; complete browser/hosted release checks are pending. No new media clips, dependencies or timing changes. Current production rollback is `6afe1ea4f177d84c3539f056` / `e3b186c`. |
 
 | 2026-11-18 | L17 / L19 | [PR #8](https://github.com/ZhyrovDmytro/axyro/pull/8) merged as `cd6553dfcf8225ac15687ea96a009e4076de66b2` after [Release checks 44407094220](https://github.com/ZhyrovDmytro/axyro/actions/runs/44407094220) passed quality and all 188 browser regressions, including real video-time advancement in visible previews and offscreen/reduced-motion pausing. Netlify published `6afe214a8c838bde1fabd4f9` at https://axyro.app; all three deployed mobile smoke checks passed (12.6s). Local 537 unit tests, lint/types, webpack build, 188 browser tests and built-production smoke also pass. Rollback remains `6afe1ea4f177d84c3539f056` / `e3b186c`. This documentation-only follow-up records the verified application release; physical-device/autoplay-policy verification remains open, with the poster retained when playback is blocked. No dependencies, media clips, provider settings or payment-mode changes. |
+
+| 2026-11-21 | L09 / L11 / L12 / L14 / L18 | Added local Help with recovery, billing and data controls, linked from Account, legal pages and guest footer. A monitored AXYRO_SUPPORT_EMAIL must be supplied at build time. Added shared preview, public canonicals, public sitemap and default noindex on account and gated routes. Confirmed production-build social metadata and inspected the 1200 × 630 PNG. Existing production homepage measured 4.51 seconds to an actionable free workout link in one fresh Pixel 7 Chromium emulation, then reached its workout preview. Follow-up checks corrected the video accessibility role, repeat paywall opening after dismissal and questionnaire sign-in navigation. Final local verification passed all 197 browser regressions, 646 unit tests, lint, TypeScript, webpack production build and two built-production public-page/player smoke checks. Operator disclosures, monitored inbox, physical-device measurement and logo-related assets remain open. |
+
+| 2026-11-21 | L05 / L06 / L08 | Verified the staging signup-to-purchase flow with a confirmed test account and Stripe test card. Checkout succeeded and unlocked a 60-day padel plan. Its first session and 25-session count persisted after reload. |
+
+| 2026-11-21 | L05 / L06 / L08 | Verified signup, confirmed email, sandbox monthly checkout, fresh password sign-in after change, plan reset, server-backed five-minute refinement and training-data deletion. Account deletion rejected subsequent login and Stripe confirmed sandbox cancellation. Large-plan sync fix and corrected data deletion disclosure published to staging. |
+
+| 2026-11-21 | L05 / L06 / L08 | Staging test account verified confirmation, fresh sign-in after password change, sandbox monthly purchase and plan generation. Refinement exposed failed snapshot sync. Backported byte-aware keepalive handling from main for large plans and added a multibyte regression. |
+
+| 2026-11-21 | L05 / L08 | Published 08e8090 on staging. A new plan refined to five minutes synced to server revision 3 (127,738-character plan). Plan reset opened empty setup, data deletion emptied server training keys at revision 5, account deletion signed out and denied a fresh sign-in, and Stripe independently returned canceled in sandbox. Updated deletion copy to identify synced account data. |
+
+| 2026-11-21 | L05 / L08 / L17 | Confirmed sandbox annual checkout, paid invoice and portal access. Guest homepage renders before hydration. Membership management now explicitly names Stripe. |

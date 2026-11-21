@@ -39,6 +39,7 @@ export async function generateMetadata({
     ? {
         title: exercise.name + " | Axyro",
         description: exercise.shortDescription,
+        alternates: { canonical: `/exercises/${exercise.slug}` },
       }
     : {};
 }

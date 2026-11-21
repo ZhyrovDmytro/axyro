@@ -26,6 +26,9 @@ type Confirmation = "reset" | "delete" | null;
 
 export function PrivacyDataSettings() {
   const { user } = useAuth();
+  const trainingDataLocation = user && !user.isDevelopmentAdmin
+    ? "from this device and your synced account data"
+    : "from this device";
   const router = useRouter();
   const { plan, profile, ready: planReady, setPlan } = useTrainingPlan();
   const [savedDuration, setSavedDuration] = useState<DailyDuration | null>(
@@ -287,9 +290,8 @@ export function PrivacyDataSettings() {
       <section className="context-card">
         <h2>Delete all my data</h2>
         <p>
-          Removes all user-generated state stored by Axyro in this browser,
-          including your profile, plans, history, feedback, preferences, and
-          active workout.
+          Deletes your training profile, plans, history, feedback, preferences,
+          and active workout {trainingDataLocation}.
         </p>
         <button
           className="text-button text-button--danger"
@@ -322,7 +324,7 @@ export function PrivacyDataSettings() {
             <p>
               {confirmation === "reset"
                 ? "This removes your current and upcoming plan. Your completed workout history and saved profile stay available."
-                : "This removes your training profile, plans, workout history, feedback, preferences, and active workout stored by Axyro on this device. This cannot be undone."}
+                : `This permanently removes your training profile, plans, workout history, feedback, preferences, and active workout ${trainingDataLocation}.`}
             </p>
             <div className="button-row">
               <button

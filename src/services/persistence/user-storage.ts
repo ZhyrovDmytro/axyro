@@ -63,11 +63,13 @@ function scheduleSync(storage: Storage, userId: string, version: number) {
         if (generation !== version || identity !== userId || !syncEnabled)
           return;
         try {
+          const body = JSON.stringify({ userId, data, revision });
           const response = await fetch("/api/user-data", {
             method: "PUT",
-            keepalive: true,
+            // Browsers cap keepalive request bodies at 64 KiB.
+            keepalive: new Blob([body]).size <= 60_000,
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId, data, revision }),
+            body,
           });
           if (response.status === 409 && generation === version) {
             syncEnabled = false;

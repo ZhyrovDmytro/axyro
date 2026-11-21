@@ -228,7 +228,14 @@ export const exercises = exerciseCatalogSchema.parse([
   ...padelShoulderExercises,
   ...padelMovementExercises,
   ...padelPerformanceExercises,
-]);
+]).map((exercise) => ({
+  ...exercise,
+  media: {
+    ...exercise.media,
+    playbackUri: `/videos/exercises/${exercise.id}.mp4`,
+    firstFrameUri: `/images/exercises/posters/${exercise.id}.webp`,
+  },
+}));
 
 /** Exercises safe to expose in production discovery, plans, and playback. */
 export const publishedExercises = exercises.filter(isExercisePublishable);

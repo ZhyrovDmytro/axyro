@@ -3,16 +3,25 @@ import { PageSkeleton } from "@/components/page-skeleton";
 import { freeExerciseIds } from "@/lib/library-access";
 import { PaywallLink } from "@/components/membership/paywall-modal";
 
-import { isExercisePlanEligible } from "@/domain/content/catalog-quality";
+import { isCompatiblePlanExercise } from "@/domain/training-plan/model-exercise-candidates";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { UiIcon } from "@/components/ui-icon";
 import { exercises } from "@/content/exercises";
+import { createBrowserTrainingPlanRepository } from "@/services/persistence/local-training-plan-repository";
+import { createBrowserWorkoutActivityRepository } from "@/services/persistence/local-workout-activity-repository";
+import {
+  planAvoidedExercisesOnDate,
+  planProfileOnDate,
+} from "@/domain/training-plan/plan-adjustment";
 import { formatPlanDate } from "@/domain/training-plan/date";
-import { refreshPlannedWorkoutDuration } from "@/domain/training-plan/generate-training-plan";
+import {
+  buildDefaultWorkoutItem,
+  refreshPlannedWorkoutDuration,
+} from "@/domain/training-plan/generate-training-plan";
 import type { PlannedWorkout } from "@/domain/training-plan/training-plan.types";
 import type { WorkoutItem } from "@/domain/workout/workout.types";
 import {
@@ -25,12 +34,14 @@ import {
   calculateSessionSectionDuration,
   calculateSessionSectionsDuration,
 } from "@/domain/workout/session-sections";
+import { createBrowserAdaptationProfileRepository } from "@/services/persistence/local-adaptation-profile-repository";
 import { useTrainingPlan } from "@/hooks/use-training-plan";
 import { AdaptTodayDialog } from "@/components/plan/adapt-today-dialog";
 import {
   applyTodayAdaptationsToSession,
   resetTodayAdaptations,
 } from "@/domain/training-plan/today-adaptation";
+import { useDialogFocusTrap } from "@/hooks/use-dialog-focus-trap";
 import { useActiveWorkoutSession } from "@/hooks/use-active-workout-session";
 import { WorkoutConfigurator } from "@/components/workout/effort-options";
 import {
@@ -59,6 +70,7 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
   const [draft, setDraft] = useState<PlannedWorkout | null>(null);
   const [query, setQuery] = useState("");
   const [showLibrary, setShowLibrary] = useState(false);
+  const libraryRef = useRef<HTMLElement>(null);
   const [insertionIndex, setInsertionIndex] = useState<number | null>(null);
   const [intensity, setIntensity] = useState<IntensityLevel>("standard");
   const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
@@ -76,14 +88,38 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
   const resumeHref = isResumable ? activeWorkout.state.resumeHref : null;
   const draggedItemIdRef = useRef<string | null>(null);
 
+  const closeExerciseLibrary = useCallback(() => {
+    setShowLibrary(false);
+    setInsertionIndex(null);
+    setQuery("");
+  }, []);
+  useDialogFocusTrap(showLibrary, libraryRef, closeExerciseLibrary);
+
   const exerciseById = useMemo(
     () => new Map(exercises.map((exercise) => [exercise.id, exercise])),
     [],
   );
+  const [saveError, setSaveError] = useState("");
+  const adaptationProfile = plan
+    ? createBrowserAdaptationProfileRepository().load()
+    : null;
+  const effectiveProfile =
+    plan && source ? planProfileOnDate(plan, source.scheduledDate) : null;
+  const avoidedExercises = [
+    ...(adaptationProfile?.avoidExercises ?? []),
+    ...(plan && source
+      ? planAvoidedExercisesOnDate(plan, source.scheduledDate)
+      : []),
+  ];
+  const compatibleMain = (exercise: (typeof exercises)[number]) =>
+    Boolean(
+      effectiveProfile &&
+      isCompatiblePlanExercise(exercise, effectiveProfile, "main") &&
+      !avoidedExercises.includes(exercise.id),
+    );
   const filteredExercises = exercises.filter((exercise) => {
     if (
-      !isExercisePlanEligible(exercise) ||
-      !exercise.sessionRoles.includes("main") ||
+      !compatibleMain(exercise) ||
       (draft ?? source)?.workout.items.some(
         (item) => item.exerciseId === exercise.id,
       ) ||
@@ -123,6 +159,12 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
         </section>
       </main>
     );
+  const constraints = effectiveProfile
+    ? {
+        profile: effectiveProfile,
+        avoidExercises: avoidedExercises,
+      }
+    : undefined;
   const sourceSession = source;
   const shownDraft = draft ?? sourceSession;
   const reviewExerciseIds = new Set(
@@ -219,12 +261,6 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
     setShowLibrary(true);
   }
 
-  function closeExerciseLibrary() {
-    setShowLibrary(false);
-    setInsertionIndex(null);
-    setQuery("");
-  }
-
   function finishDragging() {
     draggedItemIdRef.current = null;
     setDraggedItemId(null);
@@ -233,19 +269,10 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
 
   function addExercise(exerciseId: string) {
     const exercise = exerciseById.get(exerciseId);
-    if (!exercise) return;
-    const item: WorkoutItem = {
-      id: uniqueItemId(exerciseId),
-      exerciseId,
-      sets: 2,
-      prescription: {
-        type: "timed",
-        durationSeconds: 30,
-        perSide: exercise.laterality === "unilateral",
-      },
-      restAfterSetSeconds: 20,
-      restAfterExerciseSeconds: 20,
-    };
+    if (!exercise || !compatibleMain(exercise)) return;
+    const defaults = buildDefaultWorkoutItem(shownDraft.workout, exercise);
+    if (!defaults) return;
+    const item = { ...defaults, id: uniqueItemId(exerciseId) };
     setDraft((current) => {
       const base = current ?? sourceSession;
       if (
@@ -278,7 +305,67 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
   }
 
   function saveDraft() {
+    const latest = createBrowserTrainingPlanRepository().load();
+    const current = latest?.sessions.find(({ id }) => id === sourceSession.id);
+    const latestProfile =
+      latest && current
+        ? planProfileOnDate(latest, current.scheduledDate)
+        : null;
+    const latestAvoided =
+      latest && current
+        ? planAvoidedExercisesOnDate(latest, current.scheduledDate)
+        : [];
+    const status = createBrowserWorkoutActivityRepository()
+      .getActivityHistory()
+      .find(
+        ({ planId, sessionId }) =>
+          planId === latest?.generatedAt && sessionId === sourceSession.id,
+      )?.status;
+    if (
+      latest?.generatedAt !== plan?.generatedAt ||
+      (latest &&
+        current &&
+        plan &&
+        JSON.stringify(latestAvoided) !==
+          JSON.stringify(
+            planAvoidedExercisesOnDate(plan, sourceSession.scheduledDate),
+          )) ||
+      JSON.stringify(current) !== JSON.stringify(sourceSession) ||
+      (status && status !== "scheduled" && status !== "missed") ||
+      JSON.stringify([
+        latestProfile?.equipment,
+        latestProfile?.painAreas,
+        latestProfile?.sessionDurationMinutes,
+      ]) !==
+        JSON.stringify([
+          effectiveProfile?.equipment,
+          effectiveProfile?.painAreas,
+          effectiveProfile?.sessionDurationMinutes,
+        ])
+    ) {
+      setSaveError(
+        "This workout or its training settings changed. Reopen it from your plan before saving.",
+      );
+      return false;
+    }
+    if (!draft) return true;
     const refreshed = refreshPlannedWorkoutDuration(shownDraft);
+    const existing = new Set(
+      sourceSession.workout.items.map((item) => item.exerciseId),
+    );
+    if (
+      refreshed.workout.items.some(({ exerciseId }) => {
+        if (existing.has(exerciseId)) return false;
+        const exercise = exerciseById.get(exerciseId);
+        return !exercise || !compatibleMain(exercise);
+      })
+    ) {
+      setSaveError(
+        "Choose exercises that fit your plan’s equipment and comfort settings.",
+      );
+      return false;
+    }
+    setSaveError("");
     const savedDraft =
       refreshed.todayAdaptations.length > 0
         ? refreshed
@@ -300,6 +387,8 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
         session.id === savedDraft.id ? savedDraft : session,
       ),
     }));
+    setDraft(null);
+    return true;
   }
 
   return (
@@ -307,11 +396,17 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
       <Link className="back-link" href="/plan">
         <UiIcon name="arrow-left" /> Training plan
       </Link>
+      {saveError && (
+        <p className="form-error" role="alert">
+          {saveError}
+        </p>
+      )}
       <section className="detail-hero detail-hero--workout planned-workout-hero">
         <div>
           <div className="tag-row">
             <span className="pill pill--dark">
-              {titleCase(shownDraft.workout.difficulty)}
+              {titleCase(refreshedAdaptationSession.workout.difficulty)}{" "}
+              technique
             </span>
             {shownDraft.workout.focus.map((focus) => (
               <span className="pill" key={focus}>
@@ -352,7 +447,13 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
                   resumeHref ??
                   `/plan/workouts/${shownDraft.id}/start?intensity=${intensity}`
                 }
-                onClick={isResumable ? undefined : saveDraft}
+                onClick={
+                  isResumable
+                    ? undefined
+                    : (event) => {
+                        if (!saveDraft()) event.preventDefault();
+                      }
+                }
               >
                 {isResumable ? "Resume workout" : "Start workout"}
                 <UiIcon name="arrow-right" />
@@ -406,7 +507,13 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
             `/plan/workouts/${shownDraft.id}/start?intensity=${level}`
           }
           onIntensityChange={setIntensity}
-          onStart={isResumable ? undefined : saveDraft}
+          onStart={
+            isResumable
+              ? undefined
+              : (event) => {
+                  if (!saveDraft()) event.preventDefault();
+                }
+          }
           reviewExerciseIds={reviewExerciseIds}
           secondaryActions={
             <div className="planned-workout-secondary-actions planned-workout-secondary-actions--review">
@@ -847,11 +954,8 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
             aria-labelledby="planned-ready-heading"
           >
             <p className="kicker">Choose your effort</p>
-            <h2 id="planned-ready-heading">Train at your level.</h2>
-            <p>
-              Select an effort for this planned workout. Your custom timings are
-              the standard baseline.
-            </p>
+            <h2 id="planned-ready-heading">Choose effort before you start.</h2>
+            <p>Your custom timings are the standard baseline.</p>
             <div className="effort-options" aria-label="Workout effort">
               {intensityLevels.map((level) => {
                 const preset = intensityPresets[level];
@@ -886,7 +990,13 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
                 resumeHref ??
                 `/plan/workouts/${shownDraft.id}/start?intensity=${intensity}`
               }
-              onClick={isResumable ? undefined : saveDraft}
+              onClick={
+                isResumable
+                  ? undefined
+                  : (event) => {
+                      if (!saveDraft()) event.preventDefault();
+                    }
+              }
             >
               {isResumable
                 ? "Resume workout"
@@ -920,7 +1030,7 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
                 <button
                   className="button button--dark button--full"
                   onClick={() => {
-                    saveDraft();
+                    if (!saveDraft()) return;
                     setIsEditing(false);
                   }}
                   type="button"
@@ -951,6 +1061,7 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
             aria-labelledby="library-dialog-heading"
             aria-modal="true"
             className="exercise-dialog"
+            ref={libraryRef}
             onMouseDown={(event) => event.stopPropagation()}
             role="dialog"
           >
@@ -972,7 +1083,6 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
             <label className="search-field">
               <span className="sr-only">Search exercises</span>
               <input
-                autoFocus
                 className="plan-input"
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search movement or body area"
@@ -986,7 +1096,7 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
               </p>
             )}
             <div className="exercise-picker-list">
-              {filteredExercises.slice(0, 30).map((exercise) => (
+              {filteredExercises.map((exercise) => (
                 <button
                   key={exercise.id}
                   onClick={() => addExercise(exercise.id)}
@@ -1007,6 +1117,7 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
         <AdaptTodayDialog
           key={`${adaptationSession.id}-${replacementExerciseId ?? "menu"}`}
           exerciseCatalog={exercises}
+          constraints={constraints}
           initialExerciseId={replacementExerciseId}
           onClose={() => {
             setAdaptTodayOpen(false);
@@ -1018,6 +1129,7 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
                 adaptationSession,
                 adaptations,
                 exercises,
+                constraints,
               ),
             );
             setAdaptTodayOpen(false);

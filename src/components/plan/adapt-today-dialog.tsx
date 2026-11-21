@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 
 import { UiIcon } from "@/components/ui-icon";
 import type { Equipment, Exercise } from "@/domain/exercise/exercise.types";
+import { profileExerciseEquipment } from "@/domain/training-plan/generate-training-plan";
 import { feedbackAffectedBodyAreas } from "@/domain/training-plan/feedback-adaptation";
 import {
   deriveTodayAdaptedSession,
@@ -81,6 +82,7 @@ function replacementAdaptation(
 
 export function AdaptTodayDialog({
   exerciseCatalog,
+  constraints,
   initialExerciseId,
   onClose,
   onUse,
@@ -88,6 +90,7 @@ export function AdaptTodayDialog({
   session,
 }: {
   exerciseCatalog: readonly Exercise[];
+  constraints?: Parameters<typeof deriveTodayAdaptedSession>[0]["constraints"];
   initialExerciseId?: string | null;
   onClose: () => void;
   onUse: (adaptations: SessionAdaptation[]) => void;
@@ -110,8 +113,9 @@ export function AdaptTodayDialog({
         session,
         adaptations: pending,
         exerciseCatalog,
+        constraints,
       }),
-    [exerciseCatalog, pending, session],
+    [constraints, exerciseCatalog, pending, session],
   );
   const exerciseById = useMemo(
     () => new Map(exerciseCatalog.map((exercise) => [exercise.id, exercise])),
@@ -145,12 +149,17 @@ export function AdaptTodayDialog({
         exercise: replacementExercise,
         session,
         exerciseCatalog,
-        availableEquipment: todayEquipment.filter(
-          (equipment) => !unavailableEquipment.includes(equipment),
+        constraints,
+        availableEquipment: (constraints
+          ? profileExerciseEquipment(constraints.profile)
+          : todayEquipment
+        ).filter(
+          (equipment) =>
+            equipment === "none" || !unavailableEquipment.includes(equipment),
         ),
         unavailableEquipment,
         excludedBodyAreas,
-      }).slice(0, 5)
+      })
     : [];
   const originalMinutes = formatSessionDurationMinutes(
     session.originalSessionSnapshot.estimatedDurationSeconds,

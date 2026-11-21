@@ -10,15 +10,12 @@ import { useUserPreferences } from "@/hooks/use-user-preferences";
 import { useDialogFocusTrap } from "@/hooks/use-dialog-focus-trap";
 import { useTrainingPlan } from "@/hooks/use-training-plan";
 import { DurationOptions } from "@/components/workout/duration-options";
-import { changePlanSessionDuration } from "@/domain/training-plan/generate-training-plan";
 import { toDateKey } from "@/domain/training-plan/date";
 import {
   parseDailyDuration,
   type DailyDuration,
 } from "@/domain/workout/daily-duration";
 import { createBrowserTrainingProfileRepository } from "@/services/persistence/local-training-profile-repository";
-import { createBrowserWorkoutActivityRepository } from "@/services/persistence/local-workout-activity-repository";
-import { createBrowserAdaptationProfileRepository } from "@/services/persistence/local-adaptation-profile-repository";
 import { createBrowserUserDataService } from "@/services/persistence/user-data-service";
 
 type Confirmation = "reset" | "delete" | null;
@@ -27,6 +24,7 @@ export function PrivacyDataSettings() {
   const { user } = useAuth();
   const router = useRouter();
   const { plan, profile, ready: planReady, setPlan } = useTrainingPlan();
+  const activePlan = plan && plan.endDate >= toDateKey(new Date());
   const [savedDuration, setSavedDuration] = useState<DailyDuration | null>(
     null,
   );
@@ -53,28 +51,13 @@ export function PrivacyDataSettings() {
   } = useUserPreferences();
 
   function changeDuration(minutes: DailyDuration) {
-    if (!profile) return;
+    if (!profile || activePlan) return;
     try {
-      if (plan) {
-        setPlan(
-          changePlanSessionDuration(
-            plan,
-            minutes,
-            toDateKey(new Date()),
-            createBrowserWorkoutActivityRepository().getRecentFeedbackForAdaptation(),
-            createBrowserAdaptationProfileRepository().load(),
-          ),
-        );
-      } else {
-        createBrowserTrainingProfileRepository().save({
-          ...profile,
-          sessionDurationMinutes: minutes,
-        });
-      }
+      const next = { ...profile, sessionDurationMinutes: minutes };
+      if (plan) setPlan({ ...plan, profile: next });
+      else createBrowserTrainingProfileRepository().save(next);
       setSavedDuration(minutes);
-      setDurationMessage(
-        "Session length saved. Upcoming scheduled workouts use this target.",
-      );
+      setDurationMessage("Default session length saved.");
       setActionError(null);
     } catch {
       setActionError(
@@ -198,20 +181,30 @@ export function PrivacyDataSettings() {
           ))}
         </div>
         <p>{intensityPresets[preferredIntensity].description}</p>
-        <fieldset
-          className="setting-fieldset"
-          disabled={!planReady || !profile}
-        >
-          <legend className="sr-only">Default session length</legend>
-          <DurationOptions
-            legend="Default session length"
-            value={
-              savedDuration ??
-              parseDailyDuration(profile?.sessionDurationMinutes)
-            }
-            onChange={changeDuration}
-          />
-        </fieldset>
+        {activePlan ? (
+          <p>
+            <Link className="text-link" href="/plan/refine?change=duration">
+              Change session length
+            </Link>
+            {" · "}
+            {plan.profile.sessionDurationMinutes} min
+          </p>
+        ) : (
+          <fieldset
+            className="setting-fieldset"
+            disabled={!planReady || !profile}
+          >
+            <legend className="sr-only">Default session length</legend>
+            <DurationOptions
+              legend="Default session length"
+              value={
+                savedDuration ??
+                parseDailyDuration(profile?.sessionDurationMinutes)
+              }
+              onChange={changeDuration}
+            />
+          </fieldset>
+        )}
         {!profile && planReady && (
           <p>
             <Link className="text-link" href="/plan/setup">
@@ -220,10 +213,6 @@ export function PrivacyDataSettings() {
             to choose its default session length.
           </p>
         )}
-        <p>
-          Changing the length rebuilds upcoming scheduled workouts. Past and
-          in-progress workouts keep their original length.
-        </p>
         {durationMessage && <p role="status">{durationMessage}</p>}
       </section>
 

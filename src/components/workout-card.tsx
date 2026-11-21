@@ -3,7 +3,7 @@ import { useEntitlement } from "@/components/membership/entitlement-provider";
 import Link from "next/link";
 import { PaywallLink } from "@/components/membership/paywall-modal";
 
-import { ExerciseMedia } from "@/components/exercise-media";
+import { ExercisePreview } from "@/components/exercise-media";
 import { UiIcon } from "@/components/ui-icon";
 import { getWorkoutExercises } from "@/lib/catalog";
 import { formatDumbbellAvailability, titleCase } from "@/lib/format";
@@ -26,13 +26,12 @@ export function WorkoutCard({ workout, featured = false }: WorkoutCardProps) {
     <>
       {exerciseList[0] && (
         <div className="workout-card__media">
-          <ExerciseMedia
+          <ExercisePreview
             exercise={
               exerciseList.find(
                 (exercise) => exercise.media.type === "animation",
               ) ?? exerciseList[0]
             }
-            compact
           />
         </div>
       )}

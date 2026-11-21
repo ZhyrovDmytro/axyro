@@ -172,6 +172,8 @@ export function validateExerciseCatalog(
       for (const uri of [
         exercise.media.uri,
         exercise.media.posterUri,
+        exercise.media.playbackUri,
+        exercise.media.firstFrameUri,
         exercise.media.fallbackUri,
         exercise.movementFrames.start.uri,
         exercise.movementFrames.end.uri,

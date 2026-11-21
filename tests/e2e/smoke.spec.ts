@@ -30,7 +30,7 @@ test("loads the application shell", async ({ page }) => {
 
   await expect(
     page.getByRole("heading", {
-      name: /Home training for your next padel match/,
+      name: /Between padel matches/,
     }),
   ).toBeVisible();
   await expect(
@@ -470,12 +470,15 @@ test("browses the shoulder library and opens full coaching details", async ({
       level: 2,
     })
     .click();
-  const singleArmVideo = page.getByAltText(
-    "Single-Arm Prone Shoulder Arc movement reference",
+  await expect(page).toHaveURL(
+    /\/exercises\/single-arm-prone-plate-over-obstacle$/,
   );
+  const singleArmVideo = page
+    .locator(".exercise-detail-hero")
+    .getByLabel("Single-Arm Prone Shoulder Arc movement demonstration");
   await expect(singleArmVideo).toHaveAttribute(
     "src",
-    /\/images\/exercises\/animations\/single-arm-prone-plate-over-obstacle\.gif$/,
+    /\/videos\/exercises\/single-arm-prone-plate-over-obstacle\.mp4$/,
   );
   await expect(
     page.getByRole("heading", { name: "How to move" }),
@@ -486,23 +489,23 @@ test("browses the shoulder library and opens full coaching details", async ({
   ).toBeVisible();
 
   await page.goto("/exercises/prone-foam-roller-overhead-shoulder-press");
-  const foamRollerVideo = page.getByAltText(
-    "Prone Overhead Shoulder Press movement reference",
+  const foamRollerVideo = page.getByLabel(
+    "Prone Overhead Shoulder Press movement demonstration",
   );
   await expect(foamRollerVideo).toHaveAttribute(
     "src",
-    /\/images\/exercises\/animations\/prone-foam-roller-overhead-shoulder-press\.gif$/,
+    /\/videos\/exercises\/prone-foam-roller-overhead-shoulder-press\.mp4$/,
   );
 
   await page.goto(
     "/exercises/prone-foam-roller-plate-internal-external-rotation",
   );
-  const rotationVideo = page.getByAltText(
-    "Prone Shoulder Internal/External Rotation movement reference",
+  const rotationVideo = page.getByLabel(
+    "Prone Shoulder Internal/External Rotation movement demonstration",
   );
   await expect(rotationVideo).toHaveAttribute(
     "src",
-    /\/images\/exercises\/animations\/prone-foam-roller-plate-internal-external-rotation\.gif$/,
+    /\/videos\/exercises\/prone-foam-roller-plate-internal-external-rotation\.mp4$/,
   );
 });
 

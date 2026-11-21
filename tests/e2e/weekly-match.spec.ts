@@ -78,8 +78,6 @@ test("adds and edits a weekly match without replacing training", async ({
   await dialog.getByRole("button", { name: "Update game" }).click();
   await expect(row.getByText("Club match · Match day")).toBeVisible();
   await expect(row).toHaveClass(/has-game/);
-  await expect(row).toHaveCSS("background-image", /linear-gradient/);
-  await expect(row.getByText("Training + match · Same day")).toBeVisible();
   await expect(
     page.getByRole("button", { name: /Rebalance plan/ }),
   ).toBeVisible();
@@ -101,6 +99,36 @@ test("adds and edits a weekly match without replacing training", async ({
     path: "/tmp/axyro-weekly-match-desktop.png",
     fullPage: true,
   });
+  for (const width of [320, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    const heights = await page
+      .locator(".plan-week__days > li")
+      .evaluateAll((rows) =>
+        rows.map((item) => item.getBoundingClientRect().height),
+      );
+    expect(heights).toHaveLength(7);
+    expect(Math.max(...heights) - Math.min(...heights)).toBeLessThan(1);
+    const match = (await row
+      .getByRole("button", { name: /Edit match/ })
+      .boundingBox())!;
+    const start = (await row
+      .getByRole("link", { name: "Start workout" })
+      .boundingBox())!;
+    expect(match.width).toBeGreaterThanOrEqual(44);
+    expect(match.height).toBeGreaterThanOrEqual(44);
+    expect(start.y + start.height / 2).toBeCloseTo(
+      match.y + match.height / 2,
+      0,
+    );
+    await row.getByText("Move training", { exact: true }).click();
+    await expect(row.getByLabel("New training date")).toBeVisible();
+    expect(
+      await row.evaluate((item) => item.getBoundingClientRect().height),
+    ).toBeCloseTo(heights[0], 0);
+    await row.getByLabel("New training date").press("Escape");
+    await expect(row.getByLabel("New training date")).toBeHidden();
+    await expect(row.getByText("Move training", { exact: true })).toBeFocused();
+  }
   const destination = Array.from({ length: 14 }, (_, index) =>
     addDays(toDateKey(now), index + 1),
   ).find(
@@ -129,7 +157,9 @@ test("adds and edits a weekly match without replacing training", async ({
     saved.games.find((game: { label: string }) => game.label === "Club match")
       .date,
   ).toBe(toDateKey(now));
-  await expect(page.getByText("Training + match · Same day")).toHaveCount(0);
+  await expect(page.locator(".plan-week__days > li.has-game")).not.toHaveClass(
+    /has-session/,
+  );
   const expected = rebalancePlanAroundGames(saved);
   await page.getByRole("button", { name: /Rebalance plan/ }).click();
   await expect(

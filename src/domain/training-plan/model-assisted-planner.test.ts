@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { modelPlanIntentSchema } from "./ai-planner.schema";
 import { defaultAdaptationProfile } from "./adaptation-profile";
 import {
   compileModelPlanIntent,
@@ -138,4 +139,47 @@ describe("model-assisted planner", () => {
       expect.arrayContaining(avoided),
     );
   });
+});
+
+it("can leave the weekly model template and never refits a temporarily avoided exercise at any experience value", () => {
+  const broadProfile = { ...profile, padelLimitations: [] };
+  const candidates = modelCandidatesForProfile(broadProfile);
+  const selected = candidates.slice(0, 2).map(({ id }) => id);
+  const avoid = candidates[2].id;
+  const intent = modelPlanIntentSchema.parse({
+    explanation: "Balances movement quality and resilient strength.",
+    sessions: Array.from({ length: broadProfile.sessionsPerWeek }, () => ({
+      name: "Strength and movement",
+      selectedExerciseIds: selected,
+    })),
+  });
+  const lineups = (experience: AthleteProfile["experience"]) =>
+    compileModelPlanIntent({
+      intent,
+      profile: { ...broadProfile, experience },
+      adaptationProfile: {
+        ...defaultAdaptationProfile,
+        avoidExercises: [avoid],
+      },
+      today: new Date(2026, 8, 28, 12),
+      model: "fixture",
+    }).plan.sessions.map((session) =>
+      session.sections.map((section) =>
+        section.items.map(({ exerciseId }) => exerciseId),
+      ),
+    );
+  const beginner = lineups("beginner");
+  expect(lineups("intermediate")).toEqual(beginner);
+  expect(lineups("advanced")).toEqual(beginner);
+  expect(beginner.flat(2)).not.toContain(avoid);
+  const opening = new Set(
+    beginner
+      .slice(0, broadProfile.sessionsPerWeek)
+      .flatMap((sections) => sections[1]),
+  );
+  expect(
+    beginner
+      .slice(broadProfile.sessionsPerWeek)
+      .some((sections) => sections[1].some((id) => !opening.has(id))),
+  ).toBe(true);
 });

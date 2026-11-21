@@ -74,7 +74,7 @@ test("guest landing offers a working free workout and accessible preview", async
 }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "Home training for your next padel match",
+    "Between padel matches",
   );
   await openNavigation(page);
   await expect(
@@ -229,7 +229,7 @@ test("hero rotates exercises and pause holds the current poster", async ({
     page.getByRole("button", { name: "Pause preview" }),
   ).toBeVisible();
   await expect(demo.getByRole("img")).toHaveAttribute(
-    "alt",
+    "aria-label",
     "Standing Dumbbell Wood Chop movement demonstration",
   );
   await page.clock.fastForward(3500);
@@ -237,12 +237,12 @@ test("hero rotates exercises and pause holds the current poster", async ({
   await page.getByRole("button", { name: "Pause preview" }).click();
   await expect(demo.getByRole("img")).toHaveAttribute(
     "src",
-    /lateral-stick-preview.png/,
+    /lateral-stick.webp/,
   );
   await page.clock.fastForward(7000);
   await expect(demo.getByRole("img")).toHaveAttribute(
     "src",
-    /lateral-stick-preview.png/,
+    /lateral-stick.webp/,
   );
   await page.getByRole("button", { name: "Play movement" }).click();
   await page.clock.fastForward(3500);
@@ -277,7 +277,7 @@ test("hero does not auto-rotate with reduced motion or while offscreen", async (
   await page.clock.fastForward(7000);
   await expect(demo.getByRole("img")).toHaveAttribute(
     "src",
-    /wood-chop-preview.png/,
+    /wood-chop.webp/,
   );
   await page.getByRole("button", { name: "Play movement" }).click();
   await page.clock.fastForward(7000);
@@ -289,12 +289,12 @@ test("hero does not auto-rotate with reduced motion or while offscreen", async (
   await page.locator("footer").last().scrollIntoViewIfNeeded();
   await expect(demo.getByRole("img")).toHaveAttribute(
     "src",
-    /wood-chop-preview.png/,
+    /wood-chop.webp/,
   );
   await page.clock.fastForward(7000);
   await expect(demo.getByRole("img")).toHaveAttribute(
     "src",
-    /wood-chop-preview.png/,
+    /wood-chop.webp/,
   );
 });
 
@@ -314,7 +314,7 @@ test("Fancy preview selection is keyboard accessible and holds the selected post
   await expect(picker.locator('[aria-pressed="true"]')).toHaveCount(1);
   await expect(
     page.locator('[class*="heroImage"]').getByRole("img"),
-  ).toHaveAttribute("src", /bird-dog-preview.png/);
+  ).toHaveAttribute("src", /bird-dog.webp/);
   await expect(
     page.getByRole("button", { name: "Play movement", exact: true }),
   ).toBeVisible();

@@ -28,7 +28,13 @@ import type {
 } from "@/domain/workout/workout.types";
 import type { WorkoutFeedbackEvent } from "@/services/persistence/workout-activity-repository";
 
-import { addDays, fromDateKey, preferredDayIndexes, toDateKey } from "./date";
+import {
+  addDays,
+  crossesPlanAdjustmentWindow,
+  fromDateKey,
+  preferredDayIndexes,
+  toDateKey,
+} from "./date";
 import {
   applyFeedbackAdaptation,
   deriveAdaptation,
@@ -46,6 +52,10 @@ import {
 } from "./planner-versions";
 import type { AdaptationProfile } from "./adaptation-profile";
 import { sharesWorkoutFocus } from "@/domain/workout/exercise-focus";
+import {
+  fitsEnvironment,
+  homePlannerEnvironment,
+} from "./model-exercise-candidates";
 import { matchesSessionFocus } from "./session-focus";
 import { exerciseMatchesDevelopmentArea } from "./profile-relevance";
 import { questionnaireFocusForSlot } from "./questionnaire-context";
@@ -61,6 +71,21 @@ import type {
   SessionAdjustment,
   TrainingPlan,
 } from "./training-plan.types";
+
+const difficultyRank = { beginner: 0, intermediate: 1, advanced: 2 } as const;
+export function getWorkoutTechnique(
+  workout: Workout,
+  catalog: readonly Exercise[] = exercises,
+): Workout["difficulty"] {
+  return workout.items.reduce<Workout["difficulty"]>((hardest, item) => {
+    const difficulty = catalog.find(
+      (exercise) => exercise.id === item.exerciseId,
+    )?.difficulty;
+    return difficulty && difficultyRank[difficulty] > difficultyRank[hardest]
+      ? difficulty
+      : hardest;
+  }, "beginner");
+}
 
 const DURATION_STEP_SECONDS = 5;
 const ON_TARGET_SECONDS = SESSION_DURATION_TOLERANCE.onTargetSeconds;
@@ -145,6 +170,7 @@ export function refreshPlannedWorkoutDuration(
     sections,
     workout: {
       ...session.workout,
+      difficulty: getWorkoutTechnique(session.workout),
       estimatedMinutes: Math.max(1, Math.round(estimatedDurationSeconds / 60)),
     },
     estimatedDurationSeconds,
@@ -561,18 +587,8 @@ function addExerciseTowardTarget(
         bodyAreaCounts.set(area, (bodyAreaCounts.get(area) ?? 0) + 1),
       );
   }
-  const difficultyOrder = {
-    beginner: 0,
-    intermediate: 1,
-    advanced: 2,
-  } as const;
   const options = candidates
-    .filter(
-      (exercise) =>
-        !usedIds.has(exercise.id) &&
-        difficultyOrder[exercise.difficulty] <=
-          difficultyOrder[source.difficulty],
-    )
+    .filter((exercise) => !usedIds.has(exercise.id))
     .map((exercise) => ({
       exercise,
       item: buildDefaultWorkoutItem(source, exercise),
@@ -596,7 +612,10 @@ function addExerciseTowardTarget(
     );
   const before = calculateSessionDuration(source);
   for (const option of options) {
-    const next = { ...source, items: [...source.items, option.item] };
+    const next = {
+      ...source,
+      items: [...source.items, option.item],
+    };
     if (improvesTarget(before, calculateSessionDuration(next), targetSeconds)) {
       adjustments.push({
         source: "duration_fit",
@@ -721,6 +740,7 @@ export function generateSessionPrescription(
   const estimatedDurationSeconds = calculateSessionDuration(workout);
   workout = {
     ...workout,
+    difficulty: getWorkoutTechnique(workout, eligibleExercises),
     estimatedMinutes: Math.max(1, Math.round(estimatedDurationSeconds / 60)),
   };
   return {
@@ -771,10 +791,6 @@ function exercisePlanningScore(
     exerciseMatchesDevelopmentArea(area, exercise, sportProfile),
   ).length;
   const sportBonus = profile.sport === "padel" && sportProfile ? 3 : 0;
-  const experiencePenalty =
-    profile.experience === "beginner" && exercise.difficulty === "advanced"
-      ? 4
-      : 0;
   const familiarityBonus = preferredExerciseIds.has(exercise.id) ? 2 : 0;
   const intensityRank = { low: -1, moderate: 0, high: 1 } as const;
   const loadFitBonus =
@@ -784,8 +800,7 @@ function exercisePlanningScore(
     challengeMatches * 8 +
     developmentMatches * 6 +
     sportBonus +
-    familiarityBonus -
-    experiencePenalty +
+    familiarityBonus +
     loadFitBonus
   );
 }
@@ -816,12 +831,6 @@ export function assembleMainWorkout({
       .filter((candidate) => candidate.sport === profile.sport)
       .map((candidate) => [candidate.exerciseId, candidate]),
   );
-  const difficultyOrder = {
-    beginner: 0,
-    intermediate: 1,
-    advanced: 2,
-  } as const;
-  const maximumDifficulty = profile.experience === "beginner" ? 0 : 1;
   const assignedDevelopmentAreas = profile.developmentAreas.filter(
     (_, index) => index % profile.sessionsPerWeek === slot,
   );
@@ -848,7 +857,6 @@ export function assembleMainWorkout({
           slot,
         ) &&
         exercise.planning.sectionRoles.includes("main") &&
-        difficultyOrder[exercise.difficulty] <= maximumDifficulty &&
         exerciseMatchesEquipment(exercise, profile) &&
         exerciseAvoidsPain(exercise, profile),
     )
@@ -971,11 +979,13 @@ export function assembleMainWorkout({
   const focus = [
     ...new Set(selected.flatMap((exercise) => exercise.qualities)),
   ];
-  const difficulty = selected.some(
-    (exercise) => exercise.difficulty === "intermediate",
-  )
-    ? "intermediate"
-    : "beginner";
+  const difficulty = selected.reduce<Exercise["difficulty"]>(
+    (current, exercise) =>
+      difficultyRank[exercise.difficulty] > difficultyRank[current]
+        ? exercise.difficulty
+        : current,
+    "beginner",
+  );
   const id = `generated-session-${slot + 1}`;
   const workout: Workout = {
     id,
@@ -1272,7 +1282,10 @@ export function finalizeGeneratedTrainingPlan(
         calculateSessionSectionsDuration(sections);
       const finalized = {
         ...session,
-        workout: fitted.workout,
+        workout: {
+          ...fitted.workout,
+          difficulty: getWorkoutTechnique(fitted.workout, exerciseCatalog),
+        },
         sections,
         estimatedDurationSeconds,
         durationDeltaSeconds:
@@ -1327,10 +1340,27 @@ export function changePlanSessionDuration(
   return {
     ...plan,
     profile,
-    sessions: plan.sessions.map((session, index) => {
+    sessions: plan.sessions.map((session) => {
       if (session.status !== "scheduled" || session.scheduledDate < today)
         return session;
-      const replacement = rebuilt.sessions[index];
+      const originalDate = session.id.match(
+        /^session-(\d{4}-\d{2}-\d{2})-/,
+      )?.[1];
+      const replacement =
+        rebuilt.sessions.find(
+          (candidate) => candidate.scheduledDate === session.scheduledDate,
+        ) ??
+        rebuilt.sessions.find(
+          (candidate) => candidate.scheduledDate === originalDate,
+        ) ??
+        rebuilt.sessions.find(
+          (candidate) =>
+            candidate.weekNumber === session.weekNumber &&
+            candidate.sourceWorkoutId === session.sourceWorkoutId,
+        ) ??
+        rebuilt.sessions.find(
+          (candidate) => candidate.weekNumber === session.weekNumber,
+        );
       if (!replacement)
         throw new Error("The updated plan has no matching session.");
       return {
@@ -1403,6 +1433,7 @@ export function generateTrainingPlan(
     exerciseCatalog?: readonly Exercise[];
     generation?: PlanGenerationMetadata;
     adaptationProfile?: AdaptationProfile;
+    allowPartial?: boolean;
   } = {},
 ): TrainingPlan {
   const startDate = toDateKey(today);
@@ -1416,6 +1447,7 @@ export function generateTrainingPlan(
     (exercise) =>
       isExercisePlanEligible(exercise) &&
       !avoidedExerciseIds.has(exercise.id) &&
+      fitsEnvironment(exercise, homePlannerEnvironment) &&
       exerciseMatchesEquipment(exercise, profile) &&
       exerciseAvoidsPain(exercise, profile),
   );
@@ -1460,7 +1492,7 @@ export function generateTrainingPlan(
   const sessions =
     assembledWorkouts.length === 0
       ? []
-      : scheduledDates.map((scheduled, index) => {
+      : scheduledDates.flatMap((scheduled, index) => {
           const template =
             assembledWorkouts[
               scheduled.sessionIndex % assembledWorkouts.length
@@ -1567,7 +1599,6 @@ export function generateTrainingPlan(
               Math.round(estimatedDurationSeconds / 60),
             ),
           };
-          previousWorkoutBySlot.set(scheduled.sessionIndex, workout);
           const progressionPhase = getProgressionPhase(scheduled.weekNumber);
           const validationErrors = validateGeneratedSessionSections({
             sections,
@@ -1577,35 +1608,18 @@ export function generateTrainingPlan(
             excludedBodyAreas: [...getBlockedBodyAreas(profile)],
           });
           if (validationErrors.length > 0) {
+            if (options.allowPartial) return [];
             throw new Error(
               `Invalid generated session ${scheduled.date}: ${validationErrors.join(" ")}`,
             );
           }
-          return {
-            id: `session-${scheduled.date}-${index + 1}`,
-            scheduledDate: scheduled.date,
-            sourceWorkoutId: sourceWorkout.id,
-            workout,
-            targetDurationSeconds,
-            estimatedDurationSeconds,
-            durationDeltaSeconds:
-              estimatedDurationSeconds - targetDurationSeconds,
-            durationStatus: classifySessionDuration(
-              estimatedDurationSeconds,
-              targetDurationSeconds,
-            ),
-            adjustments: baseline.adjustments.map((adjustment) => ({
-              ...adjustment,
-              source: "base_prescription" as const,
-            })),
-            weekNumber: scheduled.weekNumber,
-            progressionPhase,
-            progression: progressed.progression,
-            feedbackAdaptations: [],
-            sections,
-            originalSessionSnapshot: {
+          previousWorkoutBySlot.set(scheduled.sessionIndex, workout);
+          return [
+            {
+              id: `session-${scheduled.date}-${index + 1}`,
+              scheduledDate: scheduled.date,
+              sourceWorkoutId: sourceWorkout.id,
               workout,
-              sections,
               targetDurationSeconds,
               estimatedDurationSeconds,
               durationDeltaSeconds:
@@ -1614,12 +1628,33 @@ export function generateTrainingPlan(
                 estimatedDurationSeconds,
                 targetDurationSeconds,
               ),
-              adjustments: [],
+              adjustments: baseline.adjustments.map((adjustment) => ({
+                ...adjustment,
+                source: "base_prescription" as const,
+              })),
+              weekNumber: scheduled.weekNumber,
+              progressionPhase,
+              progression: progressed.progression,
+              feedbackAdaptations: [],
+              sections,
+              originalSessionSnapshot: {
+                workout,
+                sections,
+                targetDurationSeconds,
+                estimatedDurationSeconds,
+                durationDeltaSeconds:
+                  estimatedDurationSeconds - targetDurationSeconds,
+                durationStatus: classifySessionDuration(
+                  estimatedDurationSeconds,
+                  targetDurationSeconds,
+                ),
+                adjustments: [],
+              },
+              todayAdaptations: [],
+              isEdited: false,
+              status: "scheduled" as const,
             },
-            todayAdaptations: [],
-            isEdited: false,
-            status: "scheduled" as const,
-          };
+          ];
         });
   const plan: TrainingPlan = {
     version: 1,
@@ -1664,7 +1699,7 @@ export function generateTrainingPlan(
     profile.matches.length > 0
       ? rebalancePlanAroundGames(finalizedPlan, finalizedPlan.startDate)
       : finalizedPlan;
-  return assertPlanDurationFidelity({
+  const result = {
     ...scheduledPlan,
     sessions: scheduledPlan.sessions.map((session, index) => {
       if (options.sourceWorkouts && session.weekNumber === 1) return session;
@@ -1689,10 +1724,26 @@ export function generateTrainingPlan(
         },
       };
     }),
-  });
+  };
+  if (!options.allowPartial) return assertPlanDurationFidelity(result);
+  return {
+    ...result,
+    sessions: result.sessions.filter(
+      (session) =>
+        Math.abs(session.durationDeltaSeconds) <=
+          getSessionDurationToleranceSeconds(session.targetDurationSeconds) &&
+        validateGeneratedSessionSections({
+          sections: session.sections,
+          targetDurationSeconds: session.targetDurationSeconds,
+          exerciseCatalog: eligibleExercises,
+          availableEquipment: profileExerciseEquipment(profile),
+          excludedBodyAreas: [...getBlockedBodyAreas(profile)],
+        }).length === 0,
+    ),
+  };
 }
 
-function gameRecoveryDays(plan: TrainingPlan) {
+export function gameRecoveryDays(plan: TrainingPlan) {
   return new Set(
     plan.games.flatMap((game) => [
       game.date,
@@ -1795,7 +1846,11 @@ export function rebalancePlanAroundGames(
       candidate <= plan.endDate;
       candidate = addDays(candidate, 1)
     ) {
-      if (!gameDays.has(candidate) && !occupied.has(candidate)) {
+      if (
+        !gameDays.has(candidate) &&
+        !occupied.has(candidate) &&
+        !crossesPlanAdjustmentWindow(plan, session.scheduledDate, candidate)
+      ) {
         occupied.delete(session.scheduledDate);
         occupied.add(candidate);
         return { ...session, scheduledDate: candidate };

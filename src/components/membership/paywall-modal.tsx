@@ -17,7 +17,7 @@ import { AuthForm, type AuthMode } from "@/components/auth/auth-form";
 import { useAuth } from "@/components/auth/auth-provider";
 import { UiIcon } from "@/components/ui-icon";
 import { useEntitlement } from "./entitlement-provider";
-import { Paywall, type PaywallContext } from "./paywall";
+import { Paywall, type PaywallContext, type PlanOfferPreview } from "./paywall";
 
 type PaywallRequest = {
   context: PaywallContext;
@@ -25,6 +25,7 @@ type PaywallRequest = {
   requirePro?: boolean;
   initialAuthMode?: "signin" | "signup";
   planCreated?: boolean;
+  preview?: PlanOfferPreview;
 };
 type ModalRequest = PaywallRequest & { pathname: string };
 const PaywallModalContext = createContext<{
@@ -69,7 +70,8 @@ export function PaywallLink({
   requirePro = true,
   initialAuthMode = "signin",
   ...props
-}: ComponentProps<typeof Link> & Omit<PaywallRequest, "planCreated">) {
+}: ComponentProps<typeof Link> &
+  Omit<PaywallRequest, "planCreated" | "preview">) {
   const open = usePaywallModal();
   const { user, loading: authLoading } = useAuth();
   const { hasPro, loading } = useEntitlement();
@@ -92,6 +94,7 @@ function PaywallModal({
   requirePro = true,
   initialAuthMode = "signin",
   planCreated = false,
+  preview,
 }: ModalRequest & { onClose: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const { user, loading: authLoading } = useAuth();
@@ -185,6 +188,7 @@ function PaywallModal({
             returnTo={returnTo}
             embedded
             planCreated={planCreated}
+            preview={preview}
           />
         )}
       </div>

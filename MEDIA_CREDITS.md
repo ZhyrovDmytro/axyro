@@ -4,6 +4,13 @@ The current exercise catalog uses GIF/video demonstrations. On 2026-11-14,
 the operator confirmed that the current exercise GIFs are generated production
 media and need no replacement. Preserve these assets and their paths.
 
+The 40 exercise demos are delivered as silent H.264 MP4s under
+`public/videos/exercises/`. Each uses the catalog exercise ID as its filename.
+The matching WebP under `public/images/exercises/posters/` is the first frame
+of the catalog GIF, or of the MOV for Dumbbell Romanian Deadlift. Library and
+workout cards show this still. Details, the active workout and its Up next
+exercise preview play the MP4. Original source paths below remain available.
+
 The start/finish position images below are legacy references. The UI uses them
 only when an exercise has no primary media; they are not the current GIF
 demonstrations. Historical source notes below do not impose a replacement

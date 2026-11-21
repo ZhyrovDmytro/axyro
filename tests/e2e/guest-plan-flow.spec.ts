@@ -40,15 +40,15 @@ async function mockAccess(page: Page, signedIn: () => boolean, pro = false) {
       },
     }),
   );
-  await page.route("**/api/user-data", (route) =>
-    route.fulfill({
-      json: {
-        userId: user.id,
-        data: {},
-        revision: 0,
-      },
-    }),
-  );
+  let data: Record<string, string> = {};
+  let revision = 0;
+  await page.route("**/api/user-data", (route) => {
+    if (route.request().method() === "PUT") {
+      data = route.request().postDataJSON().data;
+      return route.fulfill({ json: { revision: ++revision } });
+    }
+    return route.fulfill({ json: { userId: user.id, data, revision } });
+  });
   await page.route("**/api/billing/status", (route) =>
     route.fulfill({
       json: {
@@ -286,3 +286,170 @@ for (const mode of ["signin", "signup"] as const) {
     ).toHaveAttribute("aria-current", "page");
   });
 }
+
+test("a failed paid save keeps answers and retries into one durable block", async ({
+  page,
+}) => {
+  await mockAccess(page, () => true, true);
+  await installDeterministicPlanner(page);
+  await page.goto("/plan/setup");
+  await reviewPlan(page);
+  let failed = 0;
+  const rejectPlanWrite = async (route: import("@playwright/test").Route) => {
+    if (
+      route.request().method() !== "PUT" ||
+      !route.request().postDataJSON().data["veyro.training-plan.v1"]
+    )
+      return route.fallback();
+    failed += 1;
+    return route.fulfill({ status: 503, json: { error: "Unavailable" } });
+  };
+  await page.route("**/api/user-data", rejectPlanWrite);
+  const create = page.getByRole("button", {
+    name: "Create My Plan",
+    exact: true,
+  });
+  await create.click();
+  await expect(
+    page.locator(".onboarding-card").getByRole("alert"),
+  ).toContainText("Your answers are still here");
+  expect(failed).toBe(1);
+  await expect(page).toHaveURL(/\/plan\/setup$/);
+  expect(
+    await page.evaluate((key) => sessionStorage.getItem(key), draftKey),
+  ).not.toBeNull();
+  const planKey = `veyro.owner.${user.id}.veyro.training-plan.v1`;
+  expect(
+    await page.evaluate((key) => localStorage.getItem(key), planKey),
+  ).toBeNull();
+  await page.unroute("**/api/user-data", rejectPlanWrite);
+  await create.click();
+  await expect(page).toHaveURL(/\/plan$/);
+  const identity = await page.evaluate(
+    (key) => JSON.parse(localStorage.getItem(key)!).generatedAt,
+    planKey,
+  );
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Your training plan", exact: true }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(
+      (key) => JSON.parse(localStorage.getItem(key)!).generatedAt,
+      planKey,
+    ),
+  ).toBe(identity);
+  expect(
+    await page.evaluate((key) => sessionStorage.getItem(key), draftKey),
+  ).toBeNull();
+});
+
+test("a member reviews and saves a refinement, then finishes a revised workout", async ({
+  page,
+}) => {
+  test.slow();
+  // Protected pages check membership on the server too. The development account
+  // admits those pages while the client routes exercise a mocked normal member.
+  const login = await page.request.post("/api/auth/signin", {
+    headers: { Origin: new URL(test.info().project.use.baseURL!).origin },
+    data: { email: "admin", password: "admin" },
+  });
+  expect(login.ok()).toBe(true);
+  await mockAccess(page, () => true, true);
+  await installDeterministicPlanner(page);
+  await page.goto("/plan/setup");
+  await reviewPlan(page);
+  await page
+    .getByRole("button", { name: "Create My Plan", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/plan$/);
+  const planKey = `veyro.owner.${user.id}.veyro.training-plan.v1`;
+  const readPlan = () =>
+    page.evaluate((key) => JSON.parse(localStorage.getItem(key)!), planKey);
+  const original = await readPlan();
+  await page.goto("/plan/refine");
+  const nextStep = page.getByRole("button", { name: "Continue", exact: true });
+  await nextStep.press("Enter");
+  await expect(
+    page.getByRole("heading", { name: "How much time can you set aside?" }),
+  ).toBeFocused();
+  await page.getByRole("radio", { name: "5 min", exact: true }).check();
+  await page.getByRole("radio", { name: "Ongoing", exact: true }).check();
+  const preview = page.getByRole("button", {
+    name: "Review changes",
+    exact: true,
+  });
+  const apply = page.getByRole("button", {
+    name: "Apply to upcoming workouts",
+  });
+  for (let i = 0; i < 4; i++) await nextStep.click();
+  await preview.click();
+  await expect(
+    page.getByRole("heading", { name: "Review changes" }),
+  ).toBeFocused();
+  await expect(page.getByText("20 min → 5 min").first()).toBeVisible();
+  expect((await readPlan()).profile.sessionDurationMinutes).toBe(20);
+  await page.evaluate((key) => {
+    const otherTabEdit = JSON.parse(localStorage.getItem(key)!);
+    otherTabEdit.sessions[0].workout.name = "Edit from another tab";
+    localStorage.setItem(key, JSON.stringify(otherTabEdit));
+  }, planKey);
+  await apply.click();
+  await expect(
+    page.getByText("Your plan changed since this preview", { exact: false }),
+  ).toBeVisible();
+  expect((await readPlan()).sessions[0].workout.name).toBe(
+    "Edit from another tab",
+  );
+  await apply.click();
+  await expect(page).toHaveURL(/\/plan\?adjusted=/);
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Your training plan", exact: true }),
+  ).toBeVisible();
+  const updated = await readPlan();
+  expect(updated.generatedAt).toBe(original.generatedAt);
+  expect(updated.startDate).toBe(original.startDate);
+  expect(updated.endDate).toBe(original.endDate);
+  expect(updated.profile.sessionDurationMinutes).toBe(5);
+  expect(updated.profile.equipment).toEqual(original.profile.equipment);
+  await page.goto(`/plan/workouts/${updated.sessions[0].id}/edit`);
+  await page
+    .getByRole("link", { name: /^Start workout/ })
+    .first()
+    .click();
+  const pause = page.getByRole("button", { name: "Pause", exact: true });
+  const pauseSaved = page.waitForResponse((response) => {
+    if (
+      !response.url().endsWith("/api/user-data") ||
+      response.request().method() !== "PUT" ||
+      !response.ok()
+    )
+      return false;
+    const active = response.request().postDataJSON().data[
+      "veyro.active-workout.v1"
+    ];
+    return typeof active === "string" && JSON.parse(active).paused === true;
+  });
+  await pause.click();
+  const resume = page.getByRole("button", { name: "Resume", exact: true });
+  await expect(resume).toBeVisible();
+  const pausedTime = await page.getByRole("timer").getAttribute("aria-label");
+  await pauseSaved;
+  await page.reload();
+  await expect(resume).toBeVisible();
+  await expect(page.getByRole("timer")).toHaveAttribute(
+    "aria-label",
+    pausedTime!,
+  );
+  await resume.click();
+  const done = page.getByRole("heading", { name: "Strong work." });
+  for (let step = 0; step < 50 && !(await done.isVisible()); step++) {
+    await page.getByRole("button", { name: "Skip", exact: true }).click();
+  }
+  await expect(done).toBeVisible();
+  await page.getByRole("button", { name: "Just right", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Edit feedback" }),
+  ).toBeVisible();
+});

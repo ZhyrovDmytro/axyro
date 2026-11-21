@@ -2,7 +2,6 @@ import { formatTrainingTitle } from "@/domain/workout/training-title";
 import { describe, expect, it } from "vitest";
 
 import { generateTrainingPlan } from "@/domain/training-plan/generate-training-plan";
-import { PLANNER_VERSION } from "@/domain/training-plan/planner-versions";
 import type { AthleteProfile } from "@/domain/training-plan/training-plan.types";
 
 import {
@@ -53,7 +52,7 @@ describe("LocalTrainingPlanRepository", () => {
 
     const restored = new LocalTrainingPlanRepository(storage).load()!;
 
-    expect(restored.generation.plannerVersion).toBe(PLANNER_VERSION);
+    expect(restored.generation.plannerVersion).toBe("hybrid-planner.v12");
     expect(restored.sessions[0].workout.name).not.toBe(
       "Net-approach acceleration",
     );
@@ -334,4 +333,15 @@ describe("durable plan acceptance", () => {
       }).saveDurably(plan),
     ).toThrow();
   });
+});
+
+it("preserves v12 generation metadata and the complete edited session on repeated loads", () => {
+  const repository = new LocalTrainingPlanRepository(memoryStorage());
+  const plan = generateTrainingPlan(profile, new Date(2026, 8, 28, 12));
+  plan.generation.plannerVersion = "hybrid-planner.v12";
+  plan.sessions[0].isEdited = true;
+  plan.sessions[0].workout.shortDescription = "My session notes";
+  repository.save(plan);
+  expect(repository.load()).toEqual(plan);
+  expect(repository.load()).toEqual(plan);
 });

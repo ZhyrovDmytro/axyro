@@ -26,9 +26,9 @@ export default function PrivacyPage() {
         <article className="instruction-section">
           <h2>What is stored</h2>
           <p>
-            Sport, goals, experience, schedule, duration, equipment, optional
-            discomfort areas, plans, workout progress, history, feedback, and
-            audio/effort preferences.
+            Sport, goals, schedule, duration, equipment, optional discomfort
+            areas, plans, workout progress, history, feedback, and audio/effort
+            preferences.
           </p>
           <p>
             Accounts store your email, display name and optional provider

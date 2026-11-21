@@ -8,7 +8,7 @@ import { generateTrainingPlan } from "./generate-training-plan";
 import type { ModelPlanIntent } from "./ai-planner.schema";
 import {
   selectModelExerciseCandidates,
-  type ModelCandidateEnvironment,
+  homePlannerEnvironment,
 } from "./model-exercise-candidates";
 import {
   assessTrainingPlanQuality,
@@ -28,11 +28,7 @@ import type { AdaptationProfile } from "./adaptation-profile";
 import { questionnaireFocusForSlot } from "./questionnaire-context";
 import type { AthleteProfile, TrainingPlan } from "./training-plan.types";
 
-export const homePlannerEnvironment: ModelCandidateEnvironment = {
-  availableSetupRequirements: ["floor", "wall", "chair", "mat"],
-  maximumSpace: "moderate",
-  maximumNoise: "moderate",
-};
+export { homePlannerEnvironment } from "./model-exercise-candidates";
 
 export function modelCandidatesForProfile(
   profile: AthleteProfile,
@@ -75,20 +71,20 @@ export function compileModelPlanIntent({
   }
 
   const sourceWorkouts = intent.sessions.map((session, index) => {
+    const matchesMainFocus = (exercise: (typeof exercises)[number]) =>
+      matchesSessionFocus(
+        exercise,
+        sportExerciseProfiles.find(
+          (candidate) =>
+            candidate.exerciseId === exercise.id &&
+            candidate.sport === profile.sport,
+        ),
+        profile,
+        index,
+      );
     const offFocus = session.selectedExerciseIds.filter((id) => {
       const exercise = exercises.find((candidate) => candidate.id === id);
-      return (
-        exercise &&
-        !matchesSessionFocus(
-          exercise,
-          sportExerciseProfiles.find(
-            (candidate) =>
-              candidate.exerciseId === id && candidate.sport === profile.sport,
-          ),
-          profile,
-          index,
-        )
-      );
+      return exercise && !matchesMainFocus(exercise);
     });
     if (offFocus.length) {
       throw new Error(
@@ -102,7 +98,9 @@ export function compileModelPlanIntent({
       selectedExerciseIds: session.selectedExerciseIds,
       profile,
       environment: homePlannerEnvironment,
-      exerciseCatalog: exercises,
+      exerciseCatalog: exercises.filter(
+        (exercise) => !avoided.has(exercise.id),
+      ),
     }).workout;
     const personalizedWorkout = {
       ...compiled,

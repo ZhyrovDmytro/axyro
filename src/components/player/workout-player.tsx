@@ -870,7 +870,7 @@ function WorkoutPlayerRuntime({
             inert={step.type === "rest" || undefined}
           >
             {currentExercise ? (
-              <ExerciseMedia exercise={currentExercise} player />
+              <ExerciseMedia key={currentExercise.id} exercise={currentExercise} player />
             ) : (
               <div className="media-placeholder" />
             )}
@@ -997,7 +997,7 @@ function WorkoutPlayerRuntime({
           {upcomingStep?.type === "rest" ? (
             <RecoveryVisual compact />
           ) : upcomingStep?.type !== "completed" && nextExercise ? (
-            <ExerciseMedia exercise={nextExercise} compact preload="metadata" />
+            <ExerciseMedia key={nextExercise.id} exercise={nextExercise} compact preload="auto" />
           ) : null}
           <div className="next-preview-copy">
             <span>Up next</span>

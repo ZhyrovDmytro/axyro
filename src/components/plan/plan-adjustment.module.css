@@ -1,0 +1,374 @@
+.shell {
+  width: min(100% - 32px, 920px);
+  margin: 0 auto;
+  padding: 16px 0 96px;
+}
+.layout {
+  display: grid;
+  gap: 12px;
+  align-items: start;
+}
+.shell > :global(.back-link) {
+  margin-bottom: 8px;
+}
+.context {
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.rhythm,
+.next span,
+.note {
+  color: var(--muted);
+  margin: 0;
+  font-size: 0.875rem;
+}
+.week {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 1.125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.week span {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+.next {
+  display: grid;
+  gap: 4px;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+  padding-top: 8px;
+}
+.next strong {
+  font-weight: 600;
+}
+.form {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.form :global(.daily-duration) {
+  margin: 0;
+  max-width: 360px;
+}
+.form :global(.daily-duration legend) {
+  margin-bottom: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: normal;
+}
+.form :global(.daily-duration__options) {
+  gap: 8px;
+}
+.form :global(.daily-duration__options label) {
+  min-height: 48px;
+  padding: 8px;
+  border-radius: 8px;
+}
+.form :global(.daily-duration__options strong) {
+  font-size: 1.125rem;
+}
+.form :global(.daily-duration__options label.is-selected) {
+  background: var(--surface-soft);
+  border-color: var(--accent);
+}
+.form :global(.daily-duration__options label:focus-within) {
+  outline: 2px solid var(--text);
+}
+.impact {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.progress {
+  display: grid;
+  grid-column: 2;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+.progress progress {
+  width: 100%;
+  height: 4px;
+  appearance: none;
+  border: 0;
+  border-radius: 2px;
+  overflow: hidden;
+  background: var(--border);
+}
+.progress progress::-webkit-progress-bar {
+  background: var(--border);
+}
+.progress progress::-webkit-progress-value {
+  background: var(--accent);
+}
+.progress progress::-moz-progress-bar {
+  background: var(--accent);
+}
+.editLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+.editLinks button {
+  min-height: 44px;
+}
+.form svg,
+.intro svg {
+  width: 18px;
+  height: 18px;
+}
+.back {
+  color: var(--muted);
+  grid-row: 1;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  justify-self: start;
+  min-height: 44px;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.field {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.field legend {
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: inherit;
+  cursor: pointer;
+}
+.selectionCount {
+  color: var(--muted);
+  font-size: 0.875rem;
+  margin: 0 0 8px;
+}
+.option:has(input:disabled) {
+  color: var(--muted);
+  cursor: default;
+}
+.option:has(input:checked) {
+  border-color: var(--accent);
+}
+.option input {
+  accent-color: var(--accent);
+}
+.option:focus-within,
+.form button:focus-visible,
+.intro button:focus-visible,
+.padel summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.difficultyOptions {
+  display: grid;
+  gap: 8px;
+  max-width: 480px;
+}
+.conflicts {
+  display: grid;
+  gap: 8px;
+  max-width: 480px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.conflicts h2 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+.conflicts strong,
+.conflicts small,
+.difficultyOptions strong,
+.difficultyOptions small {
+  display: block;
+}
+.conflicts small,
+.difficultyOptions small {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+.padel {
+  border-block: 1px solid var(--border);
+  padding: 12px 0;
+}
+.padel summary {
+  cursor: pointer;
+}
+.padel fieldset,
+.padel button {
+  margin-top: 12px;
+}
+.dateBand {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+.dateBand small {
+  color: var(--muted);
+}
+.impact li {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.impact time,
+.impact p {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+.impact strong {
+  font-weight: 600;
+}
+.impact p {
+  margin: 4px 0 0;
+}
+.submit {
+  justify-self: start;
+  min-height: 48px;
+  box-shadow: none;
+}
+@media (max-width: 480px) {
+  .submit {
+    width: 100%;
+  }
+}
+
+/* Keep the current block in view without letting it lead the decision. */
+.intro {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px 12px;
+}
+.intro:not(:has(.back)) .progress {
+  grid-column: 1 / -1;
+}
+.intro h1 {
+  grid-column: 1 / -1;
+  max-width: none;
+  font-size: clamp(1.6rem, 4vw, 2.25rem);
+  margin: 0;
+  line-height: 1.1;
+  font-weight: 600;
+}
+.intro h1:focus {
+  outline: none;
+}
+.rhythm {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  text-transform: none;
+  margin-top: 8px;
+}
+.rhythm ul {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(20px, 1fr));
+  gap: 4px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.rhythm li {
+  display: grid;
+  place-items: center;
+  min-height: 24px;
+  text-transform: capitalize;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+.rhythm li[data-scheduled] {
+  background: var(--surface-soft);
+  color: var(--text);
+  box-shadow: inset 0 -2px var(--accent);
+}
+.rhythm > span {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  white-space: nowrap;
+}
+.dayOptions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.dayOptions .option {
+  justify-content: center;
+  padding-inline: 4px;
+}
+.dayOptions input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.dayOptions .option:has(input:checked) {
+  background: var(--surface-soft);
+  color: var(--text);
+}
+.option:focus-within {
+  outline-color: var(--text);
+}
+@media (min-width: 760px) {
+  .shell {
+    padding-bottom: 40px;
+  }
+  .layout {
+    grid-template-areas: "context intro" "context form";
+    grid-template-columns: minmax(0, 248px) minmax(0, 1fr);
+    gap: 12px 24px;
+  }
+  .intro {
+    grid-area: intro;
+  }
+  .context {
+    grid-area: context;
+  }
+  .form {
+    grid-area: form;
+  }
+  .dayOptions {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+}
+@media (max-width: 759px) {
+  .layout:not([data-first]) .context {
+    display: none;
+  }
+}

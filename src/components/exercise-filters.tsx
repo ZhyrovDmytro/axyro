@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   FormEvent,
   useCallback,
@@ -28,7 +28,6 @@ type ExerciseFiltersProps = {
 type FilterKey = keyof ExerciseFilterValues;
 
 export function ExerciseFilters({ values, bodyAreas }: ExerciseFiltersProps) {
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(values.query);
@@ -57,12 +56,10 @@ export function ExerciseFilters({ values, bodyAreas }: ExerciseFiltersProps) {
       }
       const query = params.toString();
       startTransition(() => {
-        router.replace(query ? `${pathname}?${query}` : pathname, {
-          scroll: false,
-        });
+        window.history.replaceState(null, "", query ? `${pathname}?${query}` : pathname);
       });
     },
-    [pathname, router, searchParams],
+    [pathname, searchParams],
   );
 
   useEffect(() => {

@@ -83,7 +83,7 @@ export default async function ExerciseDetailPage({
           <div className="exercise-title-block">
             <div className="tag-row">
               <span className="pill pill--dark">
-                {titleCase(exercise.difficulty)}
+                {titleCase(exercise.difficulty)} technique
               </span>
               {exercise.roles.map((role) => (
                 <span className="pill" key={role}>

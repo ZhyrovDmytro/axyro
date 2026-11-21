@@ -71,27 +71,46 @@ test("unfinished selections survive refresh and still require validation", async
   );
 });
 
-test("review names equipment and lets people edit a specific answer", async ({
+test("setup and review use the same two equipment choices", async ({
   page,
 }) => {
   await mockFreeMember(page);
   await page.goto("/plan/setup");
   await page.getByRole("radio", { name: /Another sport/ }).check();
-  for (let step = 0; step < 6; step++) {
+  for (let step = 0; step < 5; step++) {
     await page.getByRole("button", { name: "Continue", exact: true }).click();
   }
+  await page.setViewportSize({ width: 320, height: 667 });
+  const choices = page.getByRole("group", {
+    name: "What equipment will you have?",
+  });
+  const withDumbbells = choices.getByRole("radio", {
+    name: "With dumbbells",
+    exact: true,
+  });
+  const withoutDumbbells = choices.getByRole("radio", {
+    name: "Without dumbbells",
+    exact: true,
+  });
+  await expect(choices.getByRole("radio")).toHaveCount(2);
+  await expect(withoutDumbbells).toBeChecked();
+  await withDumbbells.check();
+  await page.reload();
+  await expect(withDumbbells).toBeChecked();
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth),
+  ).toBeLessThanOrEqual(320);
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+
   const equipment = page
     .locator(".review-list > div")
     .filter({ hasText: "Equipment" });
-  await expect(equipment).toContainText("Bodyweight");
-  await expect(equipment).toContainText("One dumbbell");
+  await expect(equipment.locator("dd")).toHaveText("With dumbbells");
   await equipment.getByRole("button", { name: "Edit equipment" }).click();
-  await expect(
-    page.getByRole("group", { name: "What can you train with?" }),
-  ).toBeVisible();
-  await page.getByRole("checkbox", { name: /One dumbbell/ }).uncheck();
+  await expect(withDumbbells).toBeChecked();
+  await withoutDumbbells.check();
   await page.getByRole("button", { name: "Save answer", exact: true }).click();
-  await expect(equipment).not.toContainText("One dumbbell");
+  await expect(equipment.locator("dd")).toHaveText("Without dumbbells");
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });
 
@@ -129,26 +148,34 @@ test("leaving plan generation cancels the request and keeps the answers", async 
   });
   await page.goto("/plan/setup");
   await page.getByRole("radio", { name: /Another sport/ }).check();
-  for (let step = 0; step < 6; step++) {
+  for (let step = 0; step < 5; step++) {
     await page.getByRole("button", { name: "Continue", exact: true }).click();
   }
+  const choices = page.getByRole("group", {
+    name: "What equipment will you have?",
+  });
+  const withDumbbells = choices.getByRole("radio", {
+    name: "With dumbbells",
+    exact: true,
+  });
+  await withDumbbells.check();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
   const request = page.waitForRequest("**/api/training-plan");
   await page
     .getByRole("button", { name: "Create My Plan", exact: true })
     .click();
-  await request;
+  expect((await request).postDataJSON().profile.equipment).toEqual([
+    "bodyweight",
+    "one-dumbbell",
+  ]);
   const cancelled = page.waitForEvent("requestfailed", (request) =>
     request.url().endsWith("/api/training-plan"),
   );
   await page.getByRole("button", { name: "Back", exact: true }).click();
   await cancelled;
   release();
-  await expect(
-    page.getByRole("group", { name: "What can you train with?" }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("checkbox", { name: /One dumbbell/ }),
-  ).toBeChecked();
+  await expect(choices).toBeVisible();
+  await expect(withDumbbells).toBeChecked();
   await expect(page.locator(".form-error")).toHaveCount(0);
 });
 

@@ -16,6 +16,25 @@ type QuestionnaireOption<T extends string> = {
   description: string;
 };
 
+export const planEquipmentOptions = [
+  { value: "without-dumbbells", label: "Without dumbbells" },
+  { value: "with-dumbbells", label: "With dumbbells" },
+] as const;
+
+export function hasPlanDumbbells(equipment: AthleteProfile["equipment"]) {
+  return equipment.some((item) => item !== "bodyweight");
+}
+
+export function planEquipmentForChoice(
+  choice: (typeof planEquipmentOptions)[number]["value"],
+  previousEquipment: AthleteProfile["equipment"],
+): AthleteProfile["equipment"] {
+  if (choice === "without-dumbbells") return ["bodyweight"];
+  return hasPlanDumbbells(previousEquipment)
+    ? previousEquipment
+    : ["bodyweight", "one-dumbbell"];
+}
+
 export const goalOptions: Array<
   QuestionnaireOption<AthleteProfile["goals"][number]>
 > = [
@@ -233,14 +252,6 @@ export function buildQuestionnaireContext(profile: AthleteProfile) {
     sport: {
       id: profile.sport,
       label: profile.sport === "padel" ? "Padel" : "General training",
-    },
-    experience: {
-      id: profile.experience,
-      label: {
-        beginner: "I’m just starting",
-        intermediate: "I have some experience",
-        advanced: "I’m experienced",
-      }[profile.experience],
     },
     schedule: {
       sessionsPerWeek: profile.sessionsPerWeek,

@@ -3,7 +3,7 @@ import { freeExerciseIds } from "@/lib/library-access";
 import { PaywallLink } from "@/components/membership/paywall-modal";
 
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
+import { useState, type MouseEvent, type ReactNode } from "react";
 
 import { DurationOptions } from "./duration-options";
 import {
@@ -11,7 +11,7 @@ import {
   applyBudgetedEffort,
   type DailyDuration,
 } from "@/domain/workout/daily-duration";
-import { ExerciseMedia } from "@/components/exercise-media";
+import { ExercisePreview } from "@/components/exercise-media";
 import type { Exercise } from "@/domain/exercise/exercise.types";
 import { buildWorkoutSequence } from "@/domain/workout/build-workout-sequence";
 import {
@@ -32,7 +32,7 @@ type EffortOptionsProps = {
   onIntensityChange?: (level: IntensityLevel) => void;
   getStartHref?: (level: IntensityLevel) => string;
   startLabel?: string;
-  onStart?: () => void;
+  onStart?: (event: MouseEvent<HTMLAnchorElement>) => void;
   startNotice?: string;
   secondaryActions?: ReactNode;
   reviewExerciseIds?: ReadonlySet<string>;
@@ -127,7 +127,7 @@ export function WorkoutConfigurator({
       <section className="start-panel" aria-labelledby="ready-heading">
         <div className="start-panel__heading">
           <div>
-            <h2 id="ready-heading">Train at your level.</h2>
+            <h2 id="ready-heading">Choose effort before you start.</h2>
           </div>
           <div className="selected-workout-duration" aria-live="polite">
             <span>Timed duration</span>
@@ -219,7 +219,7 @@ export function WorkoutConfigurator({
             return (
               <li key={item.id}>
                 <div className="plan-media">
-                  <ExerciseMedia exercise={exercise} compact />
+                  <ExercisePreview exercise={exercise} />
                 </div>
                 <div className="plan-content">
                   <div className="plan-copy">

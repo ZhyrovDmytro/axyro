@@ -9,18 +9,22 @@ export function DurationOptions({
   value,
   onChange,
   legend = "Make time for movement.",
+  concise = false,
 }: {
   value: number;
   onChange: (minutes: DailyDuration) => void;
   legend?: string;
+  concise?: boolean;
 }) {
   return (
     <fieldset className="daily-duration">
       <legend>{legend}</legend>
-      <p>
-        10 minutes is your daily starting point. Halve it or double it when you
-        need.
-      </p>
+      {!concise && (
+        <p>
+          10 minutes is your daily starting point. Halve it or double it when
+          you need.
+        </p>
+      )}
       <div className="daily-duration__options">
         {dailyDurations.map((minutes) => (
           <label
@@ -38,13 +42,15 @@ export function DurationOptions({
               {minutes}
               <span> min</span>
             </strong>
-            <small>
-              {minutes === 5
-                ? "Short on time"
-                : minutes === 10
-                  ? "Daily default"
-                  : "Go a little longer"}
-            </small>
+            {!concise && (
+              <small>
+                {minutes === 5
+                  ? "Short on time"
+                  : minutes === 10
+                    ? "Daily default"
+                    : "Go a little longer"}
+              </small>
+            )}
           </label>
         ))}
       </div>

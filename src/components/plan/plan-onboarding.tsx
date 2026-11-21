@@ -1,6 +1,5 @@
 "use client";
 import { PageSkeleton } from "@/components/page-skeleton";
-import Link from "next/link";
 import { usePaywallModal } from "@/components/membership/paywall-modal";
 
 import { DurationOptions } from "@/components/workout/duration-options";
@@ -29,11 +28,14 @@ import {
 } from "@/domain/training-plan/training-plan.schema";
 import {
   developmentAreaOptions,
+  hasPlanDumbbells,
   padelCapacityOptions,
   padelLimitationOptions,
   padelMovementOptions,
   padelPowerOptions,
   painOptions,
+  planEquipmentForChoice,
+  planEquipmentOptions,
 } from "@/domain/training-plan/questionnaire-context";
 import type {
   AthleteProfile,
@@ -67,28 +69,8 @@ const initialGeneralSteps = [
   "review",
 ] as const;
 
-const refinementPadelSteps = [
-  "schedule",
-  "weak-areas",
-  "padel-movement",
-  "padel-power",
-  "padel-capacity",
-  "matches",
-  "review",
-] as const;
-
-const refinementGeneralSteps = [
-  "schedule",
-  "weak-areas",
-  "pain",
-  "review",
-] as const;
-
 type StepId =
-  | (typeof initialPadelSteps)[number]
-  | (typeof initialGeneralSteps)[number]
-  | (typeof refinementPadelSteps)[number]
-  | (typeof refinementGeneralSteps)[number];
+  (typeof initialPadelSteps)[number] | (typeof initialGeneralSteps)[number];
 
 const stepLabels: Record<StepId, string> = {
   sport: "Sport",
@@ -99,7 +81,6 @@ const stepLabels: Record<StepId, string> = {
   pain: "Comfort",
   goals: "Goals",
   schedule: "Schedule",
-  matches: "Matches",
   equipment: "Equipment",
   review: "Review",
 };
@@ -144,11 +125,12 @@ const dayLabels: Record<(typeof weekdayValues)[number], string> = {
 
 const initialProfile: AthleteProfile = {
   sport: "padel",
+  // Retained for stored-profile compatibility; experience does not restrict planning.
   experience: "beginner",
   sessionsPerWeek: 3,
   sessionDurationMinutes: 10,
   preferredDays: ["monday", "wednesday", "friday"],
-  equipment: ["bodyweight", "one-dumbbell"],
+  equipment: ["bodyweight"],
   goals: ["movement-speed"],
   developmentAreas: [],
   padelLimitations: [],
@@ -190,22 +172,33 @@ function Choice({
   );
 }
 
-export function PlanOnboarding({
-  mode = "initial",
-}: {
-  mode?: "initial" | "refine";
-}) {
+export function PlanOnboarding() {
   const router = useRouter();
   const openAccess = usePaywallModal();
   const { user } = useAuth();
   const { hasPro, loading: membershipLoading } = useEntitlement();
   const continued = useRef(false);
   const restoredReview = useRef(false);
+  const previousDumbbellEquipment = useRef<AthleteProfile["equipment"]>([]);
   const generationRequest = useRef<AbortController | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const stepHeadingRef = useRef<HTMLHeadingElement>(null);
   const draftKey = `veyro.plan-draft.${user?.id ?? "guest"}`;
-  const { plan, profile: savedProfile, ready, setPlan } = useTrainingPlan();
+  const {
+    plan,
+    profile: savedProfile,
+    ready,
+    savePlanDurably,
+  } = useTrainingPlan();
+  const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
+  const [balancedShortcut, setBalancedShortcut] = useState(() => {
+    try {
+      return window.sessionStorage.getItem(`${draftKey}.balanced`) === "1";
+    } catch {
+      return false;
+    }
+  });
   const [profileOverride, setProfileOverride] = useState<AthleteProfile | null>(
     () => {
       if (typeof window === "undefined") return null;
@@ -233,9 +226,6 @@ export function PlanOnboarding({
   const [editingReview, setEditingReview] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationComplete, setGenerationComplete] = useState(false);
-  const [matchDate, setMatchDate] = useState("");
-  const [matchImportance, setMatchImportance] =
-    useState<AthleteProfile["matches"][number]["importance"]>("normal");
   const sourceProfile =
     profileOverride ?? plan?.profile ?? savedProfile ?? initialProfile;
   const profile = {
@@ -244,15 +234,11 @@ export function PlanOnboarding({
       sourceProfile.sessionDurationMinutes,
     ),
   };
+  const equipmentChoice =
+    planEquipmentOptions[hasPlanDumbbells(profile.equipment) ? 1 : 0];
   const steps: readonly StepId[] =
-    mode === "refine"
-      ? profile.sport === "padel"
-        ? refinementPadelSteps
-        : refinementGeneralSteps
-      : profile.sport === "padel"
-        ? initialPadelSteps
-        : initialGeneralSteps;
-  const stepKey = `${draftKey}.${mode}.step`;
+    profile.sport === "padel" ? initialPadelSteps : initialGeneralSteps;
+  const stepKey = `${draftKey}.initial.step`;
   const [step, setStep] = useState(() => {
     if (!profileOverride) return 0;
     try {
@@ -270,10 +256,21 @@ export function PlanOnboarding({
     try {
       window.sessionStorage.setItem(draftKey, serializedProfile);
       window.sessionStorage.setItem(stepKey, currentStep);
+      window.sessionStorage.setItem(
+        `${draftKey}.balanced`,
+        balancedShortcut ? "1" : "0",
+      );
     } catch {
       // Setup remains usable when the browser blocks session storage.
     }
-  }, [currentStep, draftKey, ready, serializedProfile, stepKey]);
+  }, [
+    balancedShortcut,
+    currentStep,
+    draftKey,
+    ready,
+    serializedProfile,
+    stepKey,
+  ]);
   useEffect(() => () => generationRequest.current?.abort(), []);
   useEffect(() => {
     if (ready) {
@@ -344,6 +341,7 @@ export function PlanOnboarding({
         className="text-button"
         type="button"
         aria-label={`Edit ${label}`}
+        disabled={saving}
         onClick={() => {
           cancelGeneration();
           setError("");
@@ -431,24 +429,10 @@ export function PlanOnboarding({
     });
   }
 
-  function addMatch() {
-    if (!matchDate) {
-      setError("Choose a match date first.");
-      return;
-    }
-    patchProfile({
-      matches: [
-        ...profile.matches.filter((match) => match.date !== matchDate),
-        { date: matchDate, importance: matchImportance },
-      ].sort((left, right) => left.date.localeCompare(right.date)),
-    });
-    setMatchDate("");
-    setMatchImportance("normal");
-  }
-
   async function goForward(event: FormEvent) {
     event.preventDefault();
-    if (isGenerating) return;
+    if (generationRequest.current || savingRef.current || membershipLoading)
+      return;
     if (currentStep === "goals" && profile.goals.length === 0) {
       setError("Choose at least one priority.");
       return;
@@ -462,6 +446,8 @@ export function PlanOnboarding({
     }
     if (step < steps.length - 1) {
       setError("");
+      if (currentStep === "weak-areas" && !editingReview)
+        setBalancedShortcut(false);
       setStep((current) => (editingReview ? steps.length - 1 : current + 1));
       setEditingReview(false);
       return;
@@ -520,6 +506,7 @@ export function PlanOnboarding({
           setError(
             "No plan fits these answers yet. Try a shorter session or review your available equipment. Keep your current discomfort selections accurate. Your answers are saved so you can return later.",
           );
+          generationRequest.current = null;
           setIsGenerating(false);
           return;
         }
@@ -548,7 +535,14 @@ export function PlanOnboarding({
       ) {
         throw new Error("Preview storage unavailable");
       }
+      if (hasPro) {
+        savingRef.current = true;
+        setSaving(true);
+        await savePlanDurably(nextPlan, user.id, plan);
+        clearPlanDraft(user.id);
+      }
     } catch (error) {
+      generationRequest.current = null;
       if (controller.signal.aborted) return;
       setError(
         error instanceof UnsupportedPlanDurationError
@@ -557,10 +551,9 @@ export function PlanOnboarding({
       );
       setIsGenerating(false);
       return;
-    }
-    if (hasPro) {
-      setPlan(nextPlan);
-      clearPlanDraft(user?.id ?? null);
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
     }
     setGenerationComplete(true);
     await new Promise<void>((resolve) => window.setTimeout(resolve, 250));
@@ -577,35 +570,25 @@ export function PlanOnboarding({
     );
   }
 
-  if (mode === "refine" && !plan) {
-    return (
-      <main className="page-shell plan-empty">
-        <section>
-          <p className="kicker">Optional refinement</p>
-          <h1>Create your first plan before tuning it.</h1>
-          <p className="lede">
-            Start with the essentials, then add padel-specific priorities and
-            match dates once your first session is ready.
-          </p>
-          <Link className="button button--dark" href="/plan/setup">
-            Create my plan <UiIcon name="arrow-right" />
-          </Link>
-        </section>
-      </main>
-    );
-  }
-
   return (
     <main className="onboarding-shell">
       <header className="onboarding-header">
         <button
           className="back-link back-link--button"
-          disabled={step === 0}
+          disabled={step === 0 || saving}
           onClick={() => {
             cancelGeneration();
             setError("");
             setEditingReview(false);
-            setStep((current) => Math.max(0, current - 1));
+            setStep((current) =>
+              editingReview
+                ? steps.length - 1
+                : balancedShortcut &&
+                    profile.sport === "padel" &&
+                    currentStep === "pain"
+                  ? steps.indexOf("weak-areas")
+                  : Math.max(0, current - 1),
+            );
           }}
           type="button"
         >
@@ -616,6 +599,7 @@ export function PlanOnboarding({
         </span>
         <button
           className="text-button"
+          disabled={saving}
           onClick={() => {
             cancelGeneration();
             router.push("/plan");
@@ -647,8 +631,7 @@ export function PlanOnboarding({
           </h1>
         )}
         <p className="onboarding-step-label">
-          {mode === "refine" ? "Refine your plan" : "Your plan"} ·{" "}
-          {stepLabels[currentStep]}
+          Your plan · {stepLabels[currentStep]}
         </p>
 
         {currentStep === "sport" && (
@@ -660,8 +643,8 @@ export function PlanOnboarding({
             </p>
             {!hasPro && (
               <p className="question-help">
-                Setup and your plan preview are free. A Pro subscription unlocks
-                your training schedule and guided sessions.
+                Setup is free. A free account keeps your preview in this tab.
+                Pro unlocks your schedule and guided sessions.
               </p>
             )}
             <div className="choice-grid">
@@ -889,29 +872,32 @@ export function PlanOnboarding({
             <label className="field-label" htmlFor="frequency">
               Strength sessions per week
             </label>
-            <select
-              className="plan-input"
-              id="frequency"
-              onChange={(event) => {
-                const sessionsPerWeek = Number(
-                  event.target.value,
-                ) as AthleteProfile["sessionsPerWeek"];
-                patchProfile({
-                  sessionsPerWeek,
-                  preferredDays: profile.preferredDays.slice(
-                    0,
+            <div className="plan-select">
+              <select
+                className="plan-input"
+                id="frequency"
+                onChange={(event) => {
+                  const sessionsPerWeek = Number(
+                    event.target.value,
+                  ) as AthleteProfile["sessionsPerWeek"];
+                  patchProfile({
                     sessionsPerWeek,
-                  ),
-                });
-              }}
-              value={profile.sessionsPerWeek}
-            >
-              {[1, 2, 3, 4, 5].map((value) => (
-                <option key={value} value={value}>
-                  {value} {value === 1 ? "session" : "sessions"}
-                </option>
-              ))}
-            </select>
+                    preferredDays: profile.preferredDays.slice(
+                      0,
+                      sessionsPerWeek,
+                    ),
+                  });
+                }}
+                value={profile.sessionsPerWeek}
+              >
+                {[1, 2, 3, 4, 5].map((value) => (
+                  <option key={value} value={value}>
+                    {value} {value === 1 ? "session" : "sessions"}
+                  </option>
+                ))}
+              </select>
+              <UiIcon name="chevron-down" />
+            </div>
             <span className="field-label">
               Preferred days · choose {profile.sessionsPerWeek}
             </span>
@@ -946,161 +932,45 @@ export function PlanOnboarding({
 
         {currentStep === "equipment" && (
           <fieldset>
-            <legend>What can you train with?</legend>
+            <legend>What equipment will you have?</legend>
             <p className="question-help">
-              We will only schedule workouts that fit what you have.
+              Bodyweight exercises are always available.
             </p>
-            <div className="choice-grid">
-              {(
-                [
-                  [
-                    "bodyweight",
-                    "Bodyweight",
-                    "Floor, wall or chair when needed",
-                  ],
-                  ["one-dumbbell", "One dumbbell", "Light to moderate weight"],
-                  ["two-dumbbells", "Two dumbbells", "A matching light pair"],
-                ] as const
-              ).map(([value, label, description]) => (
+            <div className="choice-grid choice-grid--equipment">
+              {planEquipmentOptions.map(({ value, label }) => (
                 <Choice
-                  checked={profile.equipment.includes(value)}
-                  description={description}
+                  checked={equipmentChoice.value === value}
                   key={value}
                   name="equipment"
                   onChange={() => {
-                    const selected = profile.equipment.includes(value);
-                    const equipment = selected
-                      ? profile.equipment.filter((item) => item !== value)
-                      : [...profile.equipment, value];
-                    if (equipment.length > 0) patchProfile({ equipment });
+                    if (value === "without-dumbbells")
+                      previousDumbbellEquipment.current = profile.equipment;
+                    patchProfile({
+                      equipment: planEquipmentForChoice(
+                        value,
+                        previousDumbbellEquipment.current,
+                      ),
+                    });
                   }}
-                  type="checkbox"
                   value={value}
                 >
                   {label}
                 </Choice>
               ))}
             </div>
-            <p className="question-help">
-              We only include exercises compatible with the equipment you
-              select.
-            </p>
-          </fieldset>
-        )}
-
-        {currentStep === "matches" && (
-          <fieldset>
-            <legend>Any upcoming padel matches?</legend>
-            <p className="question-help">
-              Optional. Match dates help keep hard training away from
-              competition. Importance controls how much recovery space the plan
-              protects.
-            </p>
-            <div className="match-entry">
-              <div className="match-entry__field">
-                <label className="field-label" htmlFor="match-date">
-                  Match date
-                </label>
-                <input
-                  className="plan-input"
-                  id="match-date"
-                  onChange={(event) => setMatchDate(event.target.value)}
-                  type="date"
-                  value={matchDate}
-                />
-              </div>
-              <div className="match-entry__field">
-                <label className="field-label" htmlFor="match-importance">
-                  Importance
-                </label>
-                <select
-                  className="plan-input"
-                  id="match-importance"
-                  onChange={(event) =>
-                    setMatchImportance(
-                      event.target
-                        .value as AthleteProfile["matches"][number]["importance"],
-                    )
-                  }
-                  value={matchImportance}
-                >
-                  <option value="normal">Normal</option>
-                  <option value="important">Important</option>
-                </select>
-              </div>
-              <button
-                className="button button--secondary"
-                onClick={addMatch}
-                type="button"
-              >
-                Add match
-              </button>
-            </div>
-            {profile.matches.length > 0 && (
-              <dl className="review-list">
-                {profile.matches.map((match) => (
-                  <div key={match.date}>
-                    <dt>{match.date}</dt>
-                    <dd>
-                      {match.importance === "important"
-                        ? "Important"
-                        : "Normal"}
-                      {" · "}
-                      <button
-                        className="text-button"
-                        onClick={() =>
-                          patchProfile({
-                            matches: profile.matches.filter(
-                              (candidate) => candidate.date !== match.date,
-                            ),
-                          })
-                        }
-                        type="button"
-                      >
-                        Remove
-                      </button>
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            )}
           </fieldset>
         )}
 
         {currentStep === "review" && (
           <section aria-labelledby="review-heading">
             <h1 id="review-heading" ref={stepHeadingRef} tabIndex={-1}>
-              {mode === "refine"
-                ? "Your plan, tuned to your game."
-                : "Your next 60 days, shaped around what matters to you."}
+              Your next 60 days, shaped around what matters to you.
             </h1>
             <p className="question-help">
-              {mode === "refine"
-                ? "These details change exercise ranking and protect recovery around your matches."
-                : `We’ll create ${profile.sessionsPerWeek} sessions each week on your chosen days, prioritizing the physical areas and padel actions you selected.`}
+              We’ll create {profile.sessionsPerWeek} sessions each week on your
+              chosen days, prioritizing the physical areas and padel actions you
+              selected.
             </p>
-            {mode === "refine" && (
-              <>
-                <label className="field-label" htmlFor="experience">
-                  Playing experience
-                </label>
-                <select
-                  className="plan-input"
-                  id="experience"
-                  onChange={(event) =>
-                    patchProfile({
-                      experience: event.target
-                        .value as AthleteProfile["experience"],
-                    })
-                  }
-                  value={profile.experience}
-                >
-                  <option value="beginner">I’m just starting</option>
-                  <option value="intermediate">I have some experience</option>
-                  <option value="advanced">I’m experienced</option>
-                </select>
-              </>
-            )}
             <dl className="review-list">
               <div>
                 <dt>Sport</dt>
@@ -1133,7 +1003,11 @@ export function PlanOnboarding({
               </div>
               {profile.sport === "padel" && (
                 <div>
-                  <dt>Padel focus</dt>
+                  <dt>
+                    Padel focus {editAnswer("padel-movement", "court movement")}{" "}
+                    {editAnswer("padel-power", "power and control")}{" "}
+                    {editAnswer("padel-capacity", "mobility and capacity")}
+                  </dt>
                   <dd>
                     {profile.padelLimitations.length > 0
                       ? profile.padelLimitations
@@ -1175,48 +1049,53 @@ export function PlanOnboarding({
               </div>
               <div>
                 <dt>Equipment {editAnswer("equipment", "equipment")}</dt>
-                <dd>
-                  {profile.equipment
-                    .map(
-                      (item) =>
-                        ({
-                          bodyweight: "Bodyweight",
-                          "one-dumbbell": "One dumbbell",
-                          "two-dumbbells": "Two dumbbells",
-                        })[item],
-                    )
-                    .join(", ")}
-                </dd>
+                <dd>{equipmentChoice.label}</dd>
               </div>
-              {profile.sport === "padel" && (
-                <div>
-                  <dt>Matches</dt>
-                  <dd>
-                    {profile.matches.length > 0
-                      ? `${profile.matches.length} added`
-                      : "None added"}
-                  </dd>
-                </div>
-              )}
             </dl>
             <div className="plan-transparency">
               <strong>How this preview works</strong>
               <p>
                 Axyro always compiles and validates the plan with deterministic
-                rules based on sport, priorities, experience, schedule,
-                equipment and any optional discomfort selections. When AI
-                planning is enabled, it proposes the exercise mix; Axyro still
-                owns timing, safety and progression.
+                rules based on sport, priorities, schedule, equipment and any
+                optional discomfort selections. When AI planning is enabled, it
+                proposes the exercise mix; Axyro still owns timing, safety and
+                progression. Technique labels do not limit your exercise pool.
+                Choose effort before you start. You can change spoken guidance
+                cadence during the workout.
               </p>
             </div>
             <p className="safety-note">
               {hasPro
                 ? "Your plan and workout history are saved to your account with an isolated copy on this device. When AI planning is enabled, setup answers and a compact adaptation profile are sent through Axyro’s server route to OpenAI."
-                : "Your preview and answers stay in this browser tab. Pro activates your plan and saves it to your account."}{" "}
+                : "A free account is required to keep this preview in this browser tab. Pro unlocks your schedule and guided sessions and saves your active plan to your account."}{" "}
               You can reset the plan or delete local Axyro data in Settings.
             </p>
           </section>
         )}
+
+        {profile.sport === "padel" &&
+          currentStep === "weak-areas" &&
+          !editingReview && (
+            <div>
+              {profile.padelLimitations.length > 0 && (
+                <p className="question-help">
+                  Balanced training clears the detailed Padel priorities you
+                  selected.
+                </p>
+              )}
+              <button
+                className="button button--secondary button--full"
+                type="button"
+                onClick={() => {
+                  patchProfile({ padelLimitations: [] });
+                  setBalancedShortcut(true);
+                  setStep(steps.indexOf("pain"));
+                }}
+              >
+                Use balanced padel training
+              </button>
+            </div>
+          )}
 
         {error && (
           <p className="form-error" role="alert">
@@ -1225,20 +1104,20 @@ export function PlanOnboarding({
         )}
         <button
           className="button button--primary button--full onboarding-continue"
-          disabled={isGenerating}
+          disabled={isGenerating || saving || membershipLoading}
           type="submit"
         >
-          {isGenerating
-            ? "Building your plan…"
-            : currentStep === "review"
-              ? mode === "refine"
-                ? "Save plan refinements"
-                : plan
-                  ? "Rebuild my 60-day plan"
+          {saving
+            ? "Saving your plan…"
+            : isGenerating
+              ? "Building your plan…"
+              : currentStep === "review"
+                ? plan
+                  ? "Build next 60 days"
                   : "Create My Plan"
-              : editingReview
-                ? "Save answer"
-                : "Continue"}
+                : editingReview
+                  ? "Save answer"
+                  : "Continue"}
         </button>
       </form>
     </main>

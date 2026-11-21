@@ -8,6 +8,7 @@ import {
   flushUserStorage,
   retryUserStorageSync,
   clearPlanDraft,
+  confirmTrainingPlanSave,
 } from "./user-storage";
 const key = "veyro.preferences.v1";
 
@@ -20,6 +21,18 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("identity-owned browser persistence", () => {
+  it("does not upload an unchanged account snapshot on navigation", async () => {
+    const owner = "a0000000-0000-4000-8000-000000000000";
+    const request = vi.fn().mockResolvedValueOnce(
+      Response.json({ userId: owner, data: { [key]: "saved" }, revision: 1 }),
+    );
+    vi.stubGlobal("fetch", request);
+    await initializeUserStorage(owner);
+    createBrowserUserStorage()!.setItem(key, "saved");
+    await flushUserStorage();
+    expect(request).toHaveBeenCalledTimes(1);
+  });
+
   it("clears only the current owner's setup draft and progress", () => {
     sessionStorage.setItem("veyro.plan-draft.alice", "answers");
     sessionStorage.setItem("veyro.plan-draft.alice.preview", "preview");
@@ -84,6 +97,38 @@ describe("identity-owned browser persistence", () => {
     expect(storage.getItem(key)).toBe("latest");
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
+  it("restores a previous active plan when the new account write fails", async () => {
+    const owner = "a0000000-0000-4000-8000-000000000000";
+    const planKey = "veyro.training-plan.v1";
+    const previous = "saved plan";
+    const next = "new plan".repeat(10_000);
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        Response.json({
+          userId: owner,
+          data: { [planKey]: previous },
+          revision: 1,
+        }),
+      )
+      .mockResolvedValueOnce(new Response(null, { status: 503 }));
+    vi.stubGlobal("fetch", fetchMock);
+    await initializeUserStorage(owner);
+    const storage = createBrowserUserStorage()!;
+    storage.setItem(planKey, next);
+    await expect(
+      confirmTrainingPlanSave(owner, next, previous),
+    ).rejects.toThrow(/try again/i);
+    expect(storage.getItem(planKey)).toBe(previous);
+    expect(fetchMock.mock.calls[1][1].keepalive).toBe(false);
+  });
+
+  it("cannot obtain a writable repository for a previous account after switching owners", async () => {
+    await initializeUserStorage("development-admin");
+    expect(createBrowserUserStorage("previous-account")).toBeNull();
+    expect(createBrowserUserStorage("development-admin")).not.toBeNull();
+  });
+
   it("never adopts unattributed legacy data", async () => {
     localStorage.setItem(key, "legacy");
     await initializeUserStorage(null);

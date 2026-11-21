@@ -10,14 +10,21 @@ import {
   createAdaptedSessionSnapshot,
   createPlannedSessionSnapshot,
 } from "@/domain/workout/create-workout-session-snapshot";
-import { createBrowserTrainingPlanRepository } from "@/services/persistence/local-training-plan-repository";
+import {
+  confirmTrainingPlanSave,
+  createBrowserUserStorage,
+} from "@/services/persistence/user-storage";
+import {
+  createBrowserTrainingPlanRepository,
+  LocalTrainingPlanRepository,
+  trainingPlanStorageKey,
+} from "@/services/persistence/local-training-plan-repository";
 import { createBrowserTrainingProfileRepository } from "@/services/persistence/local-training-profile-repository";
 import { createBrowserWorkoutActivityRepository } from "@/services/persistence/local-workout-activity-repository";
 import type { TrainingPlanRepository } from "@/services/persistence/training-plan-repository";
 
 export function useTrainingPlan() {
   const repository = useRef<TrainingPlanRepository | null>(null);
-  const planRef = useRef<TrainingPlan | null>(null);
   const [plan, setPlanState] = useState<TrainingPlan | null>(null);
   const [profile, setProfile] = useState<TrainingPlan["profile"] | null>(null);
   const [loadState, setLoadState] = useState({
@@ -52,7 +59,6 @@ export function useTrainingPlan() {
     const storedProfile = createBrowserTrainingProfileRepository().load();
     const stored = repository.current.load();
     if (!stored) {
-      planRef.current = null;
       setProfile(storedProfile);
       setPlanState(null);
       setLoadState({
@@ -75,10 +81,13 @@ export function useTrainingPlan() {
       })),
     };
     const normalized = normalizeScheduledExerciseFlow(reconciled);
-    repository.current.save(normalized);
+    if (normalized !== reconciled || normalized.sessions.some(
+      (session, index) => session.status !== stored.sessions[index].status,
+    )) {
+      repository.current.save(normalized);
+    }
     createBrowserTrainingProfileRepository().save(normalized.profile);
     if (normalized !== reconciled) syncActivity(normalized);
-    planRef.current = normalized;
     setProfile(normalized.profile);
     setPlanState(normalized);
     setLoadState({
@@ -89,7 +98,6 @@ export function useTrainingPlan() {
 
   const setPlan = useCallback(
     (next: TrainingPlan | null) => {
-      planRef.current = next;
       setPlanState(next);
       if (next) {
         repository.current?.save(next);
@@ -108,13 +116,40 @@ export function useTrainingPlan() {
     [syncActivity],
   );
 
+  const savePlanDurably = useCallback(
+    async (
+      next: TrainingPlan,
+      owner: string,
+      expected?: TrainingPlan | null,
+    ) => {
+      const storage = createBrowserUserStorage(owner);
+      if (!storage)
+        throw new Error("Plan storage is unavailable for this account.");
+      const local = new LocalTrainingPlanRepository(storage);
+      if (
+        expected !== undefined &&
+        JSON.stringify(local.load()) !== JSON.stringify(expected)
+      ) {
+        throw new Error("Your plan changed. Reload before updating it.");
+      }
+      const previous = storage.getItem(trainingPlanStorageKey);
+      const saved = local.saveDurably(next);
+      await confirmTrainingPlanSave(owner, JSON.stringify(saved), previous);
+      setPlanState(saved);
+      setProfile(saved.profile);
+      createBrowserTrainingProfileRepository().save(saved.profile);
+      syncActivity(saved);
+    },
+    [syncActivity],
+  );
+
   const updatePlan = useCallback(
     (update: (current: TrainingPlan) => TrainingPlan) => {
-      const current = planRef.current;
+      const current = repository.current?.load();
       if (!current) return;
 
       const next = update(current);
-      planRef.current = next;
+      if (next === current) return;
       setPlanState(next);
       repository.current?.save(next);
       createBrowserTrainingProfileRepository().save(next.profile);
@@ -124,5 +159,5 @@ export function useTrainingPlan() {
     [syncActivity],
   );
 
-  return { plan, profile, ...loadState, setPlan, updatePlan };
+  return { plan, profile, ...loadState, setPlan, updatePlan, savePlanDurably };
 }

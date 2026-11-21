@@ -6,6 +6,7 @@ export type UiIconName =
   | "arrow-up-right"
   | "book-open"
   | "check"
+  | "chevron-down"
   | "chevron-up"
   | "close"
   | "grip"
@@ -147,11 +148,11 @@ export function UiIcon({ name, ...props }: UiIconProps) {
     );
   }
 
-  if (name === "chevron-up") {
+  if (name === "chevron-up" || name === "chevron-down") {
     return (
       <svg {...commonProps}>
         <path
-          d="m7 14 5-5 5 5"
+          d={name === "chevron-up" ? "m7 14 5-5 5 5" : "m5 9 7 7 7-7"}
           stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"

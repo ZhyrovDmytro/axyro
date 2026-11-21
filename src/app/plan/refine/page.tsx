@@ -1,18 +1,25 @@
-import { ProGate } from "@/components/membership/pro-gate";
 import type { Metadata } from "next";
-
-import { PlanOnboarding } from "@/components/plan/plan-onboarding";
+import { ProGate } from "@/components/membership/pro-gate";
+import { PlanAdjustment } from "@/components/plan/plan-adjustment";
 
 export const metadata: Metadata = {
-  title: "Refine your training plan | Axyro",
-  description:
-    "Optionally tune your padel plan around movement priorities and matches.",
+  title: "Adjust your training plan | Axyro",
+  description: "Adjust the upcoming workouts in your current training block.",
 };
 
-export default function RefinePlanPage() {
+export default async function RefinePlanPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ change?: string }>;
+}) {
+  const { change } = await searchParams;
   return (
-    <ProGate requirePro={false} returnTo="/plan/refine">
-      <PlanOnboarding mode="refine" />
+    <ProGate
+      returnTo={
+        change === "duration" ? "/plan/refine?change=duration" : "/plan/refine"
+      }
+    >
+      <PlanAdjustment initialDuration={change === "duration"} />
     </ProGate>
   );
 }

@@ -4,6 +4,7 @@ import { exercises } from "@/content/exercises";
 import type { Exercise } from "@/domain/exercise/exercise.types";
 
 import type { AthleteProfile } from "./training-plan.types";
+import { buildQuestionnaireContext } from "./questionnaire-context";
 import { selectModelExerciseCandidates } from "./model-exercise-candidates";
 
 const profile: AthleteProfile = {
@@ -87,7 +88,7 @@ describe("selectModelExerciseCandidates", () => {
     }
   });
 
-  it("filters equipment, pain, level, content, time, and environment before ranking", () => {
+  it("filters equipment, pain, content, time, and environment without excluding advanced technique", () => {
     const source = productionExercise();
     const base: Exercise = {
       ...source,
@@ -109,8 +110,8 @@ describe("selectModelExerciseCandidates", () => {
       },
       {
         ...base,
-        id: "level-blocked",
-        name: "Level blocked",
+        id: "level-eligible",
+        name: "Level eligible",
         difficulty: "advanced",
       },
       {
@@ -145,7 +146,10 @@ describe("selectModelExerciseCandidates", () => {
       sportProfiles: [],
     });
 
-    expect(result.map((candidate) => candidate.id)).toEqual(["eligible"]);
+    expect(result.map((candidate) => candidate.id)).toEqual([
+      "eligible",
+      "level-eligible",
+    ]);
   });
 
   it("caps retrieval even when a caller requests the whole catalog", () => {
@@ -198,4 +202,8 @@ describe("selectModelExerciseCandidates", () => {
       "a-leg-option",
     ]);
   });
+});
+
+it("does not send the legacy experience default as a questionnaire answer", () => {
+  expect(buildQuestionnaireContext(profile)).not.toHaveProperty("experience");
 });

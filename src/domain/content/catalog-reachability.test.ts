@@ -2,15 +2,19 @@ import { expect, it } from "vitest";
 import { exercises } from "@/content/exercises";
 import { isExercisePlanEligible } from "./catalog-quality";
 import { selectModelExerciseCandidates } from "@/domain/training-plan/model-exercise-candidates";
+import type { AthleteProfile } from "@/domain/training-plan/training-plan.types";
 import { representativeAthleteProfiles } from "@/domain/training-plan/evaluation-profiles";
 
-function candidates(bodyweightOnly = false) {
+function candidates(
+  bodyweightOnly = false,
+  experience: AthleteProfile["experience"] = "advanced",
+) {
   return new Set(
     (["warmup", "main", "cooldown"] as const).flatMap((section) =>
       selectModelExerciseCandidates({
         profile: {
           ...representativeAthleteProfiles[1],
-          experience: "advanced",
+          experience,
           equipment: bodyweightOnly
             ? ["bodyweight"]
             : ["bodyweight", "one-dumbbell", "two-dumbbells"],
@@ -51,5 +55,16 @@ it("offers optional-weight exercises without requiring weights and excludes load
     exercise.equipment.some((item) => item !== "none"),
   )) {
     expect(reachable.has(exercise.id), exercise.id).toBe(false);
+  }
+});
+
+it("does not exclude intermediate bodyweight exercises from beginner plans", () => {
+  const reachable = candidates(true, "beginner");
+  for (const exercise of exercises.filter(
+    (exercise) =>
+      exercise.difficulty !== "advanced" &&
+      exercise.equipment.every((item) => item === "none"),
+  )) {
+    expect(reachable.has(exercise.id), exercise.id).toBe(true);
   }
 });

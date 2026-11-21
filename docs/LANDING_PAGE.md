@@ -12,19 +12,9 @@ preview → guided-player explanation → one Pro plan example → exercise libr
 FAQ → closing action. The repeated benefits, duration and static-week sections
 were removed following the [design review](design-review-2026-10-23.md).
 
-The hero headline is “Train anywhere. Win on court.” on three fixed lines.
-“Build your” cycles through power, control, confidence, endurance, speed and
-stability, with orange emphasis and no underline. Words switch every 1.4 seconds in
-an 8.4-second CSS transform loop. The word stack reserves the longest word’s
-width; screen readers receive one static sentence. Reduced motion shows power.
-
-Each word has a distinct system-font treatment: heavy Impact for power, precise
-monospace for control, expressive Georgia italic for confidence, humanist Trebuchet
-for endurance, condensed Arial italic for speed, and grounded Verdana for stability.
-All words share the sentence baseline, font size and line height. Font-size
-adjustment normalizes the lowercase height across the different faces; tracking
-preserves each word’s character. These use local font fallbacks without adding
-font downloads.
+The hero opens with “Between padel matches” beside an interactive exercise
+preview. Its caption names the selected movement, and the counter follows the
+exercise picker. Session lengths appear in the introduction.
 The primary action is Create my plan; a secondary link offers the free workout.
 On mobile the actions precede the movement preview.
 

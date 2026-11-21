@@ -5,6 +5,7 @@ import { representativeAthleteProfiles } from "../../src/domain/training-plan/ev
 import {
   addDays,
   formatPlanDate,
+  fromDateKey,
   toDateKey,
 } from "../../src/domain/training-plan/date";
 import { generateTrainingPlan } from "../../src/domain/training-plan/generate-training-plan";
@@ -56,8 +57,42 @@ test("day details stay visible on desktop and become one accessible mobile sheet
     plan,
   );
   await page.reload();
-  await page.setViewportSize({ width: 1440, height: 900 });
   const calendar = page.getByRole("grid", { name: "60-day training calendar" });
+  const months = new Intl.DateTimeFormat("en", {
+    month: "long",
+    year: "numeric",
+  });
+  await expect(
+    page.getByText(
+      months.formatRange(
+        fromDateKey(plan.startDate),
+        fromDateKey(plan.endDate),
+      ),
+      { exact: true },
+    ),
+  ).toBeVisible();
+  const boundaries = Array.from({ length: 60 }, (_, i) =>
+    addDays(today, i),
+  ).filter((date) => date.endsWith("-01"));
+  await page.setViewportSize({ width: 320, height: 844 });
+  await expect(calendar.locator(".calendar-day__month")).toHaveCount(
+    boundaries.length,
+  );
+  for (const date of boundaries) {
+    const cell = calendar.getByRole("gridcell", {
+      name: new RegExp(`^(Today, )?${formatPlanDate(date)}(?:,|$)`),
+    });
+    await expect(cell.locator(".calendar-day__month")).toHaveText(
+      formatPlanDate(date, { month: "short" }),
+    );
+    expect(
+      await cell.evaluate(
+        (element) => element.scrollWidth <= element.clientWidth,
+      ),
+    ).toBe(true);
+  }
+
+  await page.setViewportSize({ width: 1440, height: 900 });
   const trainingDay = calendar.getByRole("gridcell", {
     name: new RegExp(`Today,.*training:`),
   });
@@ -74,8 +109,10 @@ test("day details stay visible on desktop and become one accessible mobile sheet
     panel.locator(".calendar-day-panel__actions > :first-child"),
   ).toHaveText("Start training");
   await expect(
-    panel.locator(".calendar-day-panel__actions > :nth-child(2)"),
-  ).toContainText("View exercises");
+    panel
+      .locator(".calendar-day-panel__actions > :nth-child(2)")
+      .and(panel.getByRole("link", { name: /^Review workout:/ })),
+  ).toHaveText("Review workout");
   await expect(panel.locator(".selected-day-game-action")).toHaveCSS(
     "margin-top",
     "0px",
@@ -150,9 +187,13 @@ test("day details stay visible on desktop and become one accessible mobile sheet
   await expect(panel.getByRole("button", { name: "Add game" })).toBeVisible();
   await panel.getByRole("button", { name: "Add game" }).click();
   await panel.getByLabel("Game name").fill("Club match");
+  const importance = panel.getByRole("combobox", { name: "Importance" });
+  await expect(importance).toHaveValue("normal");
+  await importance.selectOption("important");
   await panel.getByRole("button", { name: "Save game" }).click();
   await expect(panel.getByText("Club match", { exact: true })).toBeVisible();
   await panel.getByRole("button", { name: "Edit Club match" }).click();
+  await expect(importance).toHaveValue("important");
   await panel.getByLabel("Game name").fill("League match");
   await panel.getByRole("button", { name: "Update game" }).click();
   await panel.getByRole("button", { name: "Delete League match" }).click();

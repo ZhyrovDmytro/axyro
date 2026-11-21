@@ -63,11 +63,13 @@ function scheduleSync(storage: Storage, userId: string, version: number) {
         if (generation !== version || identity !== userId || !syncEnabled)
           return;
         try {
+          const body = JSON.stringify({ userId, data, revision });
           const response = await fetch("/api/user-data", {
             method: "PUT",
-            keepalive: true,
+            // Browsers cap keepalive request bodies at 64 KiB.
+            keepalive: new Blob([body]).size <= 60_000,
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId, data, revision }),
+            body,
           });
           if (response.status === 409 && generation === version) {
             syncEnabled = false;
@@ -111,10 +113,42 @@ export async function retryUserStorageSync(): Promise<
   return generation === version ? (syncFailure ?? "saved") : "failed";
 }
 
-/** Factories capture their owner, so stale callbacks cannot write to a new account. */
-export function createBrowserUserStorage(): StorageLike | null {
+export async function confirmTrainingPlanSave(
+  owner: string,
+  written: string,
+  previous: string | null,
+) {
+  if (owner === "development-admin" && identity === owner) return;
   const storage = browserStorage();
-  if (!storage || identity === undefined) return null;
+  const version = generation;
+  if (!storage || identity !== owner) throw new Error("Account changed.");
+  const key = scopedStorageKey(owner, "veyro.training-plan.v1");
+  const result = await retryUserStorageSync();
+  if (result === "saved" && storage.getItem(key) === written) return;
+
+  if (generation === version && storage.getItem(key) === written) {
+    if (previous === null) storage.removeItem(key);
+    else storage.setItem(key, previous);
+    notify();
+  }
+  throw new Error(
+    result === "conflict"
+      ? "Training data changed in another tab or device. Reload before saving."
+      : "Could not save your plan to your account. Please try again.",
+  );
+}
+
+/** Factories capture their owner, so stale callbacks cannot write to a new account. */
+export function createBrowserUserStorage(
+  expectedOwner?: string,
+): StorageLike | null {
+  const storage = browserStorage();
+  if (
+    !storage ||
+    identity === undefined ||
+    (expectedOwner !== undefined && identity !== expectedOwner)
+  )
+    return null;
   const owner = identity;
   const version = generation;
   const allowed = (key: string) =>
@@ -131,7 +165,9 @@ export function createBrowserUserStorage(): StorageLike | null {
     },
     setItem(key, value) {
       if (generation !== version || !allowed(key)) return;
-      storage.setItem(scopedStorageKey(owner, key), value);
+      const scopedKey = scopedStorageKey(owner, key);
+      if (storage.getItem(scopedKey) === value) return;
+      storage.setItem(scopedKey, value);
       notify();
       if (owner && syncEnabled) scheduleSync(storage, owner, version);
     },
@@ -189,7 +225,17 @@ export function removeUserStorage(userId: string) {
 export function clearPlanDraft(userId: string | null): boolean {
   try {
     const key = `veyro.plan-draft.${userId ?? "guest"}`;
-    for (const suffix of ["", ".initial.step", ".refine.step", ".preview"]) {
+    for (const suffix of [
+      "",
+      ".initial.step",
+      ".refine.step",
+      ".preview",
+      ".balanced",
+      ".refinement",
+      ".adjustment",
+      ".adjustment.duration",
+      ".refinement.refine.step",
+    ]) {
       window.sessionStorage.removeItem(key + suffix);
     }
     return true;

@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { mockFreeMember } from "./helpers/free-member";
 
-async function reviewPlan(page: Page) {
+async function reviewPlan(page: Page, shortcut = false) {
   await page.goto("/plan/setup");
   for (let step = 0; step < 12; step++) {
     if (
@@ -11,7 +11,18 @@ async function reviewPlan(page: Page) {
         .isVisible()
     )
       return;
-    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    const balanced = page.getByRole("button", {
+      name: "Use balanced padel training",
+    });
+    if (shortcut && (await balanced.isVisible())) {
+      await balanced.click();
+      await page.getByRole("button", { name: "Back", exact: true }).click();
+      await expect(balanced).toBeVisible();
+      await balanced.click();
+      shortcut = false;
+    } else {
+      await page.getByRole("button", { name: "Continue", exact: true }).click();
+    }
   }
   throw new Error("Plan review was not reached");
 }
@@ -52,7 +63,7 @@ for (const width of [390, 1280]) {
       plannerCalls++;
       return route.fulfill({ status: 403 });
     });
-    await reviewPlan(page);
+    await reviewPlan(page, width === 390);
     await page
       .getByRole("button", { name: "Create My Plan", exact: true })
       .click();
@@ -71,6 +82,15 @@ for (const width of [390, 1280]) {
     await expect(modal).toContainText(
       "Axyro Pro includes your training schedule and guided sessions.",
     );
+    await expect(
+      modal.getByText(
+        "Balanced training for the time and equipment you chose.",
+      ),
+    ).toBeVisible();
+    await expect(
+      modal.getByRole("link", { name: "Try the free workout" }),
+    ).toHaveAttribute("href", "/workouts/foundation-strength");
+    await expect(modal.locator(".plan-transparency strong")).not.toBeEmpty();
     await expect(page.locator(".plan-preview")).toHaveAttribute("inert", "");
     await expect(page.locator(".plan-preview h1")).toHaveText(
       "Your training plan",
@@ -106,6 +126,11 @@ for (const width of [390, 1280]) {
     await expect(modal).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(modal).toBeVisible();
+    if (width === 390) {
+      await modal.getByRole("link", { name: "Try the free workout" }).click();
+      await expect(page).toHaveURL(/\/workouts\/foundation-strength$/);
+      return;
+    }
     await modal.getByRole("link", { name: "Manage membership" }).click();
     await expect(page).toHaveURL(/\/account$/);
     await expect(modal).toHaveCount(0);
@@ -134,4 +159,11 @@ test("preview storage errors preserve the questionnaire and permit retry", async
   await expect(
     page.getByRole("button", { name: "Create My Plan", exact: true }),
   ).toBeEnabled();
+  await page.reload();
+  await page
+    .getByRole("button", { name: "Create My Plan", exact: true })
+    .click();
+  await expect(
+    page.getByRole("dialog", { name: "Axyro Pro membership" }),
+  ).toBeVisible();
 });

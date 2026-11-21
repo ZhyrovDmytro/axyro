@@ -21,7 +21,7 @@ import {
   type GeneratedTrainingSession,
 } from "./generate-training-plan";
 import {
-  selectModelExerciseCandidates,
+  isCompatiblePlanExercise,
   type ModelCandidateEnvironment,
 } from "./model-exercise-candidates";
 import type { AthleteProfile } from "./training-plan.types";
@@ -69,25 +69,6 @@ function assertValidIntent(input: CompileModelWorkoutInput) {
   }
 }
 
-function compatibleCatalog(input: CompileModelWorkoutInput) {
-  const sections = ["warmup", "main", "cooldown"] as const;
-  const compatibleIds = new Set(
-    sections.flatMap((section) =>
-      selectModelExerciseCandidates({
-        profile: input.profile,
-        availableTimeSeconds: input.targetDurationMinutes * 60,
-        environment: input.environment,
-        section,
-        limit: MAX_MODEL_SELECTIONS,
-        exerciseCatalog: input.exerciseCatalog,
-      }).map((candidate) => candidate.id),
-    ),
-  );
-  return input.exerciseCatalog.filter((exercise) =>
-    compatibleIds.has(exercise.id),
-  );
-}
-
 /**
  * Turns an untrusted model exercise selection into an executable session.
  * The model may choose stable IDs and express intent; Axyro owns every timing,
@@ -107,14 +88,33 @@ export function compileModelWorkout(
     throw new Error(`Unknown exercise ID(s): ${unknownIds.join(", ")}.`);
   }
 
-  const compatible = compatibleCatalog(input);
-  const compatibleIds = new Set(compatible.map((exercise) => exercise.id));
+  const canUse = (
+    exercise: Exercise,
+    section: "warmup" | "main" | "cooldown",
+  ) =>
+    isCompatiblePlanExercise(
+      exercise,
+      input.profile,
+      section,
+      input.environment,
+      input.targetDurationMinutes * 60,
+    );
+  const mainCatalog = input.exerciseCatalog.filter((exercise) =>
+    canUse(exercise, "main"),
+  );
+  const compatibleIds = new Set(mainCatalog.map((exercise) => exercise.id));
+  const compatible = input.exerciseCatalog.filter(
+    (exercise) =>
+      compatibleIds.has(exercise.id) ||
+      canUse(exercise, "warmup") ||
+      canUse(exercise, "cooldown"),
+  );
   const rejectedIds = input.selectedExerciseIds.filter(
     (id) => !compatibleIds.has(id),
   );
   if (rejectedIds.length > 0) {
     throw new Error(
-      `Exercise selection violates content, experience, equipment, pain, time, or environment constraints: ${rejectedIds.join(", ")}.`,
+      `Exercise selection violates content, equipment, pain, time, or environment constraints: ${rejectedIds.join(", ")}.`,
     );
   }
 
@@ -179,9 +179,8 @@ export function compileModelWorkout(
   const fitted = generateSessionPrescription(
     sourceWorkout,
     mainWorkoutFitTargetSeconds / 60,
-    compatible.filter(
+    mainCatalog.filter(
       (exercise) =>
-        exercise.sessionRoles.includes("main") &&
         !initialSections.some(
           (section) =>
             section.type !== "main" &&

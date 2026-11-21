@@ -6,7 +6,9 @@ test("daily duration controls and responsive screens", async ({ page }) => {
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: /Home training for your next padel match/ }),
+    page.getByRole("heading", {
+      name: /Between padel matches/,
+    }),
   ).toBeVisible();
   await page.screenshot({ path: "/tmp/axyro-home-mobile.png", fullPage: true });
   await page.goto("/workouts");
@@ -82,19 +84,35 @@ test("creates a five-minute plan and exposes duration refinement", async ({
   await expect(
     page.getByRole("heading", { name: "Your training plan" }),
   ).toBeVisible();
-  await expect(page.getByRole("link", { name: "Adjust my plan" })).toHaveCount(0);
-  await expect(page.getByRole("link", { name: "Change session length" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Adjust my plan" })).toHaveCount(
+    0,
+  );
+  await expect(
+    page.getByRole("link", { name: "Change session length" }),
+  ).toHaveCount(0);
   await page.screenshot({ path: "/tmp/axyro-plan-mobile.png" });
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.screenshot({ path: "/tmp/axyro-plan-desktop.png" });
   await page.goto("/settings");
+  await page.getByRole("link", { name: "Change session length" }).click();
   await expect(
-    page.getByRole("radio", { name: "5 min Short on time" }),
+    page.getByRole("radio", { name: "5 min", exact: true }),
   ).toBeChecked();
-  await page.getByRole("radio", { name: "20 min Go a little longer" }).check();
   await expect(
-    page.getByRole("radio", { name: "20 min Go a little longer" }),
+    page.getByRole("radio", { name: "Ongoing", exact: true }),
   ).toBeChecked();
-  await page.reload();
-  await expect(page.getByRole("radio", { name: "20 min Go a little longer" })).toBeChecked();
+  await page.getByRole("radio", { name: "10 min", exact: true }).check();
+  await page.getByRole("button", { name: "Review changes" }).click();
+  await expect(page.getByText("5 min → 10 min").first()).toBeVisible();
+  await page
+    .getByRole("button", { name: "Apply to upcoming workouts" })
+    .click();
+  await expect(
+    page.getByRole("status").filter({ hasText: "workouts changed" }),
+  ).toBeVisible();
+  await page.goto("/settings");
+  await page.getByRole("link", { name: "Change session length" }).click();
+  await expect(
+    page.getByRole("radio", { name: "10 min", exact: true }),
+  ).toBeChecked();
 });

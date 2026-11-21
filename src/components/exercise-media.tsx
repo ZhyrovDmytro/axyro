@@ -24,6 +24,16 @@ function getMovementFrameSrc(uri: string) {
   return `${uri}${separator}v=${MOVEMENT_FRAME_ASSET_REVISION}`;
 }
 
+export function ExercisePreview({ exercise }: { exercise: Exercise }) {
+  return (
+    <div className="exercise-media exercise-media--compact exercise-media--image"
+      style={{ aspectRatio: exercise.media.aspectRatio }}>
+      <Image alt={`${exercise.name} movement reference`} fill loading="lazy" unoptimized
+        src={exercise.media.firstFrameUri ?? exercise.movementFrames.start.uri} />
+    </div>
+  );
+}
+
 export function ExerciseMedia({
   exercise,
   aspectRatio,
@@ -42,7 +52,9 @@ export function ExerciseMedia({
   const media = exercise.media;
   const hasDistinctMovementFrames =
     exercise.movementFrames.start.uri !== exercise.movementFrames.end.uri;
-  const isVideo = media.type === "video";
+  const playbackUri = media.playbackUri ?? media.uri;
+  const poster = media.firstFrameUri ?? media.posterUri;
+  const isVideo = Boolean(media.playbackUri) || media.type === "video";
   const isAnimation = media.type === "animation";
   const mediaPreload = preload ?? (compact ? "metadata" : "auto");
   const showMovementFrames = !media.uri;
@@ -115,14 +127,16 @@ export function ExerciseMedia({
   ]);
 
   useEffect(() => {
-    if (!player || !media.uri || !isVideo || !("caches" in window)) return;
+    if (!player || !playbackUri || !isVideo || !("caches" in window)) return;
     let active = true;
     let objectUrl: string | null = null;
     const resolveCachedVideo = async () => {
-      const response = await window.caches.match(media.uri as string);
+      const response = await window.caches.match(playbackUri);
       if (!response || !active) return;
+      const blob = await response.blob();
+      if (!active) return;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
-      objectUrl = URL.createObjectURL(await response.blob());
+      objectUrl = URL.createObjectURL(blob);
       if (active) setCachedVideoUri(objectUrl);
     };
     const handleCacheUpdate = () => void resolveCachedVideo();
@@ -136,7 +150,7 @@ export function ExerciseMedia({
       );
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [isVideo, media.uri, player]);
+  }, [isVideo, playbackUri, player]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -147,7 +161,7 @@ export function ExerciseMedia({
 
   const className = `exercise-media${compact ? " exercise-media--compact" : ""}`;
   const style = { aspectRatio: aspectRatio ?? media.aspectRatio };
-  const fallbackUri = media.fallbackUri ?? media.posterUri;
+  const fallbackUri = media.firstFrameUri ?? media.fallbackUri ?? media.posterUri;
 
   if (showMovementFrames) {
     const active = exercise.movementFrames[activeFrame];
@@ -311,12 +325,12 @@ export function ExerciseMedia({
         loop={media.loop}
         muted
         playsInline
-        poster={media.posterUri}
+        poster={compact ? undefined : poster}
         preload={mediaPreload}
-        src={cachedVideoUri ?? media.uri}
+        src={cachedVideoUri ?? playbackUri}
         tabIndex={-1}
         onCanPlay={() => setMediaState("ready")}
-        onError={() => setMediaState(resolveExerciseMediaError(media))}
+        onError={() => setMediaState(poster ? "fallback" : resolveExerciseMediaError(media))}
         onPause={() => setMediaState("paused")}
         onPlay={() => setMediaState("playing")}
       />

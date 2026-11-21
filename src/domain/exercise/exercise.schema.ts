@@ -202,6 +202,8 @@ const singleReferenceExerciseIds = new Set([
 
 const normalizedExerciseMediaSchema = z.object({
   type: mediaTypeSchema,
+  playbackUri: mediaUriSchema.optional(),
+  firstFrameUri: mediaUriSchema.optional(),
   uri: mediaUriSchema.optional(),
   posterUri: mediaUriSchema.optional(),
   fallbackUri: mediaUriSchema.optional(),

@@ -11,6 +11,12 @@ import type {
   SessionActivity,
   WorkoutFeedbackEvent,
 } from "@/services/persistence/workout-activity-repository";
+import { getWorkoutTechnique } from "./generate-training-plan";
+import {
+  planAvoidedExercisesOnDate,
+  planProfileOnDate,
+} from "./plan-adjustment";
+import { isCompatiblePlanExercise } from "./model-exercise-candidates";
 import { feedbackAffectedBodyAreas } from "./feedback-adaptation";
 import { weeklyAssessmentSchema } from "./weekly-adaptation.schema";
 import { weeklyAdaptationProposalSchema } from "./training-plan.schema";
@@ -488,8 +494,21 @@ export function buildWeeklyAdaptationProposal({
     const hasPain = before.workout.items.some((item) =>
       painIds.has(item.exerciseId),
     );
-    if ((before.todayAdaptations.length || before.isEdited) && !hasPain)
+    const explicitlyAdjusted = plan.adjustmentWindows?.some(
+      (entry) =>
+        entry.sessionIds.includes(before.id) &&
+        before.scheduledDate >= entry.start &&
+        before.scheduledDate <= entry.end,
+    );
+    if (
+      (before.todayAdaptations.length ||
+        before.isEdited ||
+        explicitlyAdjusted) &&
+      !hasPain
+    )
       continue;
+    const effectiveProfile = planProfileOnDate(plan, before.scheduledDate);
+    const avoided = planAvoidedExercisesOnDate(plan, before.scheduledDate);
     const summaries = new Set<string>();
     const sections = before.sections.map((section) => ({
       ...section,
@@ -506,6 +525,8 @@ export function buildWeeklyAdaptationProposal({
           if (
             regression &&
             regression.id !== exercise.id &&
+            isCompatiblePlanExercise(regression, effectiveProfile, "main") &&
+            !avoided.includes(regression.id) &&
             regression.laterality === exercise.laterality &&
             originalRoles.length > 0 &&
             profiles
@@ -673,12 +694,16 @@ export function buildWeeklyAdaptationProposal({
     )
       continue;
     const main = sections.find((section) => section.type === "main");
+    const workout = {
+      ...before.workout,
+      items: main?.items ?? before.workout.items,
+    };
     const after: PlannedWorkout = {
       ...before,
       sections,
       workout: {
-        ...before.workout,
-        items: main?.items ?? before.workout.items,
+        ...workout,
+        difficulty: getWorkoutTechnique(workout, exerciseCatalog),
         estimatedMinutes: Math.max(1, Math.round(duration / 60)),
       },
       estimatedDurationSeconds: duration,

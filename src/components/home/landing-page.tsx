@@ -16,15 +16,12 @@ const starter = starterWorkouts.find(
 )!;
 const starterHref = `/workouts/${starter.slug}`;
 const heroMovements = [
-  ["standing-dumbbell-wood-chop", "wood-chop-preview.png"],
-  ["lateral-stick", "lateral-stick-preview.png"],
-  ["bird-dog", "bird-dog-preview.png"],
-  ["dynamic-court-march", "dynamic-court-march-preview.png"],
-  ["side-plank-rotation", "side-plank-preview.png"],
-].map(([id, poster]) => ({
-  exercise: exercises.find((exercise) => exercise.id === id)!,
-  poster: `/images/landing/${poster}`,
-}));
+  "standing-dumbbell-wood-chop", "lateral-stick", "bird-dog",
+  "dynamic-court-march", "side-plank-rotation",
+].map((id) => {
+  const exercise = exercises.find((item) => item.id === id)!;
+  return { exercise, poster: exercise.media.firstFrameUri! };
+});
 const playerMovement = exercises.find(
   (exercise) => exercise.id === "side-plank-rotation",
 )!;
@@ -80,6 +77,18 @@ const questions = [
     "Any time. Pause and resume, mute guidance, skip ahead or return to a previous exercise. Where audio is unavailable, visual cues keep you on track.",
   ],
 ];
+
+function LandingDemo({ exercise, playing }: { exercise: (typeof exercises)[number]; playing: boolean }) {
+  const [failedUri, setFailedUri] = useState<string>();
+  const { firstFrameUri, playbackUri } = exercise.media;
+  const label = `${exercise.name} movement demonstration`;
+  return playing && playbackUri && failedUri !== playbackUri ? (
+    <video role="img" aria-label={label} autoPlay muted loop playsInline
+      poster={firstFrameUri} src={playbackUri} onError={() => setFailedUri(playbackUri)} />
+  ) : (
+    <Image alt={label} src={firstFrameUri!} fill unoptimized />
+  );
+}
 
 function PlanLink() {
   return (
@@ -155,12 +164,12 @@ export function LandingPage() {
         <section className={styles.hero}>
           <div className={styles.heroCopy}>
             <h1 className={styles.heroHeadline}>
-              Home training for your next padel match
+              Between padel matches
             </h1>
             <p>
-              Build movement, strength and control in 5, 10 or 20 minutes. Axyro
-              Pro shapes your 60-day plan around your goals, equipment and match
-              schedule.
+              Practise the side step, the turn and the stop at home. Pick a
+              5, 10 or 20 minute workout, or build a 60-day Pro plan around
+              the days you play.
             </p>
             <div className={styles.actions}>
               <PlanLink />
@@ -171,42 +180,19 @@ export function LandingPage() {
           </div>
           <div className={styles.heroStage} ref={heroRef}>
             <div className={styles.stageTop}>
-              <span>
-                <i className={styles.previewDot} aria-hidden="true" /> At home.
-                In your own time.
-              </span>
-              <UiIcon name="scheduled" />
+              <span>Exercise library</span>
+              <span>{heroIndex + 1} / {heroMovements.length}</span>
             </div>
             <div className={styles.heroImage}>
-              {heroMovements.map(({ exercise, poster }, index) => (
+              {heroMovements.map(({ exercise }, index) => (
                 <div
                   key={exercise.id}
                   className={`${styles.heroSlide} ${index === heroIndex ? styles.heroSlideActive : ""}`}
                   aria-hidden={index !== heroIndex}
                 >
-                  <Image
-                    src={
-                      playing &&
-                      heroVisible &&
-                      (index === heroIndex ||
-                        index === (heroIndex + 1) % heroMovements.length)
-                        ? exercise.media.uri!
-                        : poster
-                    }
-                    alt={
-                      index === heroIndex
-                        ? `${exercise.name} movement demonstration`
-                        : ""
-                    }
-                    fill
-                    loading="eager"
-                    unoptimized
-                    sizes="(max-width: 760px) 100vw, 50vw"
-                    onError={(event) => {
-                      if (!event.currentTarget.src.endsWith(poster))
-                        event.currentTarget.src = poster;
-                    }}
-                  />
+                  {index === heroIndex && (
+                    <LandingDemo exercise={exercise} playing={playing && heroVisible} />
+                  )}
                 </div>
               ))}
               <button
@@ -220,7 +206,6 @@ export function LandingPage() {
             </div>
             <div className={styles.workoutLabel}>
               <div>
-                <span>A look inside Axyro</span>
                 <strong className={styles.heroExerciseName}>
                   {movement.name}
                 </strong>
@@ -255,20 +240,6 @@ export function LandingPage() {
             </div>
           </div>
         </section>
-        <div className={styles.promiseStrip}>
-          <span>
-            <UiIcon name="scheduled" />
-            5, 10 or 20 minutes
-          </span>
-          <span>
-            <UiIcon name="play" />
-            Movement you can follow
-          </span>
-          <span>
-            <UiIcon name="volume" />
-            Guidance you can hear
-          </span>
-        </div>
         <section className={styles.story} id="how-it-works">
           <div className={styles.sectionIntro}>
             <h2>Guidance through every session</h2>
@@ -290,17 +261,7 @@ export function LandingPage() {
               <div
                 className={`${styles.playerVisual} ${chapter === 2 ? styles.restVisual : ""}`}
               >
-                <Image
-                  src={
-                    playerPlaying && chapter !== 2
-                      ? playerMovement.media.uri!
-                      : "/images/landing/side-plank-preview.png"
-                  }
-                  alt={`${playerMovement.name} movement demonstration`}
-                  unoptimized
-                  fill
-                  sizes="(max-width: 760px) 100vw, 45vw"
-                />
+                <LandingDemo exercise={playerMovement} playing={playerPlaying && chapter !== 2} />
                 {chapter !== 2 && (
                   <button
                     className={styles.demoToggle}

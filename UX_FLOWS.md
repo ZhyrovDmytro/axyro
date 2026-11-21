@@ -31,25 +31,24 @@ See [the UX review and core flow map](docs/UX_REVIEW.md) for the applied
 checklist, recovery paths, and verification limits.
 
 ## Training plan setup
-Initial setup is a focused path covering sport, broad goals, non-painful physical development areas, concrete Padel court movements, shot actions, capacity, a separate current-discomfort safety check, weekly schedule and available time, equipment, and review. Non-Padel setup omits the three sport-specific screens. It uses a conservative beginner experience default. Weekly schedule uses three accessible duration choices: 5, 10 and 20 minutes, with 10 selected by default. Every screen asks about one logical topic, shows question progress, supports Back and Exit, and explains how optional information changes the plan. Each multi-select screen enforces its own limit of three choices; selections made on earlier screens do not reduce the allowance on the current screen.
+Initial setup covers sport, goals, physical development, comfort, schedule, equipment and review. The equipment step offers **Without dumbbells** (selected by default) and **With dumbbells**. Bodyweight exercises are always available. **Use balanced padel training** skips the three detailed Padel priority screens and clears any priorities previously entered on them. The detailed route remains available from Back or the review edit controls. General training follows its own route. Weekly duration choices are 5, 10 and 20 minutes, with 10 selected by default.
 
 Setup answers and the current step are saved in owner-scoped session storage,
 including unfinished goal/day selections. Refreshing or exiting and returning
 in the same tab restores progress. Storage-blocked browsers retain in-memory
 operation; closing the tab is not a durable save. Final submission still validates
-the complete profile. Successful plan creation, plan reset and data deletion
-clear the corresponding draft. Review names the selected equipment and offers
+the complete profile. A Free account is required to keep a preview in the tab. The membership offer shows the first planned workout, its date and duration, and a reason based on setup, plus a link to the free workout. Pro activation waits for an acknowledged account write before clearing the draft or opening the plan. A failed write leaves the answers available for retry. Plan reset and data deletion clear the corresponding draft. Review names the selected equipment and offers
 direct edits for available priority, physical-focus, comfort, schedule and
 equipment steps; Save answer returns to review. Safety exclusions are shown
 for general training as well as Padel. Back, Exit, edit actions and unmounting
 cancel pending generation so a late response cannot save or redirect.
 
-After the first plan exists, **Refine my plan** opens schedule and duration first, then physical focus and the Padel movement, shot, mobility/capacity, playing-experience, and upcoming-match questions. These answers rebuild the upcoming plan; current pain remains a separate protective input rather than being mixed with areas the athlete wants to strengthen. Settings also provides **Default session length** with 5, 10 and 20 minute choices. Changes persist in the training profile and rebuild upcoming scheduled workouts for the new target using saved feedback and adaptation preferences; past and in-progress sessions remain unchanged. An incompatible target leaves the existing plan unchanged and displays an error.
+**Refine my plan** opens a guided adjustment flow for the active block. The page shows the current week, saved training days and duration, and next workout. Move through training days, session length, equipment, difficulty, comfort, and focus. Continue with existing answers or change multiple settings. Back keeps the draft, and the final review lets you edit a changed answer directly before applying everything together. Schedule, duration and equipment can apply for the next seven days or change the saved default. The equipment step offers **With dumbbells** and **Without dumbbells**. Bodyweight training is always available. The difficulty step offers **Keep workouts as planned**, **Make workouts lighter**, **Make workouts harder**, and **Replace exercises**. Difficulty changes trade work and recovery within the same session length and respect exercise bounds. Members can choose up to five exercises from workouts scheduled in the next seven days for replacement. The next step handles comfort separately. If a workout cannot fit the new settings, the current step shows its date and offers to remove it. The dated review lists each removal before applying, and canceled workouts remain in activity history. Past and resumable workouts, match importance, and compatible edits carry through. **Adapt today** still applies to one workout and weekly proposals still require a decision. Settings links an active member directly to the ongoing duration adjustment. Match entry remains on the calendar. **Build next 60 days** starts a new block when available.
 
-The optional match-entry form groups each label with its control, with explicit
-gaps between fields and Add match. On wider screens, the date, importance and
-Add match action align in one row; on phones they stack at full width. Continue
-remains a separate action below the match form.
+The Plan calendar displays the month range and labels the first day of each month in the grid. Manage match dates in the Plan calendar or Home’s weekly schedule. Refinement
+reads the saved match schedule when planning recovery. Its preview shows each
+affected date, the action, and the workout name, with an explanation when an
+existing workout needs to be moved or replaced.
 
 The chosen session length is a generation constraint, not a suggestion. Every
 generated session must be within the smaller of 10% of the target or two
@@ -66,14 +65,16 @@ Padel priorities are positive training inputs and use recognizable outcomes: fas
 
 The full plan’s **Upcoming games** panel shows today’s and future matches in date order. Past games remain in the saved plan/calendar but are omitted from this panel. If no current or future games remain, it shows **No upcoming games**.
 Each day in Home’s weekly schedule offers **Add match**, opening the
-same dated match form as the full calendar. Saved matches can be edited from
-that row and remain visible alongside a training session on the same day.
+same dated match form as the full calendar. Choose Normal or Important when
+adding or editing a match. Important matches protect two preceding days during
+rebalancing. Saved matches remain visible alongside a training session on the
+same day.
 Saving persists the match without automatically moving training; recovery
 rebalancing remains an explicit action in the full calendar.
 
 Plan opens the full 60-day calendar and workout list directly at `/plan`; `/plan/calendar` remains an equivalent entry point. Home shows the today/next workout, weekly schedule with match and rescheduling controls, and compact plan progress. Default session length lives in Settings. The full plan keeps a **Refine my plan** link and shows missed workouts as a compact count with a correctly labeled **Review activity** link. Selecting a scheduled or missed workout in the calendar also offers **Move training**.
 
-The weekly schedule uses the same labeled status badges as Activity: completed is green, missed is red, and incomplete is amber. Finished and missed training rows use a neutral surface so orange remains associated with upcoming training. Scheduled and missed workouts offer **Move training**, with a date picker from today through the plan end date. Moving a missed workout makes that occurrence scheduled again without creating a duplicate history entry. Dates already occupied by another visible workout are rejected; completed and in-progress sessions cannot be moved.
+The weekly schedule shows the same status labels and colors as Activity. Completed is green, missed is red, and incomplete is amber. Orange markers identify scheduled and in-progress training. Scheduled and missed workouts offer **Move training**, with a date picker from today through the plan end date. Moving a missed workout makes that occurrence scheduled again without creating a duplicate history entry. Dates already occupied by another visible workout are rejected; completed and in-progress sessions cannot be moved.
 
 The deeper full-calendar workspace leads with the next 60 days and today’s training, followed by a chronological session list. Six upcoming sessions are shown initially; Show next reveals up to six more and announces the visible count. All scheduled dates remain available in the calendar. Selecting
 a training date reveals the workout name, description, duration, exercise count,
@@ -87,12 +88,12 @@ list and editing controls. Future dates are also selectable to add a match.
 Once a match is added, its selected-day card exposes adjacent edit and delete
 actions. Editing only changes match details; deletion is a separate action and
 requires confirmation before the match is removed.
-Rebalancing is explicit and currently moves planned strength sessions away from
-a match and the preceding day. Sessions can be moved, removed with Undo, or
-opened for editing. Profile answers remain editable by returning to setup.
+Rebalancing is explicit. It moves planned strength sessions away from match
+day and the preceding day, with one extra day for important matches. Sessions
+can be moved, removed with Undo, or opened for editing. Profile answers remain editable by returning to setup.
 
 ## Edit a planned workout
-Opening a planned session first shows a read-only review with the complete
+**Review workout** opens a planned session in a read-only review with the complete
 timing, effort choice, and a prominent **Start workout** action in the hero next
 to the visually quieter **Edit workout** action. Its hero, workout list, and
 effort panel use the same visual structure as a workout opened from the workout
@@ -383,23 +384,22 @@ missing pages provide **Browse workouts** and **Go home**. These recovery screen
 do not promise that unsaved input survives an unexpected render failure.
 
 ### Compact weekly schedule
-Home uses compact day rows. Upcoming training is orange, matches are blue,
-and recovery uses a neutral surface. A day with both uses blue and retains both
-the workout and match labels. Today has an outline independent of day type.
+Home uses equal-height day rows and shows the date range for the week.
+Orange and blue markers identify upcoming training and matches. Days with both
+show both markers and the match name. Today is labeled by its date.
 Each workout title opens that session's preview, where the athlete can inspect
 its exercises and start it. Scheduled rows also offer **Start workout**, and
 in-progress rows offer **Resume workout**, using the saved effort preference.
 These links are separate from match and move controls and work with a keyboard.
-“Move training” opens an inline date control for scheduled sessions, including
+“Move training” opens a date form without resizing the rows for scheduled sessions, including
 missed sessions. It reuses calendar rescheduling, persists the new date, blocks
 occupied training dates, and keeps matches on their original dates. Dates must
 be today or later and within the current plan. This changes one session, not the
 recurring availability preference. Completed sessions cannot be moved here.
 The progress panel remains in Home’s block summary.
 
-Shared training and match dates also display an orange “Training + match · Same
-day” label on the blue match row, so the overlap is explicit without relying on
-color. “Rebalance plan” is visible on Home and the full calendar, but disabled until the match schedule changes. Adding a match enables it; renaming a match does not. Applying rebalancing disables it again, including after reload. The comparison tracks dates and importance against the previously applied match schedule; existing plans start with their current schedule as the baseline.
+Shared training and match dates display the workout and match name as text.
+“Rebalance plan” is visible on Home and the full calendar, but disabled until the match schedule changes. Adding a match enables it; renaming a match does not. Applying rebalancing disables it again, including after reload. The comparison tracks dates and importance against the previously applied match schedule; existing plans start with their current schedule as the baseline.
 
 Rebalance actions announce their result on Home and Plan: how many workouts
 moved, whether no changes were needed, or whether nearby dates were unavailable.
@@ -475,3 +475,5 @@ scope. The existing Pro invitation remains available below the results. Settings
 explains that guest preferences stay on the device while signed-in preferences
 also save to the account; the development administrator continues to use local
 storage. Audio copy consistently describes the current countdown/transition tones.
+
+During client navigation the current screen stays visible until the destination is ready. Account and workout readiness indicators still apply when their data is pending. The exercise library filters the bundled catalog locally and keeps filters in the URL. Exercise and workout cards lazy-load a WebP still from the first source frame. Exercise details and the active player load a silent H.264 MP4. When Up next shows an exercise, it loads and loops that exercise’s clip inline. Recovery and completion previews do not load another clip. Public exercise assets can be reused by the browser for one hour.

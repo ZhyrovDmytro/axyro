@@ -1,4 +1,4 @@
-import type { AthleteProfile } from "./training-plan.types";
+import type { AthleteProfile, TrainingPlan } from "./training-plan.types";
 
 const weekdayIndex: Record<AthleteProfile["preferredDays"][number], number> = {
   sunday: 0,
@@ -44,4 +44,17 @@ export function formatPlanDate(
       day: "numeric",
     },
   ).format(fromDateKey(key));
+}
+
+export function crossesPlanAdjustmentWindow(
+  plan: Pick<TrainingPlan, "adjustmentWindows">,
+  from: string,
+  to: string,
+) {
+  return (
+    plan.adjustmentWindows?.some(
+      ({ start, end }) =>
+        (from >= start && from <= end) !== (to >= start && to <= end),
+    ) ?? false
+  );
 }

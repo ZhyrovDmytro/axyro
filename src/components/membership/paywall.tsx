@@ -15,18 +15,27 @@ type Product = {
   intervalCount: number;
 };
 export type PaywallContext = "plan" | "workout" | "progress" | "library";
+export type PlanOfferPreview = {
+  title: string;
+  date: string;
+  minutes: number;
+  reason: string;
+};
+
 export function Paywall({
   context = "plan",
   returnTo = "/plan/setup",
   onUnlocked,
   embedded = false,
   planCreated = false,
+  preview,
 }: {
   context?: PaywallContext;
   returnTo?: string;
   onUnlocked?: () => void;
   embedded?: boolean;
   planCreated?: boolean;
+  preview?: PlanOfferPreview;
 }) {
   const id = useId();
   const { user } = useAuth();
@@ -147,8 +156,17 @@ export function Paywall({
                 ? "Choose a workout for your goal, with guided work and recovery from start to finish."
                 : context === "progress"
                   ? "Review your completed sessions and keep track of your training."
-                  : "A personal plan built around your goals, level, equipment and schedule."}
+                  : "A personal plan built around your goals, equipment and schedule."}
         </p>
+        {preview && (
+          <div className="plan-transparency">
+            <strong>{preview.title}</strong>
+            <p>
+              {preview.date} · {preview.minutes} min
+            </p>
+            <p>{preview.reason}</p>
+          </div>
+        )}
         <ul className="membership-benefits" aria-label="Included with Pro">
           {[
             "Personalized padel training plan",
@@ -286,13 +304,15 @@ export function Paywall({
                 ? "You can keep using the free workout. Pro access requires an active subscription."
                 : "Creating an account will not unlock Pro while subscriptions are unavailable."}
             </p>
-            <Link
-              className="button button--primary button--full"
-              href={`/workouts/${FREE_WORKOUT_ID}`}
-            >
-              Try the free workout
-            </Link>
           </div>
+        )}
+        {(productsUnavailable || planCreated) && (
+          <Link
+            className="button button--secondary button--full"
+            href={`/workouts/${FREE_WORKOUT_ID}`}
+          >
+            Try the free workout
+          </Link>
         )}
         {user && !productsUnavailable && products.length > 0 && (
           <button

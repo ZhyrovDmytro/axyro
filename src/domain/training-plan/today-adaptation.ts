@@ -19,14 +19,26 @@ import type {
 } from "@/domain/workout/workout.types";
 
 import { feedbackAffectedBodyAreas } from "./feedback-adaptation";
-import { generateSessionPrescription } from "./generate-training-plan";
+import {
+  generateSessionPrescription,
+  getWorkoutTechnique,
+  profileExerciseEquipment,
+} from "./generate-training-plan";
+import { isCompatiblePlanExercise } from "./model-exercise-candidates";
 import type {
+  AthleteProfile,
   PlannedWorkout,
   SessionAdaptation,
   SessionAdjustment,
 } from "./training-plan.types";
 
+type TodayPlanConstraints = {
+  profile: AthleteProfile;
+  avoidExercises?: readonly string[];
+};
+
 type ReplacementContext = {
+  constraints?: TodayPlanConstraints;
   exercise: Exercise;
   session: Pick<PlannedWorkout, "workout"> &
     Partial<Pick<PlannedWorkout, "sections">>;
@@ -117,6 +129,7 @@ export function getReplacementCandidates({
   availableEquipment,
   unavailableEquipment = [],
   excludedBodyAreas = [],
+  constraints,
 }: ReplacementContext): ExerciseReplacementCandidate[] {
   const unavailable = new Set(unavailableEquipment);
   const available = availableEquipment
@@ -146,7 +159,15 @@ export function getReplacementCandidates({
         candidate.sessionRoles.includes(sectionType) &&
         equipmentIsAvailable(candidate, unavailable, available) &&
         candidate.bodyAreas.every((area) => !excluded.has(area)) &&
-        candidate.setupRequirements.every((setup) => availableSetup.has(setup)),
+        (constraints
+          ? isCompatiblePlanExercise(
+              candidate,
+              constraints.profile,
+              sectionType,
+            ) && !constraints.avoidExercises?.includes(candidate.id)
+          : candidate.setupRequirements.every((setup) =>
+              availableSetup.has(setup),
+            )),
     )
     .map((candidate) => {
       const sharedRoles = shares(exercise.roles, candidate.roles);
@@ -285,7 +306,9 @@ function replaceInvalidExercises({
   reason,
   sectionType,
   adjustments,
+  constraints,
 }: {
+  constraints?: TodayPlanConstraints;
   workout: Workout;
   session: PlannedWorkout;
   exerciseCatalog: readonly Exercise[];
@@ -337,6 +360,7 @@ function replaceInvalidExercises({
       availableEquipment: [...availableEquipment],
       unavailableEquipment: [...unavailableEquipment],
       excludedBodyAreas: [...excludedBodyAreas],
+      constraints,
     })[0]?.exercise;
     if (replacement) {
       next = updateExercise(next, exercise.id, replacement);
@@ -471,7 +495,9 @@ export function deriveTodayAdaptedSession({
   session,
   adaptations,
   exerciseCatalog,
+  constraints,
 }: {
+  constraints?: TodayPlanConstraints;
   session: PlannedWorkout;
   adaptations: readonly SessionAdaptation[];
   exerciseCatalog: readonly Exercise[];
@@ -483,9 +509,11 @@ export function deriveTodayAdaptedSession({
   );
   const unavailableEquipment = adaptationEquipment(adaptations);
   const availableEquipment = new Set<Equipment>(
-    flattenSessionSections(original.sections).flatMap(
-      (item) => exerciseById.get(item.exerciseId)?.equipment ?? [],
-    ),
+    constraints
+      ? profileExerciseEquipment(constraints.profile)
+      : flattenSessionSections(original.sections).flatMap(
+          (item) => exerciseById.get(item.exerciseId)?.equipment ?? [],
+        ),
   );
   unavailableEquipment.forEach((equipment) =>
     availableEquipment.delete(equipment),
@@ -525,6 +553,7 @@ export function deriveTodayAdaptedSession({
         availableEquipment,
         unavailableEquipment,
         excludedBodyAreas,
+        constraints,
         reason,
         sectionType: section.type,
         adjustments,
@@ -552,6 +581,7 @@ export function deriveTodayAdaptedSession({
       availableEquipment: [...availableEquipment],
       unavailableEquipment: [...unavailableEquipment],
       excludedBodyAreas: [...excludedBodyAreas],
+      constraints,
     }).some((candidate) => candidate.exercise.id === replacement.id);
     if (!valid) continue;
     sections = sections.map((section) => ({
@@ -615,6 +645,9 @@ export function deriveTodayAdaptedSession({
     const fittingCatalog = exerciseCatalog.filter(
       (exercise) =>
         isExercisePlanEligible(exercise) &&
+        (!constraints ||
+          (isCompatiblePlanExercise(exercise, constraints.profile, "main") &&
+            !constraints.avoidExercises?.includes(exercise.id))) &&
         equipmentIsAvailable(
           exercise,
           unavailableEquipment,
@@ -685,6 +718,7 @@ export function deriveTodayAdaptedSession({
   return {
     workout: {
       ...workout,
+      difficulty: getWorkoutTechnique(workout, exerciseCatalog),
       estimatedMinutes: Math.max(1, Math.round(estimatedDurationSeconds / 60)),
     },
     sections,
@@ -712,11 +746,13 @@ export function applyTodayAdaptationsToSession(
   session: PlannedWorkout,
   adaptations: readonly SessionAdaptation[],
   exerciseCatalog: readonly Exercise[],
+  constraints?: TodayPlanConstraints,
 ): PlannedWorkout {
   const result = deriveTodayAdaptedSession({
     session,
     adaptations,
     exerciseCatalog,
+    constraints,
   });
   if (result.unresolvedExerciseCount > 0) return session;
   return {

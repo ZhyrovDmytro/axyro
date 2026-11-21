@@ -17,12 +17,6 @@ import { developmentAreaMatchCount } from "./profile-relevance";
 const MAX_CANDIDATE_LIMIT = 100;
 const DEFAULT_CANDIDATE_LIMIT = MAX_CANDIDATE_LIMIT;
 
-const difficultyRank = {
-  beginner: 0,
-  intermediate: 1,
-  advanced: 2,
-} as const;
-
 const spaceRank: Record<ExerciseSpaceRequirement, number> = {
   compact: 0,
   moderate: 1,
@@ -50,6 +44,12 @@ export type ModelCandidateEnvironment = {
   availableSetupRequirements: readonly SetupRequirement[];
   maximumSpace: ExerciseSpaceRequirement;
   maximumNoise: ExerciseNoiseLevel;
+};
+
+export const homePlannerEnvironment: ModelCandidateEnvironment = {
+  availableSetupRequirements: ["floor", "wall", "chair", "mat"],
+  maximumSpace: "moderate",
+  maximumNoise: "moderate",
 };
 
 /**
@@ -111,13 +111,7 @@ function avoidsPain(exercise: Exercise, profile: AthleteProfile) {
   );
 }
 
-function fitsExperience(exercise: Exercise, profile: AthleteProfile) {
-  return (
-    difficultyRank[exercise.difficulty] <= difficultyRank[profile.experience]
-  );
-}
-
-function fitsEnvironment(
+export function fitsEnvironment(
   exercise: Exercise,
   environment: ModelCandidateEnvironment,
 ) {
@@ -141,6 +135,23 @@ function minimumBlockSeconds(exercise: Exercise) {
     exercise.planning.safeWorkSeconds.min * sideCount +
     (sideMode === "separate" ? SESSION_TIMING.sideTransitionSeconds : 0) +
     exercise.planning.safeRestSeconds.min
+  );
+}
+
+export function isCompatiblePlanExercise(
+  exercise: Exercise,
+  profile: AthleteProfile,
+  section: SessionSectionType,
+  environment = homePlannerEnvironment,
+  availableTimeSeconds = profile.sessionDurationMinutes * 60,
+) {
+  return (
+    isExercisePlanEligible(exercise) &&
+    exercise.planning.sectionRoles.includes(section) &&
+    hasAvailableEquipment(exercise, profile) &&
+    avoidsPain(exercise, profile) &&
+    fitsEnvironment(exercise, environment) &&
+    minimumBlockSeconds(exercise) <= availableTimeSeconds
   );
 }
 
@@ -251,15 +262,14 @@ export function selectModelExerciseCandidates({
   );
 
   return exerciseCatalog
-    .filter(
-      (exercise) =>
-        isExercisePlanEligible(exercise) &&
-        exercise.planning.sectionRoles.includes(section) &&
-        hasAvailableEquipment(exercise, profile) &&
-        avoidsPain(exercise, profile) &&
-        fitsExperience(exercise, profile) &&
-        fitsEnvironment(exercise, environment) &&
-        minimumBlockSeconds(exercise) <= availableTimeSeconds,
+    .filter((exercise) =>
+      isCompatiblePlanExercise(
+        exercise,
+        profile,
+        section,
+        environment,
+        availableTimeSeconds,
+      ),
     )
     .map((exercise) => ({
       exercise,

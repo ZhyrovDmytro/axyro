@@ -684,6 +684,38 @@ const storedTrainingPlanSchema = z.object({
   generatedAt: z.string().datetime(),
   weeklyAssessments: z.array(weeklyAssessmentSchema).optional(),
   weeklyAdaptationProposals: z.array(weeklyAdaptationProposalSchema).optional(),
+  adjustmentWindows: z
+    .array(
+      z.object({
+        start: z.string().date(),
+        end: z.string().date(),
+        kind: z.enum([
+          "schedule",
+          "duration",
+          "equipment",
+          "lighter",
+          "harder",
+          "movement",
+        ]),
+        profile: z.object({
+          preferredDays: z
+            .array(z.enum(weekdayValues))
+            .min(1)
+            .max(5)
+            .optional(),
+          sessionsPerWeek: z.number().int().min(1).max(5).optional(),
+          sessionDurationMinutes: z.number().int().min(5).max(20).optional(),
+          equipment: z
+            .array(z.enum(["bodyweight", "one-dumbbell", "two-dumbbells"]))
+            .min(1)
+            .optional(),
+        }),
+        exerciseId: z.string().min(1).optional(),
+        exerciseIds: z.array(z.string().min(1)).min(1).optional(),
+        sessionIds: z.array(z.string()),
+      }),
+    )
+    .optional(),
   lastRebalancedAt: z.string().datetime().optional(),
   rebalancedGamesKey: z.string().optional(),
 });

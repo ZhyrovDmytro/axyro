@@ -839,3 +839,71 @@ it("gives a three-session week two dedicated padel titles and a general foundati
     3,
   );
 });
+
+it("allows intermediate movements in beginner main workouts", () => {
+  const workout = assembleMainWorkout({
+    profile: { ...profile, experience: "beginner", equipment: ["bodyweight"] },
+    slot: 0,
+    exerciseCatalog: exercises.filter(
+      (exercise) => exercise.difficulty === "intermediate",
+    ),
+  });
+  expect(workout).not.toBeNull();
+  expect(workout!.items.length).toBeGreaterThan(0);
+});
+
+it.each(["beginner", "intermediate", "advanced"] as const)(
+  "allows advanced movements for a stored %s profile without changing the selection",
+  (experience) => {
+    const exerciseCatalog = exercises.map((exercise) => ({
+      ...exercise,
+      difficulty: "advanced" as const,
+    }));
+    const input = {
+      profile: { ...profile, equipment: ["bodyweight"] as const },
+      slot: 0,
+      exerciseCatalog,
+    };
+    const workout = assembleMainWorkout({
+      ...input,
+      profile: { ...input.profile, equipment: ["bodyweight"], experience },
+    });
+    expect(workout).not.toBeNull();
+    expect(workout!.difficulty).toBe("advanced");
+    expect(workout).toEqual(
+      assembleMainWorkout({
+        ...input,
+        profile: {
+          ...input.profile,
+          equipment: ["bodyweight"],
+          experience: "advanced",
+        },
+      }),
+    );
+  },
+);
+
+it("can fill a beginner-labelled workout with compatible advanced technique", () => {
+  const source = workouts.find(
+    (workout) => workout.id === "foundation-strength",
+  )!;
+  const first = source.items[0];
+  const exerciseCatalog = exercises.map((exercise) => ({
+    ...exercise,
+    difficulty:
+      exercise.id === first.exerciseId
+        ? ("beginner" as const)
+        : ("advanced" as const),
+  }));
+  const session = generateSessionPrescription(
+    { ...source, difficulty: "beginner", items: [first] },
+    20,
+    exerciseCatalog,
+  );
+  expect(
+    session.adjustments.some(
+      (adjustment) => adjustment.type === "exercise_added",
+    ),
+  ).toBe(true);
+  expect(session.workout.difficulty).toBe("advanced");
+});

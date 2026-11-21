@@ -1,6 +1,6 @@
 # Product Specification
 
-> Current account/subscription extension: see [Membership implementation](docs/MEMBERSHIP_IMPLEMENTATION.md), [Authentication](docs/AUTHENTICATION.md), [Billing](docs/billing.md), and [Multi-user data](docs/MULTI_USER_DATA_ARCHITECTURE.md). These replace earlier local-only/no-account scope statements below. Guest access is the single free starter. Signed-in Free users can create a local plan preview; activation, execution and full access require Pro.
+> Current account/subscription extension: see [Membership implementation](docs/MEMBERSHIP_IMPLEMENTATION.md), [Authentication](docs/AUTHENTICATION.md), [Billing](docs/billing.md), and [Multi-user data](docs/MULTI_USER_DATA_ARCHITECTURE.md). These replace earlier local-only/no-account scope statements below. Guest access is the single free starter. A Free account can create a preview in the current browser tab. Pro saves the active plan to the account and unlocks the schedule and guided sessions.
 
 
 ## Working concept
@@ -12,7 +12,7 @@ Training frequency and recovery still follow the athlete's chosen schedule.
 
 A mobile-first guided home-workout web app for people who want structured athletic training without needing a gym.
 
-The product also includes a locally persisted, personalized 60-day training plan beginning on the questionnaire date. Initial setup collects sport, broad goals, up to three non-painful physical development areas, up to three concrete Padel priorities on each movement, power/control, and mobility/capacity step, realistic availability, session length, equipment, and a separate optional current-discomfort check. Match dates and playing experience remain editable in refinement. Axyro does not ask for sex, age, height or weight because the current planner has no behavior that requires them.
+The product includes a personalized 60-day training plan beginning on the questionnaire date. Initial setup collects sport, goals, physical development areas, availability, session length, available equipment and optional current discomfort. Bodyweight is the default equipment. Padel players can choose balanced training or answer three detailed priority questions. Refinement lets both sports review equipment and discomfort, and padel players can edit their court priorities. Athletes manage matches in the plan calendar.
 
 For Padel, setup asks about recognizable game situations: accelerating to the net, recovering back for lobs, reacting from the split step, lateral coverage, braking, rotation during bandejas/víboras, overhead power/control, volley stability, racket control, low-ball movement, balance and late-match capacity. These answers increase the ranking of exercises with matching movement roles. Physical development areas separately prioritize shoulder/upper-back, forearm/grip, core/lower-back, hip/glute, knee/single-leg, or calf/ankle/foot work. Neither is a pain report: current pain areas are used only as safety constraints.
 
@@ -225,8 +225,7 @@ A planned library workout can be copied for one calendar session. The athlete ca
 search/add/remove exercises, drag them into a new order, insert a movement at a
 specific gap, and edit sets, work duration, between-set recovery and
 after-exercise recovery. The drag handle also supports keyboard reordering.
-Saving the copy never mutates canonical content, and the edited copy runs through
-the same workout player.
+The picker lists all compatible unused movements for the session. The edited copy runs through the same workout player and canonical exercise content stays available for other workouts.
 
 Immediately before starting, the athlete can use **Adapt today** for less time,
 missing equipment, soreness/discomfort, a single exercise replacement, or a
@@ -244,18 +243,14 @@ primarily change the main Workout block. The player and completion snapshot
 retain section identity, and completion history distinguishes planned,
 completed, and skipped items.
 
-New and refined plans vary exercise selection and ordering from week to week
+Generated plans vary exercise selection and ordering from week to week
 while retaining each session's questionnaire focus. Timing targets progress in
 small weekly steps through the build and peak weeks; the final consolidation
 weeks deliberately reduce load. All sections stay within the selected duration
-tolerance. Limited compatible exercise pools can require repetition. Existing
-saved prescriptions remain unchanged until the athlete refines their plan.
+tolerance. Limited compatible exercise pools can require repetition. Refinement walks through the current plan one question at a time and previews all selected changes together before saving. Schedule, duration and equipment may apply for seven days or update the saved defaults. Members can also request a lighter week, replace a movement, or adjust comfort and focus. It preserves the block dates, past sessions, progress and resumable workouts. Compatible manual moves and edits are retained. Updates that require replacing an incompatible edit show the proposed replacement. **Build next 60 days** starts a separate block.
 
 ### Training plan adaptation
-The plan generator is deterministic and local. It selects production-ready
-exercises using sport, goals, padel problem relevance, experience, pain flags
-and equipment, then
-constructs each timed prescription near the athlete's 5-, 10-, or 20-minute preference
+The deterministic generator selects exercises by sport, goals, Padel relevance, equipment, environment and current discomfort. Pro can use model-proposed exercise IDs with the same deterministic constraints and fallback. The representative evaluation scheduled all 40 curated movements across compatible profiles. Exercise technique describes the hardest movement in the main section. Effort changes work and recovery within the time budget, and spoken guidance cadence is controlled separately in the player. The generator constructs each timed prescription near the athlete's 5-, 10-, or 20-minute preference
 within explicit set and work-duration safety bounds. It records every
 target-duration adjustment. A generated session is accepted only when its
 authoritative player duration is within the smaller of 10% of the chosen target

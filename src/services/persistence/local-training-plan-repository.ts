@@ -9,7 +9,6 @@ import {
   getPersonalizedSessionTitle,
   isLegacyOutcomeBasedSessionTitle,
 } from "@/domain/training-plan/personalized-session-title";
-import { PLANNER_VERSION } from "@/domain/training-plan/planner-versions";
 import { TRAINING_PLAN_DURATION_DAYS } from "@/domain/training-plan/progression";
 import { questionnaireFocusForSlot } from "@/domain/training-plan/questionnaire-context";
 import { trainingPlanSchema } from "@/domain/training-plan/training-plan.schema";
@@ -66,7 +65,10 @@ function findUnknownExerciseIds(plan: TrainingPlan): string[] {
 }
 
 function migrateLegacySessionCopy(plan: TrainingPlan): TrainingPlan {
-  if (plan.generation.plannerVersion === PLANNER_VERSION) return plan;
+  const version = Number(
+    plan.generation.plannerVersion.match(/^hybrid-planner\.v(\d+)$/)?.[1],
+  );
+  if (!(version >= 1 && version < 12)) return plan;
 
   const migrateWorkout = ({
     workout,
@@ -111,7 +113,7 @@ function migrateLegacySessionCopy(plan: TrainingPlan): TrainingPlan {
 
   return {
     ...plan,
-    generation: { ...plan.generation, plannerVersion: PLANNER_VERSION },
+    generation: { ...plan.generation, plannerVersion: "hybrid-planner.v12" },
     sessions: plan.sessions.map((session, sessionIndex) => {
       if (session.status !== "scheduled") return session;
       const sourceMatch = session.sourceWorkoutId.match(

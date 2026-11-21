@@ -1,5 +1,6 @@
 "use client";
 import { PageSkeleton } from "@/components/page-skeleton";
+import { useAuth } from "@/components/auth/auth-provider";
 import { PaywallLink } from "@/components/membership/paywall-modal";
 
 import Link from "next/link";
@@ -12,6 +13,7 @@ import { ActivityStatus } from "@/components/activity/activity-status";
 import { exercises } from "@/content/exercises";
 import {
   addDays,
+  crossesPlanAdjustmentWindow,
   formatPlanDate,
   fromDateKey,
   toDateKey,
@@ -54,6 +56,15 @@ import { getPlannedWorkoutStartHref } from "@/lib/planned-workout-navigation";
 import { getCalendarTrainingStatus } from "./calendar-training-status";
 
 const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const calendarMonthRange = new Intl.DateTimeFormat("en", {
+  month: "long",
+  year: "numeric",
+});
+
+const weekDateRange = new Intl.DateTimeFormat("en", {
+  month: "short",
+  day: "numeric",
+});
 
 function EditGameIcon() {
   return (
@@ -246,9 +257,11 @@ type DashboardView = "week" | "workspace";
 export function TrainingPlanDashboard({
   view = "workspace",
   previewPlan,
+  adjustmentNotice,
 }: {
   view?: DashboardView;
   previewPlan?: TrainingPlan;
+  adjustmentNotice?: { date: string; count: number; temporary: boolean };
 }) {
   const state = useTrainingPlan();
   return (
@@ -257,6 +270,7 @@ export function TrainingPlanDashboard({
       plan={previewPlan ?? state.plan}
       ready={previewPlan ? true : state.ready}
       view={view}
+      adjustmentNotice={adjustmentNotice}
     />
   );
 }
@@ -265,10 +279,14 @@ export function TrainingPlanDashboardContent({
   view = "workspace",
   plan,
   ready,
-  setPlan,
+  savePlanDurably,
   updatePlan,
   needsCatalogRefresh,
-}: ReturnType<typeof useTrainingPlan> & { view?: DashboardView }) {
+  adjustmentNotice,
+}: ReturnType<typeof useTrainingPlan> & {
+  view?: DashboardView;
+  adjustmentNotice?: { date: string; count: number; temporary: boolean };
+}) {
   const { preferredIntensity, ready: preferencesReady } = useUserPreferences();
   const [selectedDate, setSelectedDate] = useState("");
   const [visibleSessionCount, setVisibleSessionCount] = useState(6);
@@ -303,6 +321,9 @@ export function TrainingPlanDashboardContent({
     wasEditingCalendarDay.current = editing;
   }, [isGameDialogOpen, gamePendingDeletionId, selectedDate, view]);
   const [keepPainExclusions, setKeepPainExclusions] = useState(false);
+  const [buildingNext, setBuildingNext] = useState(false);
+  const [nextBlockError, setNextBlockError] = useState("");
+  const { user } = useAuth();
   const today = toDateKey(new Date());
   const activityHistory = useWorkoutActivityHistory(today);
 
@@ -426,10 +447,9 @@ export function TrainingPlanDashboardContent({
             setIsGameDialogOpen(false);
           }
           if (view === "week" && event.key === "Tab") {
-            const controls =
-              event.currentTarget.querySelectorAll<HTMLElement>(
-                "button, input",
-              );
+            const controls = event.currentTarget.querySelectorAll<HTMLElement>(
+              "button, input, select",
+            );
             const first = controls[0];
             const last = controls[controls.length - 1];
             if (event.shiftKey && document.activeElement === first) {
@@ -469,8 +489,24 @@ export function TrainingPlanDashboardContent({
             value={gameLabel}
           />
         </label>
-        <p className="game-dialog__note">
-          We’ll protect recovery before this game when you rebalance your plan.
+        <label className="game-dialog__field">
+          <span>Importance</span>
+          <span className="plan-select">
+            <select
+              aria-describedby="game-recovery-note"
+              className="plan-input"
+              defaultValue={selectedGame?.importance ?? "normal"}
+              name="importance"
+            >
+              <option value="normal">Normal</option>
+              <option value="important">Important</option>
+            </select>
+            <UiIcon name="chevron-down" />
+          </span>
+        </label>
+        <p className="game-dialog__note" id="game-recovery-note">
+          Rebalancing protects the day before a normal match and the two days
+          before an important match.
         </p>
         <div className="game-dialog__actions">
           <button
@@ -503,8 +539,13 @@ export function TrainingPlanDashboardContent({
         <section className="plan-week" aria-labelledby="this-week-heading">
           <div className="section-heading section-heading--compact">
             <div>
-              <p className="kicker">Your rhythm</p>
               <h2 id="this-week-heading">This week</h2>
+              <p className="plan-week__range">
+                {weekDateRange.formatRange(
+                  fromDateKey(weekStart),
+                  fromDateKey(weekDates[6]),
+                )}
+              </p>
             </div>
             <button
               disabled={!isPlanRebalanceNeeded(plan)}
@@ -515,10 +556,7 @@ export function TrainingPlanDashboardContent({
               <span aria-hidden="true" className="rebalance-button__icon">
                 <UiIcon name="scheduled" />
               </span>
-              <span>
-                <strong>Rebalance plan</strong>
-                <small>Around your games</small>
-              </span>
+              <strong>Rebalance plan</strong>
             </button>
           </div>
           {rebalanceResult && (
@@ -526,7 +564,7 @@ export function TrainingPlanDashboardContent({
               {rebalanceResult}
             </p>
           )}
-          <ol className="plan-week__days">
+          <ol className="plan-week__days" role="list">
             {weekDates.map((date) => {
               const session = plan.sessions.find(
                 (candidate) =>
@@ -543,10 +581,17 @@ export function TrainingPlanDashboardContent({
                   data-status={session?.status}
                   key={date}
                 >
-                  <span>
-                    {formatPlanDate(date, { weekday: "short" })}
-                    <small>{fromDateKey(date).getDate()}</small>
-                  </span>
+                  <time
+                    className="plan-week__date"
+                    dateTime={date}
+                    aria-current={isToday ? "date" : undefined}
+                  >
+                    <span>{formatPlanDate(date, { weekday: "short" })}</span>
+                    <span className="plan-week__day-number">
+                      {fromDateKey(date).getDate()}
+                    </span>
+                    {isToday && <small>Today</small>}
+                  </time>
                   <div className="plan-week__summary">
                     <strong>
                       {session ? (
@@ -555,7 +600,6 @@ export function TrainingPlanDashboardContent({
                           href={`/plan/workouts/${session.id}/edit`}
                         >
                           {getWorkoutTrainingTitle(session.workout)}
-                          <UiIcon name="arrow-right" />
                         </Link>
                       ) : game ? (
                         game.label
@@ -563,31 +607,24 @@ export function TrainingPlanDashboardContent({
                         "Recovery"
                       )}
                     </strong>
-                    <small>
-                      {session
-                        ? `${sessionMinutes(session)} min`
-                        : game
-                          ? "Match day"
-                          : isToday
-                            ? "Today"
-                            : "No workout"}
-                    </small>
-                    {session && <ActivityStatus status={session.status} />}
-                    {game && session && (
-                      <>
-                        <small>{game.label} · Match day</small>
-                        <span className="plan-week__overlap">
-                          Training + match · Same day
-                        </span>
-                      </>
+                    {session && (
+                      <div className="plan-week__meta">
+                        <small>{sessionMinutes(session)} min</small>
+                        <ActivityStatus status={session.status} />
+                      </div>
+                    )}
+                    {game && (
+                      <small className="plan-week__game">
+                        {session ? `${game.label} · Match day` : "Match day"}
+                      </small>
                     )}
                   </div>
-                  <div className="plan-week__match">
+                  <div className="plan-week__actions">
                     {session &&
                       (session.status === "scheduled" ||
                         session.status === "in-progress") && (
                         <Link
-                          className="text-link"
+                          className="text-link plan-week__start"
                           href={getPlannedWorkoutStartHref(
                             session.id,
                             preferredIntensity,
@@ -600,21 +637,21 @@ export function TrainingPlanDashboardContent({
                         </Link>
                       )}
                     {session && renderMoveTraining(session)}
-                    <button
-                      aria-label={`${game ? "Edit" : "Add"} match on ${formatPlanDate(date)}`}
-                      className="button button--secondary button--small"
-                      onClick={(event) => {
-                        weeklyMatchTrigger.current = event.currentTarget;
-                        setSelectedDate(date);
-                        setGameLabel(game?.label ?? "Padel match");
-                        setIsGameDialogOpen(true);
-                      }}
-                      type="button"
-                    >
-                      <UiIcon name={game ? "scheduled" : "plus"} />
-                      {game ? "Edit match" : "Add match"}
-                    </button>
                   </div>
+                  <button
+                    aria-label={`${game ? "Edit" : "Add"} match on ${formatPlanDate(date)}`}
+                    className="button button--secondary button--small plan-week__match"
+                    onClick={(event) => {
+                      weeklyMatchTrigger.current = event.currentTarget;
+                      setSelectedDate(date);
+                      setGameLabel(game?.label ?? "Padel match");
+                      setIsGameDialogOpen(true);
+                    }}
+                    type="button"
+                  >
+                    {game ? <EditGameIcon /> : <UiIcon name="plus" />}
+                    <span>{game ? "Edit match" : "Add match"}</span>
+                  </button>
                 </li>
               );
             })}
@@ -635,11 +672,14 @@ export function TrainingPlanDashboardContent({
     });
   }
 
-  function addGame(event: FormEvent) {
+  function addGame(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selectedDate || !plan) return;
     setRebalanceResult("");
-    const importance = selectedGame?.importance ?? "normal";
+    const importance: TrainingPlan["games"][number]["importance"] =
+      new FormData(event.currentTarget).get("importance") === "important"
+        ? "important"
+        : "normal";
     updatePlan((current) => ({
       ...current,
       rebalancedGamesKey:
@@ -694,6 +734,12 @@ export function TrainingPlanDashboardContent({
       (session.status !== "scheduled" && session.status !== "missed")
     )
       return false;
+    if (crossesPlanAdjustmentWindow(plan, session.scheduledDate, date)) {
+      window.alert(
+        "This move crosses a temporary adjustment. Choose a date within the same training window.",
+      );
+      return false;
+    }
     const conflict = plan?.sessions.some(
       (candidate) =>
         candidate.id !== session.id &&
@@ -729,7 +775,17 @@ export function TrainingPlanDashboardContent({
     )
       return null;
     return (
-      <details key={session.id} className="plan-week__move">
+      <details
+        key={session.id}
+        className="plan-week__move"
+        name={view === "week" ? "weekly-move-training" : undefined}
+        onKeyDown={(event) => {
+          if (event.key !== "Escape" || !event.currentTarget.open) return;
+          event.stopPropagation();
+          event.currentTarget.open = false;
+          event.currentTarget.querySelector("summary")?.focus();
+        }}
+      >
         <summary>Move training</summary>
         <form
           onSubmit={(event) => {
@@ -840,6 +896,15 @@ export function TrainingPlanDashboardContent({
 
   return (
     <main className="page-shell page-shell--inner plan-page">
+      {adjustmentNotice && (
+        <p className="safety-note" role="status">
+          {adjustmentNotice.count
+            ? `${adjustmentNotice.count} upcoming ${adjustmentNotice.count === 1 ? "workout changed" : "workouts changed"} from ${formatPlanDate(adjustmentNotice.date)}.`
+            : adjustmentNotice.temporary
+              ? "Your temporary training settings were saved."
+              : "Your saved training defaults were updated."}
+        </p>
+      )}
       <section className="plan-hero">
         <div>
           <p className="kicker">Training schedule</p>
@@ -887,7 +952,7 @@ export function TrainingPlanDashboardContent({
             <p>
               {sessionMinutes(todaySession)} min ·{" "}
               {flattenSessionSections(todaySession.sections).length} exercises ·{" "}
-              {todaySession.workout.difficulty}
+              {todaySession.workout.difficulty} technique
             </p>
           </div>
           <div className="button-row">
@@ -991,26 +1056,37 @@ export function TrainingPlanDashboardContent({
           )}
           <p>
             Your next block keeps your sport, goals, physical focus, padel
-            priorities, equipment, level, schedule and duration. Recent workout
+            priorities, equipment, schedule and duration. Recent workout
             feedback is applied conservatively.
           </p>
           <div className="button-row">
             <button
               className="button button--primary"
-              onClick={() => {
-                const repository = createBrowserWorkoutActivityRepository();
-                setPlan(
-                  buildNextTrainingPlan({
+              disabled={buildingNext}
+              onClick={async () => {
+                if (!user || buildingNext) return;
+                setBuildingNext(true);
+                setNextBlockError("");
+                try {
+                  const repository = createBrowserWorkoutActivityRepository();
+                  const next = buildNextTrainingPlan({
                     previousPlan: plan,
                     now: new Date(),
                     recentFeedback: repository.getRecentFeedbackForAdaptation(),
                     keepPainExclusions,
-                  }),
-                );
+                  });
+                  await savePlanDurably(next, user.id, plan);
+                } catch {
+                  setNextBlockError(
+                    "The next block could not be saved. Your previous block is still available. Reload or try again.",
+                  );
+                } finally {
+                  setBuildingNext(false);
+                }
               }}
               type="button"
             >
-              Build next 60 days
+              {buildingNext ? "Saving your plan…" : "Build next 60 days"}
             </button>
             <PaywallLink
               className="button button--secondary"
@@ -1021,6 +1097,11 @@ export function TrainingPlanDashboardContent({
               Review activity
             </PaywallLink>
           </div>
+          {nextBlockError && (
+            <p className="form-error" role="alert">
+              {nextBlockError}
+            </p>
+          )}
         </section>
       )}
 
@@ -1028,7 +1109,12 @@ export function TrainingPlanDashboardContent({
         <section className="calendar-card" aria-labelledby="calendar-heading">
           <div className="calendar-heading">
             <div>
-              <p className="kicker">Plan at a glance</p>
+              <p className="kicker">
+                {calendarMonthRange.formatRange(
+                  fromDateKey(plan.startDate),
+                  fromDateKey(plan.endDate),
+                )}
+              </p>
               <h2 id="calendar-heading">Next 60 days</h2>
             </div>
             <button
@@ -1092,7 +1178,14 @@ export function TrainingPlanDashboardContent({
                   role="gridcell"
                   type="button"
                 >
-                  <span>{fromDateKey(date).getDate()}</span>
+                  <span className="calendar-day__date">
+                    <span>{fromDateKey(date).getDate()}</span>
+                    {inPlan && date.endsWith("-01") && (
+                      <span className="calendar-day__month">
+                        {formatPlanDate(date, { month: "short" })}
+                      </span>
+                    )}
+                  </span>
                   <small className="calendar-day__labels">
                     {trainingStatus && (
                       <span className="calendar-day__status">
@@ -1187,7 +1280,9 @@ export function TrainingPlanDashboardContent({
                             }{" "}
                             exercises
                           </span>
-                          <span>{selectedSession.workout.difficulty}</span>
+                          <span>
+                            {selectedSession.workout.difficulty} technique
+                          </span>
                         </div>
                         {selectedSession.durationStatus !== "on_target" && (
                           <small>{durationMessage(selectedSession)}</small>
@@ -1274,11 +1369,11 @@ export function TrainingPlanDashboardContent({
                       )}
                       {selectedSession && (
                         <Link
-                          aria-label={`View ${getWorkoutTrainingTitle(selectedSession.workout)} exercises`}
+                          aria-label={`Review workout: ${getWorkoutTrainingTitle(selectedSession.workout)}`}
                           className="button button--secondary button--full"
                           href={`/plan/workouts/${selectedSession.id}/edit`}
                         >
-                          View exercises <UiIcon name="arrow-right" />
+                          Review workout <UiIcon name="arrow-right" />
                         </Link>
                       )}
                       {!selectedGame && (
@@ -1457,7 +1552,7 @@ export function TrainingPlanDashboardContent({
                       {flattenSessionSections(session.sections).length}{" "}
                       exercises
                     </span>
-                    <span>{session.workout.difficulty}</span>
+                    <span>{session.workout.difficulty} technique</span>
                   </div>
                   <div className="session-section-summary">
                     {session.sections.map((section) => (

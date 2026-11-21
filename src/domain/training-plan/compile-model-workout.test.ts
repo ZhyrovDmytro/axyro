@@ -123,7 +123,7 @@ describe("compileModelWorkout", () => {
         exerciseCatalog: [...exercises, painConflict],
       }),
     ).toThrow(
-      "violates content, experience, equipment, pain, time, or environment constraints",
+      "violates content, equipment, pain, time, or environment constraints",
     );
   });
 });
@@ -148,3 +148,33 @@ it("compiles the three prone shoulder movements for a floor-only bodyweight plan
   );
   expect(Math.abs(session.durationDeltaSeconds)).toBeLessThanOrEqual(60);
 });
+
+it.each(["beginner", "intermediate", "advanced"] as const)(
+  "compiles advanced technique for a stored %s profile",
+  (experience) => {
+    const exerciseCatalog = exercises.map((exercise) => ({
+      ...exercise,
+      difficulty: "advanced" as const,
+    }));
+    const selectedExerciseIds = selectModelExerciseCandidates({
+      profile: { ...profile, experience },
+      environment,
+      exerciseCatalog,
+    })
+      .slice(0, 3)
+      .map((exercise) => exercise.id);
+    const session = compileModelWorkout({
+      id: "all-levels-session",
+      name: "All levels",
+      targetDurationMinutes: 20,
+      selectedExerciseIds,
+      profile: { ...profile, experience },
+      environment,
+      exerciseCatalog,
+    });
+    expect(session.workout.difficulty).toBe("advanced");
+    expect(session.workout.items.map((item) => item.exerciseId)).toEqual(
+      expect.arrayContaining(selectedExerciseIds),
+    );
+  },
+);

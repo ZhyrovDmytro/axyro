@@ -28,10 +28,14 @@ Loading presentation and accessibility conventions are documented in
 
 Cloud data is hydrated before personal UI mounts; failure stops initialization rather than showing another account's cached state. Scoped local copies support synchronous workout recording; writes synchronize after 300 ms and are serialized. Atomic revision comparison prevents stale devices from silently overwriting a newer snapshot. A conflict stops synchronization and emits `axyro:sync-error`. Retry saving resends the current local snapshot after a network failure without hydrating older cloud data. If the version conflicts, the UI explains that cloud reload replaces unsaved local changes and requires confirmation. Successful writes emit `axyro:sync-success` and clear the warning. Offline writes are not promised cross-device durability: refresh hydrates cloud truth, so callers must display synchronization failures. Browser storage being unavailable means local workout continuation only, with no persistence guarantee.
 
-Questionnaire drafts use owner-scoped session storage, with separate current-step
-keys for setup and refinement. Draft validation allows incomplete goal/day choices;
-executable plans still require the full athlete-profile schema. The draft is cleared
-after successful generation, plan reset, data deletion or account-cache deletion.
+Questionnaire drafts use owner-scoped session storage with separate setup and
+refinement keys. Draft validation allows incomplete goal and day choices.
+Executable plans require the full athlete-profile schema. Signed-in Free
+previews remain in the originating tab. Pro creation, refinement and renewal
+check the storage owner before writing and wait for account acknowledgement
+before reporting success. A rejected write restores the previous local plan
+and leaves the questionnaire available for retry. Successful activation,
+plan reset, data deletion and account-cache deletion clear the draft.
 
 An authenticated Free user may retain/read their prior plan after expiration. Changes to a nonempty personalized plan require trusted Pro both in the API and in a database trigger; deletion remains available. Direct PostgREST access cannot bypass this boundary. The shared blob is deliberately small architecture; migrate to separately versioned rows if independent concurrent history edits or larger histories become necessary.
 

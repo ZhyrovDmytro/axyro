@@ -17,9 +17,8 @@ export function useWorkoutMediaCache(exercises: Exercise[]) {
       ...new Set(
         exercises.flatMap((exercise) =>
           [
-            exercise.media.uri,
-            exercise.media.posterUri,
-            exercise.media.fallbackUri,
+            exercise.media.playbackUri ?? exercise.media.uri,
+            exercise.media.firstFrameUri ?? exercise.media.posterUri,
           ].filter((url): url is string => Boolean(url)),
         ),
       ),

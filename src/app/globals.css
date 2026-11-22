@@ -109,6 +109,9 @@ select {
   gap: 2rem;
   font-size: 0.875rem;
 }
+.app-frame:has(.player-shell) > .site-footer {
+  display: none;
+}
 .site-footer__intro p {
   margin-top: 0.25rem;
   color: var(--muted);
@@ -1256,6 +1259,7 @@ select {
 
 @media (max-width: 28rem) {
   .plan-week__actions {
+    flex-wrap: nowrap;
     gap: 0 0.5rem;
   }
 

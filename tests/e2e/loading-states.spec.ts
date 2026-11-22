@@ -32,7 +32,7 @@ for (const width of [390, 1280]) {
       page.getByRole("navigation", { name: "Primary navigation" }),
     ).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "Your training", exact: true }),
+      page.getByRole("heading", { name: "Play better padel. Train beyond the court.", exact: true }),
     ).toBeVisible();
     await expect(
       page
@@ -42,7 +42,7 @@ for (const width of [390, 1280]) {
     await expect(
       page.getByRole("link", { name: "Sign in", exact: true }),
     ).toHaveCount(0);
-    await expect(page.getByRole("main")).toHaveAttribute("aria-busy", "true");
+    await expect(page.getByRole("link", { name: "Build My Training Plan" })).toBeVisible();
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,
@@ -56,10 +56,10 @@ for (const width of [390, 1280]) {
       fullPage: true,
     });
     releaseSession();
-    await expect(page.getByRole("main")).toHaveAttribute("aria-busy", "true");
+    await expect(page.getByRole("link", { name: "Build My Training Plan" })).toBeVisible();
     releaseData();
     await expect(
-      page.getByRole("link", { name: "Account", exact: true }),
+      page.getByRole("banner").getByRole("link", { name: "Account", exact: true }),
     ).toBeVisible();
     await expect(
       page.getByRole("heading", { name: "Train at home for padel" }),
@@ -83,7 +83,7 @@ test("workout catalog is usable before the account response arrives", async ({
     .getByRole("link", { name: "Home", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Your training", exact: true }),
+    page.getByRole("heading", { name: "Play better padel. Train beyond the court.", exact: true }),
   ).toBeVisible();
 });
 
@@ -229,7 +229,7 @@ test("personal home waits for membership without flashing discovery", async ({
   });
   await page.goto("/");
   await expect(
-    page.getByRole("link", { name: "Account", exact: true }),
+    page.getByRole("banner").getByRole("link", { name: "Account", exact: true }),
   ).toBeVisible();
   await expect(page.getByRole("main")).toHaveAttribute("aria-busy", "true");
   await expect(

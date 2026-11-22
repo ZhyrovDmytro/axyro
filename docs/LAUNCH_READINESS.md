@@ -569,3 +569,5 @@ business and markets. Recheck current requirements when completing legal tasks.
 | 2026-11-21 | L05 / L08 / L17 | Confirmed sandbox annual checkout, paid invoice and portal access. Guest homepage renders before hydration. Membership management now explicitly names Stripe. |
 
 | 2026-11-21 | L14 | Added the approved support address to the local footer, Settings and Help. Production publication and end-to-end delivery verification remain pending. |
+
+2026-11-22 · L03 / L19 · PR #9 release candidate. The Netlify preview passed all three deployed guest smoke tests. First hosted quality job passed. Six browser regressions were investigated and their targeted checks passed locally after fixes. Production publication and the updated hosted checks are pending at this checkpoint.

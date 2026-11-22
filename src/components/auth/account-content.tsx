@@ -29,7 +29,7 @@ export function AccountContent({ children }: { children: React.ReactNode }) {
     pathname === "/terms";
 
   // HomeEntry renders the public landing page until an account is available.
-  if (independent || (pathname === "/" && !user)) return children;
+  if (independent || (pathname === "/" && !user && !error)) return children;
   if (loading) {
     const title =
       accountPageTitles[pathname] ??

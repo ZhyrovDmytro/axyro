@@ -170,10 +170,8 @@ test("membership requests respect reduced motion and keep dismissal available", 
   await mockFreeMember(page);
   await page.route("**/api/billing/products", () => {});
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/exercises");
-  await openNavigation(page);
+  await page.goto("/settings");
   await page
-    .getByRole("navigation", { name: "Primary navigation" })
     .getByRole("link", { name: "Activity", exact: true })
     .click();
   const dialog = page.getByRole("dialog");
@@ -188,7 +186,7 @@ test("membership requests respect reduced motion and keep dismissal available", 
   await dialog.getByRole("button", { name: "Close paywall" }).click();
   await expect(dialog).toHaveCount(0);
   await expect(
-    page.getByRole("button", { name: "Menu", exact: true }),
+    page.getByRole("link", { name: "Activity", exact: true }),
   ).toBeFocused();
 });
 

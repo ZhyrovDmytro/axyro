@@ -112,6 +112,17 @@ test("local development administrator uses a real server session when explicitly
     page.getByRole("heading", { name: "Development Admin", exact: true }),
   ).toBeVisible();
   await expect(page.getByText("PRO · Admin", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Change password" }).click();
+  await expect(page.getByLabel("New password", { exact: true })).toBeEditable();
+  await expect(page.getByRole("button", { name: "Update password" })).toBeDisabled();
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await page.getByRole("button", { name: "Delete account", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Permanently delete account" })).toBeDisabled();
+  for (const action of ["profile", "password", "delete"]) {
+    const response = await page.request.post(`/api/auth/${action}`, { headers: { origin: new URL(page.url()).origin }, data: {} });
+    expect(response.status()).toBe(403);
+    expect((await response.json()).error).toContain("Account changes are disabled");
+  }
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Keep your training with you." }),
@@ -143,7 +154,20 @@ test("payment recovery offers management instead of another subscription", async
   );
   await expect(page.getByLabel("New password", { exact: true })).toBeHidden();
   await page.getByText("Change password", { exact: true }).click();
-  await expect(page.getByLabel("New password", { exact: true })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Change password" })).toBeVisible();
+  await expect(page.getByLabel("Current password", { exact: true })).toBeFocused();
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 375, height: 667 }]) {
+    await page.setViewportSize(viewport);
+    const box = await page.getByRole("dialog").boundingBox();
+    expect(box).toBeTruthy();
+    expect(Math.abs(box!.x * 2 + box!.width - viewport.width)).toBeLessThan(2);
+    expect(Math.abs(box!.y * 2 + box!.height - viewport.height)).toBeLessThan(2);
+  }
+  await page.getByRole("button", { name: "Close password dialog" }).click();
+  await expect(page.getByRole("button", { name: "Change password" })).toBeFocused();
+  await page.getByRole("button", { name: "Change password" }).click();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("button", { name: "Change password" })).toBeFocused();
 });
 
 test("password change shows progress and confirms success beside the form", async ({
@@ -335,4 +359,17 @@ test("subscriber can find cancellation and enter the billing portal", async ({ p
   await page.goto("/account");
   await page.getByRole("button", { name: "Manage or cancel subscription" }).click();
   await expect(page).toHaveURL(/\/test-billing-portal$/);
+});
+
+test("Help switches from account management to recovery when signed out", async ({ page }) => {
+  let current: typeof alice | null = alice;
+  await mockAccount(page, () => current);
+  await page.goto("/help");
+  await expect(page.getByRole("link", { name: "Open my account" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Open settings" })).toBeVisible();
+  current = null;
+  await page.evaluate(() => window.dispatchEvent(new Event("axyro:identity-changed")));
+  await expect(page.getByRole("link", { name: "Reset my password" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Manage my/ })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Contact support" })).toBeVisible();
 });

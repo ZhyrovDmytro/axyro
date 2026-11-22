@@ -5,7 +5,7 @@ import { publicMetadata } from "@/lib/publishing";
 export const metadata = publicMetadata(
   "/",
   "Axyro — Train for your next padel point",
-  "Prepare for padel with a personalized 60-day Pro plan, guided home workouts and an exercise library. Adjust training around matches and make each session your own.",
+  "Train the footwork, strength and mobility behind your padel shots with guided home workouts. Fit training and recovery around your match days.",
 );
 
 export default function HomePage() {

@@ -30,7 +30,7 @@ test("loads the application shell", async ({ page }) => {
 
   await expect(
     page.getByRole("heading", {
-      name: "Train anywhere. Win on court.",
+      name: "Play better padel. Train beyond the court.",
     }),
   ).toBeVisible();
   await expect(
@@ -56,7 +56,7 @@ test("opens mobile navigation over the page without moving content", async ({
     name: "Primary navigation",
   });
   await expect(primaryNavigation.getByRole("link")).toHaveCount(5);
-  for (const label of ["Home", "Plan", "Workouts", "Library", "Activity"]) {
+  for (const label of ["Home", "Plan", "Workouts", "Library", "Rehub"]) {
     await expect(
       primaryNavigation.getByRole("link", { name: label, exact: true }),
     ).toBeVisible();

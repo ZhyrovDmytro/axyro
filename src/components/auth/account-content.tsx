@@ -23,6 +23,7 @@ export function AccountContent({ children }: { children: React.ReactNode }) {
     pathname === "/workouts" ||
     pathname === "/exercises" ||
     pathname.startsWith("/exercises/") ||
+    pathname === "/rehub" ||
     pathname === "/help" ||
     pathname === "/privacy" ||
     pathname === "/terms";

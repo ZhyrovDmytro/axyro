@@ -348,7 +348,7 @@ No owners or target dates have been assigned yet.
     attribution obligations. Preserve the 40-exercise contract and stable IDs.
 
 - [ ] **L14 — Customer support and administration** · Partial
-  - [Customer support procedures](CUSTOMER_SUPPORT.md) cover access, refunds, privacy, failed deletion and complaints. External inbox delivery and ownership remain unverified.
+  - [Customer support procedures](CUSTOMER_SUPPORT.md) cover access, refunds, privacy, failed deletion and complaints. Cloudflare shows an active forwarding rule and a verified destination. End-to-end receipt and reply remain unverified.
   - Complete when: publish a monitored support contact and document procedures
     for refunds, access issues, complaints, privacy requests and failed deletion.
     Restrict operator access to Supabase/Stripe. A dedicated admin UI is not
@@ -567,3 +567,5 @@ business and markets. Recheck current requirements when completing legal tasks.
 | 2026-11-21 | L05 / L08 | Published 08e8090 on staging. A new plan refined to five minutes synced to server revision 3 (127,738-character plan). Plan reset opened empty setup, data deletion emptied server training keys at revision 5, account deletion signed out and denied a fresh sign-in, and Stripe independently returned canceled in sandbox. Updated deletion copy to identify synced account data. |
 
 | 2026-11-21 | L05 / L08 / L17 | Confirmed sandbox annual checkout, paid invoice and portal access. Guest homepage renders before hydration. Membership management now explicitly names Stripe. |
+
+| 2026-11-21 | L14 | Added the approved support address to the local footer, Settings and Help. Production publication and end-to-end delivery verification remain pending. |

@@ -68,7 +68,7 @@ test("recovery keeps the media frame and appears in up next", async ({
     "Recovery",
   );
   const previewIcon = page.locator(".next-preview .player-recovery-symbol");
-  await expect(previewIcon).toHaveCSS("color", "rgb(17, 17, 17)");
+  await expect(previewIcon).toHaveCSS("color", "rgb(17, 20, 18)");
   await expect(previewIcon.locator("svg")).toBeVisible();
   const before = await page.locator(".player-media").boundingBox();
   await page.getByRole("button", { name: "Skip", exact: true }).click();

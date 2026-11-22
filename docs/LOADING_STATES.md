@@ -1,6 +1,6 @@
 # Loading states
 
-Axyro keeps its charcoal surfaces, existing type, and orange actions while data
+Axyro keeps its graphite and dark green surfaces, existing type, and lime actions while data
 loads. Loading UI should explain the current wait without competing with workout
 content.
 

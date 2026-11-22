@@ -86,15 +86,15 @@ test("reduced motion stops cadence movement without removing its cue", async ({
   );
 });
 
-test("only the selected effort uses the orange fill", async ({ page }) => {
+test("only the selected effort uses the lime fill", async ({ page }) => {
   await page.goto("/workouts/foundation-strength");
   const challenging = page.getByRole("button", { name: /Challenging/ });
   const standard = page.getByRole("button", { name: /Standard/ });
   await challenging.click();
   await expect(challenging).toHaveAttribute("aria-pressed", "true");
   await expect(standard).toHaveAttribute("aria-pressed", "false");
-  await expect(challenging).toHaveCSS("background-color", "rgb(255, 107, 36)");
-  await expect(standard).toHaveCSS("background-color", "rgb(27, 27, 27)");
+  await expect(challenging).toHaveCSS("background-color", "rgb(217, 252, 84)");
+  await expect(standard).toHaveCSS("background-color", "rgb(32, 39, 34)");
   await expect(standard).toContainText("Recommended");
   await page.locator(".effort-options").scrollIntoViewIfNeeded();
   await page.screenshot({
@@ -197,7 +197,7 @@ test("member sessions keep their authored name and reveal future sessions progre
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(name);
   await expect(
     page.getByRole("link", { name: "Start workout", exact: true }),
-  ).toHaveCSS("background-color", "rgb(255, 107, 36)");
+  ).toHaveCSS("background-color", "rgb(217, 252, 84)");
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({
     path: "/tmp/axyro-followup-editor-mobile.png",
@@ -232,6 +232,9 @@ test("settings distinguish guest storage from a signed-in account", async ({
   await expect(page.locator(".page-intro")).toContainText(
     "Your preferences save on this device.",
   );
+  await expect(page.locator("main h2").first()).toHaveText("About Axyro");
+  await expect(page.getByText("Default session length", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Reset training plan" })).toHaveCount(0);
   const user = {
     id: "a0000000-0000-4000-8000-000000000000",
     email: "settings@example.com",

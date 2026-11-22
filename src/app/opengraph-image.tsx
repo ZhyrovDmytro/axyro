@@ -6,7 +6,7 @@ export const dynamic = "force-static";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const alt =
-  "Axyro. Train anywhere. Win on court. A standing dumbbell wood chop demonstration.";
+  "Axyro. You play padel. Do you train for it? A standing dumbbell wood chop demonstration.";
 
 export default async function ShareImage() {
   const poster = await readFile(
@@ -31,7 +31,7 @@ export default async function ShareImage() {
           padding: 52,
         }}
       >
-        <span style={{ fontSize: 38, color: "#ff914d" }}>Axyro</span>
+        <span style={{ fontSize: 38, color: "#d9fc54" }}>Axyro</span>
         <div
           style={{
             display: "flex",
@@ -41,8 +41,8 @@ export default async function ShareImage() {
             letterSpacing: -3,
           }}
         >
-          <span>Train anywhere.</span>
-          <span>Win on court.</span>
+          <span>You play padel.</span>
+          <span>Do you train for it?</span>
         </div>
         <span style={{ fontSize: 28 }}>Guided home workouts for padel</span>
       </div>

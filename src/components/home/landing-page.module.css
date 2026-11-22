@@ -24,14 +24,9 @@
 .story,
 .timeSection,
 .planSection,
-.faq,
-.footer {
+.faq {
   width: min(100% - 3rem, 1200px);
   margin-inline: auto;
-}
-.footer a:hover {
-  text-decoration: underline;
-  text-underline-offset: 5px;
 }
 .hero {
   display: grid;
@@ -56,7 +51,7 @@
   z-index: -1;
   background: var(--accent);
   color: var(--ink);
-  --muted: #42200f;
+  --muted: var(--on-accent-muted);
   transform: rotate(-3deg);
 }
 .heroCopy > p {
@@ -66,7 +61,7 @@
 }
 .cta {
   background: var(--accent);
-  --muted: #42200f;
+  --muted: var(--on-accent-muted);
   color: var(--ink);
   display: inline-flex;
   justify-content: center;
@@ -75,7 +70,7 @@
   padding: 20px 24px;
   border-radius: 12px;
   font-weight: 750;
-  box-shadow: 0 10px 26px rgb(201 74 16 / 12%);
+  box-shadow: 0 10px 26px rgb(17 20 18 / 12%);
   transition:
     transform 160ms var(--ease-out),
     box-shadow 160ms;
@@ -83,7 +78,7 @@
 @media (hover: hover) and (pointer: fine) {
   .cta:hover {
     transform: translateY(-2px);
-    box-shadow: 0 14px 28px rgb(201 74 16 / 22%);
+    box-shadow: 0 14px 28px rgb(17 20 18 / 22%);
   }
   .cta:hover > svg {
     transform: translateX(3px);
@@ -117,7 +112,7 @@
 }
 .heroStage {
   position: relative;
-  background: #242424;
+  background: var(--surface-soft);
   border-radius: 16px;
   transform: none;
   border: 1px solid var(--border);
@@ -170,7 +165,7 @@
 }
 .workoutLabel div > span {
   font-size: 11px;
-  color: #c9c5c2;
+  color: var(--muted);
 }
 .workoutLabel strong {
   font-size: 18px;
@@ -199,7 +194,7 @@
 .floatingNote svg {
   background: var(--accent);
   color: var(--ink);
-  --muted: #42200f;
+  --muted: var(--on-accent-muted);
   border-radius: 50%;
   padding: 4px;
   width: 30px;
@@ -245,7 +240,7 @@
 }
 .stickyPlayer {
   position: sticky;
-  top: 48px;
+  top: 6rem;
   background: var(--ink);
   color: var(--text);
   border-radius: 16px;
@@ -256,12 +251,12 @@
   justify-content: space-between;
   padding: 20px 24px;
   font-size: 12px;
-  color: #c9c5c2;
+  color: var(--muted);
 }
 .playerVisual {
   position: relative;
   aspect-ratio: 1.45;
-  background: #242424;
+  background: var(--surface-soft);
   overflow: hidden;
 }
 .playerVisual img {
@@ -278,7 +273,7 @@
   justify-content: center;
   gap: 20px;
   background: var(--accent);
-  --muted: #42200f;
+  --muted: var(--on-accent-muted);
   color: var(--ink);
   opacity: 0;
   transition: opacity 0.5s;
@@ -304,7 +299,7 @@
 }
 .playerReadout span {
   font-size: 12px;
-  color: #c9c5c2;
+  color: var(--muted);
 }
 .playerReadout strong {
   font-size: 20px;
@@ -324,13 +319,13 @@
 .chapterProgress i {
   flex: 1;
   height: 4px;
-  background: #514943;
+  background: var(--border);
   transition: background 0.4s;
 }
 .chapterProgress .progressActive {
   background: var(--accent);
   color: var(--ink);
-  --muted: #42200f;
+  --muted: var(--on-accent-muted);
 }
 .playerNext {
   display: flex;
@@ -339,7 +334,7 @@
   font-size: 12px;
 }
 .playerNext > span {
-  color: #c9c5c2;
+  color: var(--muted);
 }
 .chapter {
   min-height: 240px;
@@ -555,33 +550,13 @@
   background: var(--ink);
   color: var(--text);
 }
-.footer {
-  display: flex;
-  align-items: center;
-  gap: 32px;
-  padding-block: 36px;
-}
-.footer > span {
-  font-size: 12px;
-  color: var(--muted);
-}
-.footer nav {
-  display: flex;
-  gap: 24px;
-  margin-left: auto;
-  font-size: 12px;
-}
-.footer nav a {
-  padding-block: 16px;
-}
 @media (max-width: 760px) {
   .hero,
   .promiseStrip,
   .story,
   .timeSection,
   .planSection,
-  .faq,
-  .footer {
+  .faq {
     width: calc(100% - 40px);
   }
   .hero {
@@ -636,11 +611,8 @@
     gap: 20px;
   }
   .stickyPlayer {
-    top: 12px;
-    z-index: 2;
-  }
-  .playerVisual {
-    display: none;
+    position: relative;
+    top: auto;
   }
   .playerTop {
     padding: 12px 16px;
@@ -711,14 +683,6 @@
   .closing h2 {
     font-size: clamp(1.8rem, 8.5vw, 2.5rem);
   }
-  .footer {
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-  .footer nav {
-    margin-left: 0;
-    width: 100%;
-  }
 }
 @media (prefers-reduced-motion: reduce) {
   .landing *,
@@ -731,10 +695,6 @@
   }
 }
 
-.footer :global(.brand) {
-  order: 0;
-  margin: 0;
-}
 @media (max-width: 760px) {
   .floatingNote {
     display: none;
@@ -770,7 +730,7 @@
 .weekTrain {
   background: var(--accent);
   color: var(--ink);
-  --muted: #42200f;
+  --muted: var(--on-accent-muted);
   border-color: transparent;
 }
 .weekMatch {
@@ -934,7 +894,7 @@
   color: var(--accent);
 }
 .adaptSection p {
-  color: #c9c5c2;
+  color: var(--muted);
 }
 .scheduleDemo {
   margin-top: 44px;
@@ -951,7 +911,7 @@
   gap: 8px;
 }
 .scheduleToolbar > div > span {
-  color: #c9c5c2;
+  color: var(--muted);
   font-size: 12px;
 }
 .scheduleToolbar button {
@@ -960,7 +920,7 @@
   justify-content: center;
   gap: 8px;
   background: var(--accent);
-  --muted: #42200f;
+  --muted: var(--on-accent-muted);
   color: var(--ink);
   border: 0;
   border-radius: 10px;
@@ -980,7 +940,7 @@
 }
 .scheduleDay {
   padding: 16px 8px;
-  background: #292522;
+  background: var(--surface-soft);
   border-radius: 12px;
   min-height: 170px;
 }
@@ -1002,7 +962,7 @@
 }
 .scheduleTrain {
   background: var(--accent);
-  --muted: #42200f;
+  --muted: var(--on-accent-muted);
   color: var(--ink);
 }
 .scheduleMatch {
@@ -1027,7 +987,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 32px;
-  border-top: 1px solid #514943;
+  border-top: 1px solid var(--border);
   padding-top: 24px;
 }
 .adaptFooter p {
@@ -1036,8 +996,6 @@
 }
 .adaptFooter .cta {
   flex: 0 0 auto;
-  background: var(--paper);
-  color: var(--text);
 }
 
 @media (max-width: 760px) {
@@ -1183,7 +1141,7 @@
 .librarySample > div {
   position: relative;
   aspect-ratio: 1.5;
-  background: #242424;
+  background: var(--surface-soft);
   overflow: hidden;
   border-radius: 12px;
 }
@@ -1341,7 +1299,7 @@
   gap: 8px;
   background: var(--accent);
   color: var(--ink);
-  --muted: #42200f;
+  --muted: var(--on-accent-muted);
   border: 0;
   border-radius: 10px;
   padding: 16px 12px;
@@ -1408,7 +1366,6 @@
 }
 /* Full-width black opening, with the same orange action as the app. */
 .hero {
-  --muted: #d0ccc9;
   background: var(--ink);
   color: var(--text);
   box-shadow: 0 0 0 100vmax var(--ink);
@@ -1606,7 +1563,7 @@
 .cta:hover {
   transform: none;
   box-shadow: none;
-  background: var(--accent-hover, #f5813e);
+  background: var(--accent-hover, var(--accent-hover));
 }
 .cta:hover > svg {
   transform: none;
@@ -1674,4 +1631,167 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.hero {
+  padding-block: 0;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(24px, 5vw, 80px);
+}
+.hero .heroHeadline {
+  max-width: 11ch;
+}
+.heroHeadline em {
+  display: block;
+  color: var(--accent);
+  font-style: normal;
+}
+.heroCopy {
+  padding-block: 44px;
+}
+.courtPhoto {
+  position: relative;
+  height: clamp(490px, 72svh, 780px);
+  overflow: hidden;
+}
+.courtPhoto img {
+  object-fit: cover;
+  object-position: 50% 64%;
+}
+.matchDemand,
+.access {
+  width: min(calc(100% - 40px), 1200px);
+  margin: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: clamp(28px, 7vw, 100px);
+  padding-block: clamp(52px, 8vw, 120px);
+  border-top: 1px solid #485047;
+}
+.matchDemand h2,
+.access h2 {
+  font-size: clamp(2.4rem, 5vw, 4.8rem);
+}
+.matchDemand p,
+.access p {
+  max-width: 42ch;
+  margin-block: 20px;
+}
+.access h2 {
+  grid-column: 1/-1;
+}
+.access {
+  align-items: start;
+}
+.credit {
+  display: block;
+  padding: 1rem max(20px, calc((100vw - 1200px) / 2));
+  color: var(--muted);
+}
+.credit a {
+  text-decoration: underline;
+}
+.landing section[id] {
+  scroll-margin-top: 5rem;
+}
+@media (max-width: 760px) {
+  .hero,
+  .matchDemand,
+  .access {
+    grid-template-columns: 1fr;
+  }
+  .hero {
+    gap: 0;
+  }
+  .heroCopy {
+    padding-block: 30px 24px;
+  }
+  .courtPhoto {
+    height: clamp(260px, 36svh, 440px);
+  }
+  .hero .heroHeadline {
+    font-size: clamp(3rem, 12vw, 5rem);
+  }
+}
+
+:global(.app-frame):has(.landing) :global(.site-header) {
+  position: sticky;
+  top: 0;
+  background: var(--ink);
+}
+:global(.app-frame):has(.landing)
+  :global(.site-header .nav-link[href="/plan/setup"]) {
+  background: var(--accent);
+  color: var(--ink);
+}
+
+.faq summary {
+  min-height: 44px;
+  align-content: center;
+}
+.landing :is(a, button, summary) {
+  scroll-margin-block: 6rem;
+}
+.matchDemand {
+  padding-bottom: clamp(32px, 5vw, 72px);
+}
+.credit { font-size: 0.8125rem; }
+
+.filmHero {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  align-items: end;
+  min-height: clamp(540px, 82svh, 860px);
+  padding: clamp(24px, 5vw, 80px) max(24px, calc((100% - 1200px) / 2));
+  background: #111412 url("/images/landing/court-film.webp") center / cover;
+  color: #f3f4ed;
+}
+.film, .filmHero::before {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.film { object-fit: cover; z-index: -2; }
+.filmHero::before {
+  content: "";
+  z-index: -1;
+  background: linear-gradient(90deg, rgb(8 15 11 / 88%), transparent 85%),
+    linear-gradient(0deg, rgb(8 15 11 / 78%), transparent 78%);
+}
+.filmHero .heroCopy { padding: 0; }
+.filmHero .heroHeadline {
+  max-width: 15ch;
+  font-size: clamp(2.5rem, 1.75rem + 3.75vw, 4.0625rem);
+  line-height: .98;
+  letter-spacing: -.055em;
+}
+.filmHero .heroCopy > p { max-width: 41ch; color: #f3f4ed; }
+.filmHero .freeLink { color: inherit; }
+.filmControl {
+  position: absolute;
+  top: 20px;
+  right: max(20px, calc((100% - 1200px) / 2));
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgb(255 255 255 / 55%);
+  border-radius: 50%;
+  background: rgb(8 15 11 / 72%);
+  color: white;
+}
+@media (max-width: 760px) {
+  .filmHero { min-height: clamp(540px, 82svh, 760px); padding-bottom: 32px; }
+  .filmHero::before { background: linear-gradient(0deg, #0b100d 1%, rgb(8 15 11 / 84%) 37%, transparent 86%); }
+  .filmHero .heroCopy > p { font-size: 1rem; margin-block: 16px 24px; }
+}
+
+.filmEyebrow {
+  margin-bottom: 16px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
 }

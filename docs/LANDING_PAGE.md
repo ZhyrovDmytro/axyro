@@ -6,24 +6,16 @@ and errors continue to use the shared provider.
 
 ## Design direction
 
-Axyro uses a black and charcoal canvas, electric-orange actions, athletic headings,
-and existing catalog movement references. The story is: promise and real movement
-preview → guided-player explanation → one Pro plan example → exercise library →
-FAQ → closing action. The repeated benefits, duration and static-week sections
-were removed following the [design review](design-review-2026-10-23.md).
+The guest page uses graphite, dark green, lime and off-white. Its headline, “Play better padel. Train beyond the court.”, overlays a muted roughly 22-second film edited from seven supplied clips. Half-second crossfades connect the shots and loop. A pause control and static reduced-motion poster accompany the existing calls to action. The film leads into footwork, exercise demonstrations and the guided player. The plan, training areas, Free and Pro access and FAQ follow.
 
-The hero opens with “Train anywhere. Win on court.” beside an interactive exercise
-preview. Its caption names the selected movement, and the counter follows the
-exercise picker. Session lengths appear in the introduction.
-The primary action is Create my plan; a secondary link offers the free workout.
-On mobile the actions precede the movement preview.
+Build My Training Plan opens plan setup. See How It Works jumps to the player section. Full creative directions, image attribution and verification are in [the design report](LANDING_DESIGN.md).
 
 ## Navigation and access
 
 Primary plan actions open `/plan/setup` and explicitly promote Pro. Free-workout
 links resolve the starter from `FREE_WORKOUT_ID` and open its preview. Duration
 selection stays in workout setup: 5, 10 or 20 minutes, with 10 as the default,
-including work and recovery. The promise strip and FAQ explain that flexibility.
+including work and recovery. The introduction and FAQ explain that flexibility.
 
 The landing does not invent prices, testimonials, audience counts, medical
 assurances or guaranteed performance improvements. Padel copy positions home
@@ -31,7 +23,7 @@ training as physical preparation that supports court practice.
 
 ## Product demonstrations
 
-The hero cycles through wood chop, lateral stick, bird dog, Dynamic Court March
+The movement preview below the hero cycles through wood chop, lateral stick, bird dog, Dynamic Court March
 and side-plank rotation every 3.5 seconds. Current and next media may animate;
 other entries show their posters. Its play/pause control and five thumbnails
 allow explicit selection. Choosing a thumbnail holds that exercise on its poster.
@@ -40,7 +32,7 @@ rotation; explicit Play still enables the selected clip.
 
 The separate player illustration uses side-plank rotation. It is opt-in and follows
 three scroll chapters about movement references, cadence and recovery. On mobile
-its sticky readout leaves room for the explanatory copy. It does not start a
+its player sits above the explanatory copy, with a visible motion preview. It does not start a
 workout, run an authoritative timer or play speech.
 
 One three-step plan section explains priorities, schedule/equipment and the next
@@ -49,8 +41,7 @@ example: moving Saturday’s match to Wednesday shifts the second training day t
 Friday and retains recovery. It points to Refine your plan without promising that
 real schedules will match the example’s dates.
 
-The library teaser shows six complete exercise references from the catalog. The
-continuation gradient starts after the sixth. Full collection access is described
+The library teaser shows six complete exercise references from the catalog. Each connects a training area to a situation on court. Full collection access is described
 as Pro. Names, stable IDs and media come from the curated 40-exercise catalog.
 
 An always-visible section offers the editor example. Adding or removing
@@ -74,7 +65,7 @@ Content sections use semantic headings; FAQ questions use native accordion contr
 
 Landing posters are extracted from existing catalog media and keep their original
 colors and provenance. See `MEDIA_CREDITS.md` and `THIRD_PARTY_NOTICES.md`.
-No new media or animation dependency was added.
+The original court photograph is credited in the design report.
 
 ## Verification
 

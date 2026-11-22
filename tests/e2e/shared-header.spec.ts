@@ -59,7 +59,12 @@ for (const signedIn of [false, true]) {
         expect(await page.locator("#main-content").boundingBox()).toEqual(
           contentBefore,
         );
-        await nav.getByRole("link", { name: "Home", exact: true }).focus();
+        await nav
+          .getByRole("link", {
+            name: "Home",
+            exact: true,
+          })
+          .focus();
         await page.keyboard.press("Escape");
         await expect(menu).toBeFocused();
         await expect(nav).toBeHidden();
@@ -82,7 +87,7 @@ for (const signedIn of [false, true]) {
         "Plan",
         "Workouts",
         "Library",
-        "Activity",
+        "Rehub",
       ]);
       await expect(
         nav.getByRole("link", { name: "Home", exact: true }),
@@ -119,12 +124,18 @@ for (const signedIn of [false, true]) {
         path: `/tmp/axyro-nav-${signedIn ? "member" : "guest"}-${width}.png`,
         scale: "css",
       });
-      await nav.getByRole("link", { name: "Workouts", exact: true }).click();
+      await nav
+        .getByRole("link", {
+          name: "Workouts",
+          exact: true,
+        })
+        .click();
       if (width < 768) {
         await expect(nav).toBeHidden();
         await expect(menu).toHaveAttribute("aria-expanded", "false");
         await menu.click();
       }
+      await expect(page).toHaveURL(/\/workouts$/);
       await expect(
         nav.getByRole("link", { name: "Workouts", exact: true }),
       ).toHaveAttribute("aria-current", "page");
@@ -146,9 +157,40 @@ for (const signedIn of [false, true]) {
       await expect(accountLink).toHaveAttribute("aria-current", "page");
       if (!signedIn)
         await expect(accountLink).toHaveAttribute("href", "/signin");
+      await header.getByRole("link", { name: "Settings" }).click();
+      await expect(
+        page.getByRole("heading", { name: "Settings" }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("link", { name: "Activity", exact: true }),
+      ).toHaveCount(signedIn ? 1 : 0);
       await page.goto("/workouts/foundation-strength/start");
       await expect(page.getByRole("timer")).toBeVisible();
       await expect(page.getByRole("banner")).toHaveCount(0);
     });
   }
+}
+
+for (const width of [320, 1440]) {
+  test(`Rehub preview is public at ${width}px`, async ({ page }) => {
+    await page.route("**/api/auth/session", () => {});
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/workouts");
+    if (width < 768)
+      await page.getByRole("button", { name: "Menu", exact: true }).click();
+    await page
+      .getByRole("navigation", { name: "Primary navigation" })
+      .getByRole("link", { name: "Rehub" })
+      .press("Enter");
+    await expect(page).toHaveURL(/\/rehub$/);
+    await expect(page.getByRole("heading", { name: "Rehub" })).toBeVisible();
+    await expect(page.getByText("Coming soon to Axyro Pro")).toBeVisible();
+    await expect(page.locator("main img")).toHaveCount(0);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    await page.screenshot({ path: `/tmp/rehub-${width}.png` });
+  });
 }

@@ -1,6 +1,6 @@
 # Customer support
 
-The public Help page links to password recovery, membership management and training data settings. Set `AXYRO_SUPPORT_EMAIL` to a monitored public inbox in the production build environment and rebuild. Before publishing the address, send a message from an outside account and confirm that a reply arrives. Record verification in L14.
+Help shows password recovery to guests and account-management links to signed-in users. Everyone can contact support, including during an account-service outage. The footer, Settings and Help link to `support@axyro.app`. To override the address, set `AXYRO_SUPPORT_EMAIL` at build time. Before publishing the address, send a message from an outside account and confirm that a reply arrives. Record verification in L14.
 
 ## Handling a request
 
@@ -10,4 +10,4 @@ The public Help page links to password recovery, membership management and train
 - **Failed account deletion.** Verify ownership and the original deletion intent. Check the account, training records and subscription separately before retrying. Confirm which systems completed the request and explain any outstanding provider records.
 - **Complaints.** Acknowledge receipt through the monitored inbox, identify the affected account only if necessary, and refer unresolved complaints to the operator. Keep internal records limited to the request, action and outcome.
 
-Operator approval is still needed for the public contact, refund terms, retention periods and applicable response deadlines.
+Operator approval is still needed for refund terms, retention periods and applicable response deadlines.

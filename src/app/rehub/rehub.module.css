@@ -1,0 +1,32 @@
+.page {
+  display: grid;
+  align-items: center;
+  padding-block: var(--space-section);
+}
+
+.copy h1 {
+  font-size: clamp(4rem, 9vw, 8rem);
+  line-height: 1;
+  letter-spacing: -0.065em;
+  margin: 0;
+}
+
+.status {
+  color: var(--accent);
+  font-weight: 600;
+  margin: var(--space-5) 0;
+}
+
+.description {
+  color: var(--muted);
+  max-width: 38ch;
+  font-size: clamp(1rem, 1.6vw, 1.25rem);
+  line-height: 1.55;
+  margin: 0;
+}
+
+@media (min-width: 48rem) {
+  .page {
+    min-height: 72svh;
+  }
+}

@@ -180,6 +180,7 @@ test("account profile, password and deletion forms share accessible controls", a
   await expect(
     page.getByLabel("Current password", { exact: true }),
   ).toHaveAttribute("type", "password");
+  await page.getByRole("dialog").getByRole("button", { name: "Cancel" }).click();
   await page
     .getByRole("button", { name: "Delete account", exact: true })
     .click();

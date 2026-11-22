@@ -1,0 +1,3396 @@
+{
+ "start": "2026-11-22T09:43:06.786Z",
+ "round": 3,
+ "idle": 0,
+ "errors": 0,
+ "status": "open",
+ "history": [
+  {
+   "at": "2026-11-22T09:47:37.505Z",
+   "mode": "manual",
+   "status": "fail",
+   "fails": 71,
+   "round": 1,
+   "reused": false,
+   "stopHookActive": false
+  },
+  {
+   "at": "2026-11-22T09:51:11.875Z",
+   "mode": "manual",
+   "status": "fail",
+   "fails": 93,
+   "round": 2,
+   "reused": false,
+   "stopHookActive": false
+  },
+  {
+   "at": "2026-11-22T09:54:26.204Z",
+   "mode": "manual",
+   "status": "open",
+   "fails": 91,
+   "round": 3,
+   "reused": false,
+   "stopHookActive": false
+  }
+ ],
+ "max": 3,
+ "marker": {
+  "page": null,
+  "url": "http://localhost:3117/",
+  "root": null,
+  "kind": "software",
+  "category": null,
+  "primary": null,
+  "rounds": 3,
+  "start": "2026-11-22T09:43:06.786Z",
+  "by": "gate.mjs --start"
+ },
+ "manual": true,
+ "roundKey": "fb8dee6c396af546:da39a3ee",
+ "roundFree": false,
+ "idleFree": false,
+ "blockKey": null,
+ "fp": "fb8dee6c396af546",
+ "page": "http://localhost:3117/",
+ "found": {
+  "fails": [
+   {
+    "check": "hero-fill",
+    "where": "section#why-axyro \"Train the step before the shot.\"",
+    "msg": "the next section shows on the first screen: it starts at 896px on a 900px screen (the hero ends at 780px)",
+    "fix": "let the hero fill the first screen alone (min-height: 100svh, less above it): nothing of the next section on load",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "hero-fill"
+    ],
+    "wheres": [
+     "section#why-axyro \"Train the step before the shot.\""
+    ]
+   },
+   {
+    "check": "flush",
+    "where": "main#main > section.landing-page-module__ohf9Fa__closing > div.landing-page-module__ohf9Fa__closingImage > img \"img: Lateral movement exercise from Axyr\"",
+    "msg": "its first line sits 0px under the top edge of section.landing-page-module__ohf9Fa__closing, where the ground changes",
+    "fix": "give the section its padding at the edge where the ground changes (the closing call keeps a clear gap above the footer)",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "flush"
+    ],
+    "wheres": [
+     "main#main > section.landing-page-module__ohf9Fa__closing > div.landing-page-module__ohf9Fa__closingImage > img \"img: Lateral movement exercise from Axyr\""
+    ]
+   },
+   {
+    "check": "no-visual",
+    "where": "main#main > section.landing-page-module__ohf9Fa__personalSection \"60 days of training around your schedule\"",
+    "msg": "no picture, effect or mock in this section; a feature section needs a visual",
+    "fix": "give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "no-visual"
+    ],
+    "wheres": [
+     "main#main > section.landing-page-module__ohf9Fa__personalSection \"60 days of training around your schedule\""
+    ]
+   },
+   {
+    "check": "no-visual",
+    "where": "main#main > section.landing-page-module__ohf9Fa__editorSection \"Adjust the workout to your priorities\"",
+    "msg": "no picture, effect or mock in this section; a feature section needs a visual",
+    "fix": "give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "no-visual"
+    ],
+    "wheres": [
+     "main#main > section.landing-page-module__ohf9Fa__editorSection \"Adjust the workout to your priorities\""
+    ]
+   },
+   {
+    "check": "no-visual",
+    "where": "main#main > section.landing-page-module__ohf9Fa__access \"Choose how you train\"",
+    "msg": "no picture, effect or mock in this section; a feature section needs a visual",
+    "fix": "give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "no-visual"
+    ],
+    "wheres": [
+     "main#main > section.landing-page-module__ohf9Fa__access \"Choose how you train\""
+    ]
+   },
+   {
+    "check": "card-family",
+    "where": "div > div.landing-page-module__ohf9Fa__scheduleDemo > div.landing-page-module__ohf9Fa__scheduleDays > div.landing-page-module__ohf9Fa__scheduleDay.landing-page-module__ohf9Fa__scheduleTrain:nth-of-type(1) \"Mon Train 10 minutes\"",
+    "msg": "7 cards of one kind (.landing-page-module__ohf9Fa__scheduleDay) side by side in 2 fills, each used twice or more: #d9fc54 (2), #292522 (5)",
+    "fix": "draw one card part one way: one fill and one title face for every card of a kind (one featured card may differ)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "card-family"
+    ],
+    "wheres": [
+     "div > div.landing-page-module__ohf9Fa__scheduleDemo > div.landing-page-module__ohf9Fa__scheduleDays > div.landing-page-module__ohf9Fa__scheduleDay.landing-page-module__ohf9Fa__scheduleTrain:nth-of-type(1) \"Mon Train 10 minutes\""
+    ]
+   },
+   {
+    "check": "copy-headings",
+    "where": "section#how-it-works > div.landing-page-module__ohf9Fa__sectionIntro > h2 \"Guidance through every session\"",
+    "msg": "\"Guidance through every session\" names no product, part, place or section (13 headings like it; at most one brand line per page) (and 12 more like it: \"Follow each movement\", \"Choose your audio guidan\", \"Recover between interval\", \"Set your days and sessio\", ...)",
+    "fix": "name the thing in every heading: the product, a part, the place or a section noun",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "copy-headings"
+    ],
+    "wheres": [
+     "section#how-it-works > div.landing-page-module__ohf9Fa__sectionIntro > h2 \"Guidance through every session\""
+    ]
+   },
+   {
+    "check": "heading-scale",
+    "where": "section#why-axyro > div:nth-of-type(1) > h2 \"Train the step before the shot.\"",
+    "msg": "h2 headings in 5 sizes, 38px (\"Questions before you sta\") to 72px (x1.89)",
+    "fix": "size headings by level: the h1 largest, one size per level, each level below the one above",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "heading-scale"
+    ],
+    "wheres": [
+     "section#why-axyro > div:nth-of-type(1) > h2 \"Train the step before the shot.\""
+    ]
+   },
+   {
+    "check": "heading-scale",
+    "where": "div.landing-page-module__ohf9Fa__storyGrid > div:nth-of-type(2) > article.landing-page-module__ohf9Fa__chapter:nth-of-type(1) > h3 \"Follow each movement\"",
+    "msg": "h3 headings in 4 sizes, 22px (\"Leg strength\") to 32px (x1.45)",
+    "fix": "size headings by level: the h1 largest, one size per level, each level below the one above",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "heading-scale"
+    ],
+    "wheres": [
+     "div.landing-page-module__ohf9Fa__storyGrid > div:nth-of-type(2) > article.landing-page-module__ohf9Fa__chapter:nth-of-type(1) > h3 \"Follow each movement\""
+    ]
+   },
+   {
+    "check": "off-grid",
+    "where": "h2#adapt-heading \"Match moved? Your plan can move too.\"",
+    "msg": "left edge at 144px, 24px off the page margin at 120px (31 elements, like p); 5 more in this section off the grid too (strong at 144px, span at 144px, div.landing-page-module__ohf9Fa__scheduleDay.landing-page-module__ohf9Fa__scheduleTrain:nth-of-type(1) at 144px, p.landing-page-module__ohf9Fa__scheduleStatus at 144px, ...)",
+    "fix": "move it onto the page margin, or the column edge its section uses",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "off-grid"
+    ],
+    "wheres": [
+     "h2#adapt-heading \"Match moved? Your plan can move too.\""
+    ]
+   },
+   {
+    "check": "off-grid",
+    "where": "div:nth-of-type(2) > div.app-frame > footer.site-footer > div.site-footer__intro \"Axyro Guided home workouts for padel. © \"",
+    "msg": "left edge at 112px, 8px off the page margin at 120px (31 elements, like aside.landing-page-module__ohf9Fa__credit)",
+    "fix": "move it onto the page margin, or the column edge its section uses",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "off-grid"
+    ],
+    "wheres": [
+     "div:nth-of-type(2) > div.app-frame > footer.site-footer > div.site-footer__intro \"Axyro Guided home workouts for padel. © \""
+    ]
+   },
+   {
+    "check": "off-grid",
+    "where": "div.app-frame > footer.site-footer > div.site-footer__intro > p \"Guided home workouts for padel.\"",
+    "msg": "left edge at 112px, 8px off the page margin at 120px (31 elements, like aside.landing-page-module__ohf9Fa__credit)",
+    "fix": "move it onto the page margin, or the column edge its section uses",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "off-grid"
+    ],
+    "wheres": [
+     "div.app-frame > footer.site-footer > div.site-footer__intro > p \"Guided home workouts for padel.\""
+    ]
+   },
+   {
+    "check": "photo-upscale",
+    "where": "div.landing-page-module__ohf9Fa__storyGrid > div.landing-page-module__ohf9Fa__stickyPlayer > div.landing-page-module__ohf9Fa__playerVisual > img \"img: Side Plank with Rotation movement d\"",
+    "msg": "side-plank-rotation.webp: 366x272 shown at 550x379, blown up 1.50x",
+    "fix": "use a source at least as wide as the picture is shown (twice that for sharp screens)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "photo-upscale"
+    ],
+    "wheres": [
+     "div.landing-page-module__ohf9Fa__storyGrid > div.landing-page-module__ohf9Fa__stickyPlayer > div.landing-page-module__ohf9Fa__playerVisual > img \"img: Side Plank with Rotation movement d\""
+    ]
+   },
+   {
+    "check": "photo-upscale",
+    "where": "div.landing-page-module__ohf9Fa__libraryGrid > article.landing-page-module__ohf9Fa__librarySample:nth-of-type(4) > div > img \"img: Side Plank with Rotation reference\"",
+    "msg": "image: 247x183 shown at 384x256, blown up 1.55x",
+    "fix": "use a source at least as wide as the picture is shown (twice that for sharp screens)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "photo-upscale"
+    ],
+    "wheres": [
+     "div.landing-page-module__ohf9Fa__libraryGrid > article.landing-page-module__ohf9Fa__librarySample:nth-of-type(4) > div > img \"img: Side Plank with Rotation reference\""
+    ]
+   },
+   {
+    "check": "section-tile",
+    "where": "section#how-it-works \"Guidance through every session\"",
+    "msg": "the section is 1094px tall (1.22 screens at 1440x900), not one screen or two: the screen one screen on from its top (scroll 2535px) shows 194px of it and 706px of the next section, its heading \"60 days of training around you\" on screen",
+    "fix": "set every section after the hero to one screen or two (height: calc(var(--h,1) * 100vh)) and fit its content above --padb",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "section-tile"
+    ],
+    "wheres": [
+     "section#how-it-works \"Guidance through every session\""
+    ]
+   },
+   {
+    "check": "section-tile",
+    "where": "main#main > section.landing-page-module__ohf9Fa__personalSection \"60 days of training around your schedule\"",
+    "msg": "the section is 848px tall (0.94 screens at 1440x900), shorter than the screen: its tile (the screen from its top) shows 848px of it and 52px of the next section, its heading \"Match moved? Your plan can mov\" on screen",
+    "fix": "set every section after the hero to one screen or two (height: calc(var(--h,1) * 100vh)) and fit its content above --padb",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "section-tile"
+    ],
+    "wheres": [
+     "main#main > section.landing-page-module__ohf9Fa__personalSection \"60 days of training around your schedule\""
+    ]
+   },
+   {
+    "check": "section-tile",
+    "where": "main#main > section.landing-page-module__ohf9Fa__adaptSection \"Match moved? Your plan can move too.\"",
+    "msg": "the section is 601px tall (0.67 screens at 1440x900), shorter than the screen: its tile (the screen from its top) shows 601px of it and 251px of the next section, its heading \"Learn each movement with clear\" on screen",
+    "fix": "set every section after the hero to one screen or two (height: calc(var(--h,1) * 100vh)) and fit its content above --padb",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "section-tile"
+    ],
+    "wheres": [
+     "main#main > section.landing-page-module__ohf9Fa__adaptSection \"Match moved? Your plan can move too.\""
+    ]
+   },
+   {
+    "check": "focus-ring",
+    "where": ".paywall-intro > h2[tabindex=\"-1\"]:focus",
+    "msg": "\".paywall-intro > h2[tabindex=\"-1\"]:focus\" in src_app_globals_162hn9oqc8uss.css removes the focus outline and sets nothing in its place",
+    "fix": "keep the kit's :focus-visible ring, or put a change of the same strength (a 2px line in --action) in the rule that removes it",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "focus-ring"
+    ],
+    "wheres": [
+     ".paywall-intro > h2[tabindex=\"-1\"]:focus"
+    ]
+   },
+   {
+    "check": "focus-ring",
+    "where": ".calendar-day-panel h3:focus",
+    "msg": "\".calendar-day-panel h3:focus\" in src_app_globals_162hn9oqc8uss.css removes the focus outline and sets nothing in its place",
+    "fix": "keep the kit's :focus-visible ring, or put a change of the same strength (a 2px line in --action) in the rule that removes it",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "focus-ring"
+    ],
+    "wheres": [
+     ".calendar-day-panel h3:focus"
+    ]
+   },
+   {
+    "check": "focus-visible",
+    "where": "section#why-axyro > div.landing-page-module__ohf9Fa__heroStage:nth-of-type(2) > div.landing-page-module__ohf9Fa__heroImage:nth-of-type(2) > button.landing-page-module__ohf9Fa__demoToggle \"Pause preview\"",
+    "msg": "Tab stop 12, button \"Pause preview\": the focus lands on something you cannot see",
+    "fix": "keep the kit's ring (system.css :focus-visible, 2px in --action, there at once); a control that hides itself shows on focus",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "focus-visible"
+    ],
+    "wheres": [
+     "section#why-axyro > div.landing-page-module__ohf9Fa__heroStage:nth-of-type(2) > div.landing-page-module__ohf9Fa__heroImage:nth-of-type(2) > button.landing-page-module__ohf9Fa__demoToggle \"Pause preview\""
+    ]
+   },
+   {
+    "check": "focus-visible",
+    "where": "section#why-axyro > div.landing-page-module__ohf9Fa__heroStage:nth-of-type(2) > div.landing-page-module__ohf9Fa__movementPicker:nth-of-type(4) > button:nth-of-type(1) \"Preview Standing Dumbbell Wood Chop\"",
+    "msg": "Tab stop 13, button \"Preview Standing Dumbbell Wood Chop\": the focus lands on something you cannot see",
+    "fix": "keep the kit's ring (system.css :focus-visible, 2px in --action, there at once); a control that hides itself shows on focus",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "focus-visible"
+    ],
+    "wheres": [
+     "section#why-axyro > div.landing-page-module__ohf9Fa__heroStage:nth-of-type(2) > div.landing-page-module__ohf9Fa__movementPicker:nth-of-type(4) > button:nth-of-type(1) \"Preview Standing Dumbbell Wood Chop\""
+    ]
+   },
+   {
+    "check": "focus-visible",
+    "where": "div.landing-page-module__ohf9Fa__storyGrid:nth-of-type(2) > div.landing-page-module__ohf9Fa__stickyPlayer:nth-of-type(1) > div.landing-page-module__ohf9Fa__playerVisual:nth-of-type(2) > button.landing-page-module__ohf9Fa__demoToggle \"Play player preview\"",
+    "msg": "Tab stop 18, button \"Play player preview\": the focus lands on something you cannot see",
+    "fix": "keep the kit's ring (system.css :focus-visible, 2px in --action, there at once); a control that hides itself shows on focus",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "focus-visible"
+    ],
+    "wheres": [
+     "div.landing-page-module__ohf9Fa__storyGrid:nth-of-type(2) > div.landing-page-module__ohf9Fa__stickyPlayer:nth-of-type(1) > div.landing-page-module__ohf9Fa__playerVisual:nth-of-type(2) > button.landing-page-module__ohf9Fa__demoToggle \"Play player preview\""
+    ]
+   },
+   {
+    "check": "focus-visible",
+    "where": "main#main > section.landing-page-module__ohf9Fa__personalSection:nth-of-type(4) > div.landing-page-module__ohf9Fa__personalIntro > a.landing-page-module__ohf9Fa__cta \"Start Training\"",
+    "msg": "Tab stop 19, a \"Start Training\": the focus lands on something you cannot see",
+    "fix": "keep the kit's ring (system.css :focus-visible, 2px in --action, there at once); a control that hides itself shows on focus",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "focus-visible"
+    ],
+    "wheres": [
+     "main#main > section.landing-page-module__ohf9Fa__personalSection:nth-of-type(4) > div.landing-page-module__ohf9Fa__personalIntro > a.landing-page-module__ohf9Fa__cta \"Start Training\""
+    ]
+   },
+   {
+    "check": "moment-none",
+    "where": "(the page)",
+    "msg": "a software page (--type) deals no moment: every kind carries one, two on a long page (moments.md)",
+    "fix": "deal one (moments.mjs pick --page software) and mount it in its own section",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "moment-none"
+    ],
+    "wheres": [
+     "(the page)"
+    ]
+   },
+   {
+    "check": "hero-screen",
+    "where": "main#main > section.wrap.landing-page-module__ohf9Fa__hero \"You play padel. Do you train for it?Get \"",
+    "msg": "the hero ends at 780px on a 900px screen, 120px above the fold: it ends at the fold, 1px either way (SR-1)",
+    "fix": "make the hero exactly one screen (height: 100svh, its content fitted inside), never taller or shorter",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "hero-screen"
+    ],
+    "wheres": [
+     "main#main > section.wrap.landing-page-module__ohf9Fa__hero \"You play padel. Do you train for it?Get \""
+    ]
+   },
+   {
+    "check": "hero-screen",
+    "where": "section#why-axyro \"Train the step before the shot.When a ba\"",
+    "msg": "120px of the next section shows on the first screen (from 780px on a 900px screen): nothing below the hero shows at load (SR-1)",
+    "fix": "end the hero at the fold so nothing of the next section shows at load (hero height: 100svh)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "hero-screen"
+    ],
+    "wheres": [
+     "section#why-axyro \"Train the step before the shot.When a ba\""
+    ]
+   },
+   {
+    "check": "section-height",
+    "where": "div:nth-of-type(2) > div.app-frame > footer.site-footer \"AxyroGuided home workouts for padel.© 20\"",
+    "msg": "the section is 116px tall (0.1 screens), 784px short of one screen (900px): every section after the hero is one screen or two, 2px either way (SR-2)",
+    "fix": "set the section to one screen or two (height: calc(var(--h,1) * 100vh), --h 1 or 2) and cut or split its content to fit",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "section-height"
+    ],
+    "wheres": [
+     "div:nth-of-type(2) > div.app-frame > footer.site-footer \"AxyroGuided home workouts for padel.© 20\""
+    ]
+   },
+   {
+    "check": "section-height",
+    "where": "main#main > section.landing-page-module__ohf9Fa__closing \"Prepare for your next matchBuild the wor\"",
+    "msg": "the section is 460px tall (0.5 screens), 440px short of one screen (900px): every section after the hero is one screen or two, 2px either way (SR-2)",
+    "fix": "set the section to one screen or two (height: calc(var(--h,1) * 100vh), --h 1 or 2) and cut or split its content to fit",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "section-height"
+    ],
+    "wheres": [
+     "main#main > section.landing-page-module__ohf9Fa__closing \"Prepare for your next matchBuild the wor\"",
+     "main#main > section.landing-page-module__ohf9Fa__editorSection \"Adjust the workoutto your prioritiesStar\"",
+     "main#main > section.landing-page-module__ohf9Fa__access \"Choose how you trainFreeTry one complete\""
+    ]
+   },
+   {
+    "check": "section-height",
+    "where": "section#exercise-library \"Learn each movementwith clear technique \"",
+    "msg": "the section starts at 4226px, 274px above the screen grid (5 x 900px): sections start on whole screens (and 8 more like it: \"Guidance through every s\", \"Adjust the workoutto you\", \"Questionsbefore you star\") (SR-2)",
+    "fix": "make every section above it exactly one or two screens tall, so this one starts on a whole screen",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "section-height",
+     "screen-height"
+    ],
+    "wheres": [
+     "section#exercise-library \"Learn each movementwith clear technique \"",
+     "#exercise-library section.landing-page-module__ohf9Fa__librarySection \"Learn each movementwith clear te\""
+    ]
+   },
+   {
+    "check": "section-air",
+    "where": "main#main > section.landing-page-module__ohf9Fa__adaptSection > div > div.landing-page-module__ohf9Fa__adaptFooter \"Update your dates in Refine your plan. A\"",
+    "msg": "a top border across 100% of the container, between the section's content: sections and their parts are told apart by air and ground, not lines (SR-3)",
+    "fix": "take the rule out: sections and their parts are parted by their ground and the air between them",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "section-air"
+    ],
+    "wheres": [
+     "main#main > section.landing-page-module__ohf9Fa__adaptSection > div > div.landing-page-module__ohf9Fa__adaptFooter \"Update your dates in Refine your plan. A\""
+    ]
+   },
+   {
+    "check": "one-section",
+    "where": "main#main > section.landing-page-module__ohf9Fa__access > h2 \"Choose how you train\"",
+    "msg": "the screen at scroll 5239px (the top of section 7) shows 315px of section 8 and the heading of section 8 whole and the content of 2 sections, over 24px each beside section 7: a screen shows one section (another may peek 8px, 24px WARN) (SR-4)",
+    "fix": "make each section exactly one screen or two, so a screen shows one section and no neighbour peeks",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "one-section"
+    ],
+    "wheres": [
+     "main#main > section.landing-page-module__ohf9Fa__access > h2 \"Choose how you train\""
+    ]
+   },
+   {
+    "check": "one-section",
+    "where": "section#questions > div:nth-of-type(1) > h2 \"Questionsbefore you start\"",
+    "msg": "the screen at scroll 5824px (the top of section 8) shows 300px of section 9 and the heading of section 9 whole and the content of 2 sections, over 24px each beside section 8: a screen shows one section (another may peek 8px, 24px WARN) (SR-4)",
+    "fix": "make each section exactly one screen or two, so a screen shows one section and no neighbour peeks",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "one-section"
+    ],
+    "wheres": [
+     "section#questions > div:nth-of-type(1) > h2 \"Questionsbefore you start\"",
+     "section#questions \"Questionsbefore you startExplore the mov\""
+    ]
+   },
+   {
+    "check": "one-heading",
+    "where": "section#how-it-works > div.landing-page-module__ohf9Fa__sectionIntro > h2 \"Guidance through every session\"",
+    "msg": "headings of two sections show whole on one screen at 14 of 146 scroll positions (9.6%; at scroll 1000, 1050, 3500, 3550px), here with \"Train the step before the shot.\": at most 3% on a desktop (SR-5)",
+    "fix": "make the sections one screen tall so their headings sit a screen apart and two never share one",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "one-heading"
+    ],
+    "wheres": [
+     "section#how-it-works > div.landing-page-module__ohf9Fa__sectionIntro > h2 \"Guidance through every session\""
+    ]
+   },
+   {
+    "check": "container-edges",
+    "where": "main#main > section.landing-page-module__ohf9Fa__adaptSection \"Match moved?Your plan can move too.You’r\"",
+    "msg": "the content of section 5 runs 144px from the left and 144px from the right (read from its outermost blocks: no .wrap): the page's container starts at 120px; the margin is 64-120px at 1440px (one container, equal margins, 2px either way) (SR-6)",
+    "fix": "use one container on every section and the nav (.wrap): one margin left and right, 64-120px on a desktop, 16-24px on a phone",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "container-edges"
+    ],
+    "wheres": [
+     "main#main > section.landing-page-module__ohf9Fa__adaptSection \"Match moved?Your plan can move too.You’r\""
+    ]
+   },
+   {
+    "check": "container-edges",
+    "where": "div:nth-of-type(2) > div.app-frame > footer.site-footer \"AxyroGuided home workouts for padel.© 20\"",
+    "msg": "the content of section 11 runs 112px from the left and 112px from the right (read from its outermost blocks: no .wrap): the page's container starts at 120px (one container, equal margins, 2px either way) (and 1 more like it: \"AAxyroWhy AxyroHow It Wo\") (SR-6)",
+    "fix": "use one container on every section and the nav (.wrap): one margin left and right, 64-120px on a desktop, 16-24px on a phone",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "container-edges"
+    ],
+    "wheres": [
+     "div:nth-of-type(2) > div.app-frame > footer.site-footer \"AxyroGuided home workouts for padel.© 20\""
+    ]
+   },
+   {
+    "check": "container-edges",
+    "where": "div:nth-of-type(2) \"Skip to contentAAxyroWhy AxyroHow It Wor\"",
+    "msg": "a <div> at the top of the page, outside header.nav, main, footer.closing and nav.actionbar (SR-6)",
+    "fix": "build the page as header.nav, a main of sections (each one in-flow .wrap plus background layers) and footer.closing",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "container-edges"
+    ],
+    "wheres": [
+     "div:nth-of-type(2) \"Skip to contentAAxyroWhy AxyroHow It Wor\""
+    ]
+   },
+   {
+    "check": "container-edges",
+    "where": "main#main > section.wrap.landing-page-module__ohf9Fa__hero \"You play padel. Do you train for it?Get \"",
+    "msg": "the section needs exactly one in-flow child .wrap (it has 2 in-flow children, 0 .wrap) (and 10 more like it: \"Train the step before th\", \"Guidance through every s\", \"60 days of trainingaroun\") (SR-6)",
+    "fix": "build the page as header.nav, a main of sections (each one in-flow .wrap plus background layers) and footer.closing",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "container-edges"
+    ],
+    "wheres": [
+     "main#main > section.wrap.landing-page-module__ohf9Fa__hero \"You play padel. Do you train for it?Get \""
+    ]
+   },
+   {
+    "check": "container-edges",
+    "where": "main#main > section.landing-page-module__ohf9Fa__personalSection > div.landing-page-module__ohf9Fa__personalIntro > span.landing-page-module__ohf9Fa__reassurance \"Personalized planning is included with A\"",
+    "msg": "1 text block starts on a left line at x 783, 663px from the container's left: text starts on the container's left, or on one split line (x 630, 732, 834) (SR-6)",
+    "fix": "start the text on the container's left, or on the one split line every split shares",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "container-edges"
+    ],
+    "wheres": [
+     "main#main > section.landing-page-module__ohf9Fa__personalSection > div.landing-page-module__ohf9Fa__personalIntro > span.landing-page-module__ohf9Fa__reassurance \"Personalized planning is included with A\""
+    ]
+   },
+   {
+    "check": "container-edges",
+    "where": "h2#start-training-heading \"Prepare for your next match\"",
+    "msg": "the h2 starts 656px right of the container's left: every h1 and h2 starts on it, 2px either way (and 1 more like it: x 770) (SR-6)",
+    "fix": "start the text on the container's left, or on the one split line every split shares",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "container-edges"
+    ],
+    "wheres": [
+     "h2#start-training-heading \"Prepare for your next match\""
+    ]
+   },
+   {
+    "check": "container-edges",
+    "where": "section#questions > div:nth-of-type(2) > details:nth-of-type(1) \"Who is Axyro for?The workouts are built \"",
+    "msg": "a box over half the container wide runs 700-1320px, not on the container's lines at 120-1320px (SR-6)",
+    "fix": "run the picture or box from the container's left line to its right line, or put it in a row or a split",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "container-edges"
+    ],
+    "wheres": [
+     "section#questions > div:nth-of-type(2) > details:nth-of-type(1) \"Who is Axyro for?The workouts are built \""
+    ]
+   },
+   {
+    "check": "container-edges",
+    "where": "section#questions > div:nth-of-type(2) > details:nth-of-type(2) \"Can I train alongside my matches?Yes. Ad\"",
+    "msg": "a box over half the container wide runs 700-1320px, not on the container's lines at 120-1320px (and 8 more like it: \"What if a session feels \", \"Does Axyro replace a pad\", \"Can I adjust a plan afte\") (SR-6)",
+    "fix": "run the picture or box from the container's left line to its right line, or put it in a row or a split",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "container-edges"
+    ],
+    "wheres": [
+     "section#questions > div:nth-of-type(2) > details:nth-of-type(2) \"Can I train alongside my matches?Yes. Ad\""
+    ]
+   },
+   {
+    "check": "split-pair",
+    "where": "section#how-it-works > div.landing-page-module__ohf9Fa__storyGrid \"Player preview10 min sessionRecoveryTake\"",
+    "msg": "the two columns of the split start 88px apart at the top: a split's columns are top-aligned, 8px either way (SR-8)",
+    "fix": "top-align both columns of the split (align-items: start)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "split-pair"
+    ],
+    "wheres": [
+     "section#how-it-works > div.landing-page-module__ohf9Fa__storyGrid \"Player preview10 min sessionRecoveryTake\""
+    ]
+   },
+   {
+    "check": "split-pair",
+    "where": "section#how-it-works > div.landing-page-module__ohf9Fa__sectionIntro \"Guidance through every sessionFollow the\"",
+    "msg": "the two columns of the split start 67px apart at the top: a split's columns are top-aligned, 8px either way (SR-8)",
+    "fix": "top-align both columns of the split (align-items: start)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "split-pair"
+    ],
+    "wheres": [
+     "section#how-it-works > div.landing-page-module__ohf9Fa__sectionIntro \"Guidance through every sessionFollow the\""
+    ]
+   },
+   {
+    "check": "split-pair",
+    "where": "main#main > section.landing-page-module__ohf9Fa__editorSection > div.landing-page-module__ohf9Fa__editorDetailGrid \"Adjust the workoutto your prioritiesStar\"",
+    "msg": "the two columns of the split start 8px apart at the top (centred on each other): a split's columns are top-aligned, 8px either way (SR-8)",
+    "fix": "top-align both columns of the split (align-items: start)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "split-pair"
+    ],
+    "wheres": [
+     "main#main > section.landing-page-module__ohf9Fa__editorSection > div.landing-page-module__ohf9Fa__editorDetailGrid \"Adjust the workoutto your prioritiesStar\""
+    ]
+   },
+   {
+    "check": "empty-visual",
+    "where": "div.landing-page-module__ohf9Fa__storyGrid > div.landing-page-module__ohf9Fa__stickyPlayer > div.landing-page-module__ohf9Fa__playerVisual.landing-page-module__ohf9Fa__restVisual > img \"side-plank-rotation.webp\"",
+    "msg": "the picture shows nothing here: with it hidden the screen looks the same (the picture is there but invisible: faded out, clipped or covered), so the visitor sees only the ground behind it",
+    "fix": "make the visual draw at every width: a picture that loads, an effect that renders, or its still fallback; never an empty frame",
+    "widths": [
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "empty-visual"
+    ],
+    "wheres": [
+     "div.landing-page-module__ohf9Fa__storyGrid > div.landing-page-module__ohf9Fa__stickyPlayer > div.landing-page-module__ohf9Fa__playerVisual.landing-page-module__ohf9Fa__restVisual > img \"side-plank-rotation.webp\""
+    ]
+   },
+   {
+    "check": "flush",
+    "where": "main#main > section.wrap.landing-page-module__ohf9Fa__hero > div.landing-page-module__ohf9Fa__courtPhoto > img \"img: Fran Guerrero planting his outside \"",
+    "msg": "its last line sits 0px above the lower edge of section.wrap.landing-page-module__ohf9Fa__hero, where the ground changes to section#why-axyro",
+    "fix": "give the section its padding at the edge where the ground changes (the closing call keeps a clear gap above the footer)",
+    "widths": [
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "flush"
+    ],
+    "wheres": [
+     "main#main > section.wrap.landing-page-module__ohf9Fa__hero > div.landing-page-module__ohf9Fa__courtPhoto > img \"img: Fran Guerrero planting his outside \""
+    ]
+   },
+   {
+    "check": "nav-covers",
+    "where": "div:nth-of-type(2) > div.app-frame > header.site-header \"A Axyro Sign in\"",
+    "msg": "sits on top of the text \"Explore a curated library of 40 exercise\" while the page scrolls: part of the line shows beside it",
+    "fix": "make the fixed nav one opaque band across the whole screen, or let it scroll away with the page",
+    "widths": [
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "nav-covers"
+    ],
+    "wheres": [
+     "div:nth-of-type(2) > div.app-frame > header.site-header \"A Axyro Sign in\""
+    ]
+   },
+   {
+    "check": "overlap-text",
+    "where": "div.landing-page-module__ohf9Fa__storyGrid > div.landing-page-module__ohf9Fa__stickyPlayer > div.landing-page-module__ohf9Fa__playerVisual.landing-page-module__ohf9Fa__restVisual > img \"img: Side Plank with Rotation movement d\"",
+    "msg": "lies over the text \"Recovery\" (div.landing-page-module__ohf9Fa__restCopy > strong)",
+    "fix": "move the box off the text (or the text off the box)",
+    "widths": [
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "overlap-text"
+    ],
+    "wheres": [
+     "div.landing-page-module__ohf9Fa__storyGrid > div.landing-page-module__ohf9Fa__stickyPlayer > div.landing-page-module__ohf9Fa__playerVisual.landing-page-module__ohf9Fa__restVisual > img \"img: Side Plank with Rotation movement d\""
+    ]
+   },
+   {
+    "check": "button-styles",
+    "where": "section.wrap.landing-page-module__ohf9Fa__hero > div.landing-page-module__ohf9Fa__heroCopy > div.landing-page-module__ohf9Fa__actions > a.landing-page-module__ohf9Fa__cta \"Start Training\"",
+    "msg": "one button style (soft, fill #d9fc54) with labels in 2 sizes: 13, 16px (\"Start Training\", \"Add side plank from library\")",
+    "fix": "one primary and one secondary button: one shape, one height per size, one label size",
+    "widths": [
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "button-styles"
+    ],
+    "wheres": [
+     "section.wrap.landing-page-module__ohf9Fa__hero > div.landing-page-module__ohf9Fa__heroCopy > div.landing-page-module__ohf9Fa__actions > a.landing-page-module__ohf9Fa__cta \"Start Training\""
+    ]
+   },
+   {
+    "check": "heading-scale",
+    "where": "section#why-axyro > div.landing-page-module__ohf9Fa__heroStage > div.landing-page-module__ohf9Fa__workoutLabel > span.landing-page-module__ohf9Fa__timer \"00:30\"",
+    "msg": "the figure \"00:30\" is set at 35px, larger than the section headings (h2 32px); 1 more like it",
+    "fix": "set figures at the h2 size or under: a stat reads as data, not as the heading",
+    "widths": [
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "heading-scale"
+    ],
+    "wheres": [
+     "section#why-axyro > div.landing-page-module__ohf9Fa__heroStage > div.landing-page-module__ohf9Fa__workoutLabel > span.landing-page-module__ohf9Fa__timer \"00:30\""
+    ]
+   },
+   {
+    "check": "off-grid",
+    "where": "div.landing-page-module__ohf9Fa__storyGrid > div.landing-page-module__ohf9Fa__stickyPlayer > div.landing-page-module__ohf9Fa__playerTop > span:nth-of-type(1) \"Player preview\"",
+    "msg": "left edge at 36px, 16px off the page margin at 20px (65 elements, like p); 9 more in this section off the grid too (span at 36px, strong at 36px, span at 36px, h3 at 28px, ...)",
+    "fix": "move it onto the page margin, or the column edge its section uses",
+    "widths": [
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "off-grid"
+    ],
+    "wheres": [
+     "div.landing-page-module__ohf9Fa__storyGrid > div.landing-page-module__ohf9Fa__stickyPlayer > div.landing-page-module__ohf9Fa__playerTop > span:nth-of-type(1) \"Player preview\""
+    ]
+   },
+   {
+    "check": "off-grid",
+    "where": "section#questions > div:nth-of-type(2) > details:nth-of-type(1) > summary \"Who is Axyro for?\"",
+    "msg": "left edge at 36px, 16px off the page margin at 20px (65 elements, like a.landing-page-module__ohf9Fa__planLink); 9 more in this section off the grid too (summary at 36px, summary at 36px, summary at 36px, summary at 36px, ...)",
+    "fix": "move it onto the page margin, or the column edge its section uses",
+    "widths": [
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "off-grid"
+    ],
+    "wheres": [
+     "section#questions > div:nth-of-type(2) > details:nth-of-type(1) > summary \"Who is Axyro for?\""
+    ]
+   },
+   {
+    "check": "off-grid",
+    "where": "div.app-frame > footer.site-footer > nav:nth-of-type(1) > a:nth-of-type(1) \"Home\"",
+    "msg": "left edge at 16px, 4px off the page margin at 20px (65 elements, like aside.landing-page-module__ohf9Fa__credit)",
+    "fix": "move it onto the page margin, or the column edge its section uses",
+    "widths": [
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "off-grid"
+    ],
+    "wheres": [
+     "div.app-frame > footer.site-footer > nav:nth-of-type(1) > a:nth-of-type(1) \"Home\""
+    ]
+   },
+   {
+    "check": "off-grid",
+    "where": "div.app-frame > footer.site-footer > nav:nth-of-type(1) > a:nth-of-type(5) \"Activity\"",
+    "msg": "left edge at 16px, 4px off the page margin at 20px (65 elements, like aside.landing-page-module__ohf9Fa__credit)",
+    "fix": "move it onto the page margin, or the column edge its section uses",
+    "widths": [
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "off-grid"
+    ],
+    "wheres": [
+     "div.app-frame > footer.site-footer > nav:nth-of-type(1) > a:nth-of-type(5) \"Activity\""
+    ]
+   },
+   {
+    "check": "off-grid",
+    "where": "div.app-frame > footer.site-footer > nav:nth-of-type(2) > a:nth-of-type(1) \"Help\"",
+    "msg": "left edge at 16px, 4px off the page margin at 20px (65 elements, like aside.landing-page-module__ohf9Fa__credit)",
+    "fix": "move it onto the page margin, or the column edge its section uses",
+    "widths": [
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "off-grid"
+    ],
+    "wheres": [
+     "div.app-frame > footer.site-footer > nav:nth-of-type(2) > a:nth-of-type(1) \"Help\""
+    ]
+   },
+   {
+    "check": "edge-left",
+    "where": "#how-it-works p \"Follow the movement, timing and \"",
+    "msg": "starts at x 878; the lines are 120 and the column starts",
+    "fix": "start it on the .wrap left line",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "edge-left"
+    ],
+    "wheres": [
+     "#how-it-works p \"Follow the movement, timing and \""
+    ]
+   },
+   {
+    "check": "edge-left",
+    "where": "#how-it-works h3 \"Follow each movement\"",
+    "msg": "starts at x 770; the lines are 120 and the column starts",
+    "fix": "start it on the .wrap left line",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "edge-left"
+    ],
+    "wheres": [
+     "#how-it-works h3 \"Follow each movement\""
+    ]
+   },
+   {
+    "check": "edge-left",
+    "where": "#how-it-works p \"A clear movement reference and s\"",
+    "msg": "starts at x 770; the lines are 120 and the column starts",
+    "fix": "start it on the .wrap left line",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "edge-left"
+    ],
+    "wheres": [
+     "#how-it-works p \"A clear movement reference and s\""
+    ]
+   },
+   {
+    "check": "edge-left",
+    "where": "#how-it-works h3 \"Choose your audio guidance\"",
+    "msg": "starts at x 770; the lines are 120 and the column starts",
+    "fix": "start it on the .wrap left line",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "edge-left"
+    ],
+    "wheres": [
+     "#how-it-works h3 \"Choose your audio guidance\""
+    ]
+   },
+   {
+    "check": "edge-left",
+    "where": "#how-it-works p \"Optional countdown tones signal \"",
+    "msg": "starts at x 770; the lines are 120 and the column starts",
+    "fix": "start it on the .wrap left line",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "edge-left"
+    ],
+    "wheres": [
+     "#how-it-works p \"Optional countdown tones signal \""
+    ]
+   },
+   {
+    "check": "edge-left",
+    "where": "#how-it-works h3 \"Recover between intervals\"",
+    "msg": "starts at x 770; the lines are 120 and the column starts",
+    "fix": "start it on the .wrap left line",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "edge-left"
+    ],
+    "wheres": [
+     "#how-it-works h3 \"Recover between intervals\""
+    ]
+   },
+   {
+    "check": "edge-left",
+    "where": "#how-it-works p \"Work, side switches and recovery\"",
+    "msg": "starts at x 770; the lines are 120 and the column starts",
+    "fix": "start it on the .wrap left line",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "edge-left"
+    ],
+    "wheres": [
+     "#how-it-works p \"Work, side switches and recovery\""
+    ]
+   },
+   {
+    "check": "edge-left",
+    "where": "section.landing-page-module__ohf9Fa__personalSection p \"Your priorities, your available \"",
+    "msg": "starts at x 782.8; the lines are 120 and the column starts",
+    "fix": "start it on the .wrap left line",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "edge-left"
+    ],
+    "wheres": [
+     "section.landing-page-module__ohf9Fa__personalSection p \"Your priorities, your available \""
+    ]
+   },
+   {
+    "check": "edge-left",
+    "where": "section.landing-page-module__ohf9Fa__adaptSection h2 \"Match moved?Your plan can move t\"",
+    "msg": "starts at x 144; the lines are 120 and the column starts",
+    "fix": "start it on the .wrap left line",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "edge-left"
+    ],
+    "wheres": [
+     "section.landing-page-module__ohf9Fa__adaptSection h2 \"Match moved?Your plan can move t\""
+    ]
+   },
+   {
+    "check": "edge-left",
+    "where": "section.landing-page-module__ohf9Fa__adaptSection p \"You’re not locked into the week \"",
+    "msg": "starts at x 794.2; the lines are 120 and the column starts",
+    "fix": "start it on the .wrap left line",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "edge-left"
+    ],
+    "wheres": [
+     "section.landing-page-module__ohf9Fa__adaptSection p \"You’re not locked into the week \""
+    ]
+   },
+   {
+    "check": "edge-left",
+    "where": "section.landing-page-module__ohf9Fa__adaptSection p \"Update your dates in Refine your\"",
+    "msg": "starts at x 144; the lines are 120 and the column starts",
+    "fix": "start it on the .wrap left line",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "edge-left"
+    ],
+    "wheres": [
+     "section.landing-page-module__ohf9Fa__adaptSection p \"Update your dates in Refine your\""
+    ]
+   },
+   {
+    "check": "edge-left",
+    "where": "section.landing-page-module__ohf9Fa__access h3 \"Pro\"",
+    "msg": "starts at x 770; the lines are 120 and the column starts",
+    "fix": "start it on the .wrap left line",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "edge-left"
+    ],
+    "wheres": [
+     "section.landing-page-module__ohf9Fa__access h3 \"Pro\""
+    ]
+   },
+   {
+    "check": "edge-left",
+    "where": "section.landing-page-module__ohf9Fa__access p \"Train with the full library and \"",
+    "msg": "starts at x 770; the lines are 120 and the column starts",
+    "fix": "start it on the .wrap left line",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "edge-left"
+    ],
+    "wheres": [
+     "section.landing-page-module__ohf9Fa__access p \"Train with the full library and \""
+    ]
+   },
+   {
+    "check": "edge-left",
+    "where": "section.landing-page-module__ohf9Fa__closing h2 \"Prepare for your next match\"",
+    "msg": "starts at x 776; the lines are 120 and the column starts",
+    "fix": "start it on the .wrap left line",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "edge-left"
+    ],
+    "wheres": [
+     "section.landing-page-module__ohf9Fa__closing h2 \"Prepare for your next match\""
+    ]
+   },
+   {
+    "check": "edge-left",
+    "where": "section.landing-page-module__ohf9Fa__closing p \"Build the work behind your next \"",
+    "msg": "starts at x 776; the lines are 120 and the column starts",
+    "fix": "start it on the .wrap left line",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "edge-left"
+    ],
+    "wheres": [
+     "section.landing-page-module__ohf9Fa__closing p \"Build the work behind your next \""
+    ]
+   },
+   {
+    "check": "lines",
+    "where": "page",
+    "msg": "headings and leads start on 3 lines (x 120, 144, 776); the page has 120 and one split line",
+    "fix": "put the block on the .wrap lines or the grid columns",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "lines"
+    ],
+    "wheres": [
+     "page"
+    ]
+   },
+   {
+    "check": "screen-short",
+    "where": "section.wrap.landing-page-module__ohf9Fa__hero section.wrap.landing-page-module__ohf9Fa__hero \"You play padel. Do you train for\"",
+    "msg": "676px tall; one screen under the nav is 900px",
+    "fix": "make the section one full screen (--h: 1, layout-v4.md section 2)",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "layout",
+    "ids": [
+     "screen-short"
+    ],
+    "wheres": [
+     "section.wrap.landing-page-module__ohf9Fa__hero section.wrap.landing-page-module__ohf9Fa__hero \"You play padel. Do you train for\""
+    ]
+   },
+   {
+    "check": "screen-short",
+    "where": "#why-axyro section.landing-page-module__ohf9Fa__matchDemand \"Train the step before the shot.W\"",
+    "msg": "855px tall; one screen under the nav is 900px",
+    "fix": "make the section one full screen (--h: 1, layout-v4.md section 2)",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "screen-short",
+     "screen-height"
+    ],
+    "wheres": [
+     "#why-axyro section.landing-page-module__ohf9Fa__matchDemand \"Train the step before the shot.W\""
+    ]
+   },
+   {
+    "check": "screen-height",
+    "where": "#how-it-works section.landing-page-module__ohf9Fa__story \"Guidance through every sessionFo\"",
+    "msg": "1094px, 1.22 screens; a section is exactly one or two (--h)",
+    "fix": "make the section exactly one or two screens (--h: 1 or 2)",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "screen-height"
+    ],
+    "wheres": [
+     "#how-it-works section.landing-page-module__ohf9Fa__story \"Guidance through every sessionFo\""
+    ]
+   },
+   {
+    "check": "screen-short",
+    "where": "section.landing-page-module__ohf9Fa__personalSection section.landing-page-module__ohf9Fa__personalSection \"60 days of trainingaround your s\"",
+    "msg": "848px tall; one screen under the nav is 900px",
+    "fix": "make the section one full screen (--h: 1, layout-v4.md section 2)",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "screen-short"
+    ],
+    "wheres": [
+     "section.landing-page-module__ohf9Fa__personalSection section.landing-page-module__ohf9Fa__personalSection \"60 days of trainingaround your s\""
+    ]
+   },
+   {
+    "check": "screen-height",
+    "where": "section.landing-page-module__ohf9Fa__personalSection section.landing-page-module__ohf9Fa__personalSection \"60 days of trainingaround your s\"",
+    "msg": "848px, 0.94 screens; a section is exactly one or two (--h)",
+    "fix": "make the section exactly one or two screens (--h: 1 or 2)",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "layout",
+    "ids": [
+     "screen-height"
+    ],
+    "wheres": [
+     "section.landing-page-module__ohf9Fa__personalSection section.landing-page-module__ohf9Fa__personalSection \"60 days of trainingaround your s\""
+    ]
+   },
+   {
+    "check": "neighbour",
+    "where": "section.landing-page-module__ohf9Fa__personalSection section.landing-page-module__ohf9Fa__personalSection \"60 days of trainingaround your s\"",
+    "msg": "framed, 28px of section.landing-page-module__ohf9Fa__adaptSection section.landing-page-module__ohf9Fa__adaptSection \"Match moved?Your plan can move t\" shows",
+    "fix": "keep the next section's heading and picture out of this screen",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "neighbour"
+    ],
+    "wheres": [
+     "section.landing-page-module__ohf9Fa__personalSection section.landing-page-module__ohf9Fa__personalSection \"60 days of trainingaround your s\""
+    ]
+   },
+   {
+    "check": "screen-short",
+    "where": "section.landing-page-module__ohf9Fa__adaptSection section.landing-page-module__ohf9Fa__adaptSection \"Match moved?Your plan can move t\"",
+    "msg": "601px tall; one screen under the nav is 900px",
+    "fix": "make the section one full screen (--h: 1, layout-v4.md section 2)",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "screen-short"
+    ],
+    "wheres": [
+     "section.landing-page-module__ohf9Fa__adaptSection section.landing-page-module__ohf9Fa__adaptSection \"Match moved?Your plan can move t\""
+    ]
+   },
+   {
+    "check": "screen-height",
+    "where": "section.landing-page-module__ohf9Fa__adaptSection section.landing-page-module__ohf9Fa__adaptSection \"Match moved?Your plan can move t\"",
+    "msg": "601px, 0.67 screens; a section is exactly one or two (--h)",
+    "fix": "make the section exactly one or two screens (--h: 1 or 2)",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "screen-height"
+    ],
+    "wheres": [
+     "section.landing-page-module__ohf9Fa__adaptSection section.landing-page-module__ohf9Fa__adaptSection \"Match moved?Your plan can move t\""
+    ]
+   },
+   {
+    "check": "neighbour",
+    "where": "section.landing-page-module__ohf9Fa__adaptSection section.landing-page-module__ohf9Fa__adaptSection \"Match moved?Your plan can move t\"",
+    "msg": "framed, 142px of #exercise-library section.landing-page-module__ohf9Fa__librarySection \"Learn each movementwith clear te\" shows",
+    "fix": "keep the next section's heading and picture out of this screen",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "neighbour"
+    ],
+    "wheres": [
+     "section.landing-page-module__ohf9Fa__adaptSection section.landing-page-module__ohf9Fa__adaptSection \"Match moved?Your plan can move t\""
+    ]
+   },
+   {
+    "check": "screen-short",
+    "where": "section.landing-page-module__ohf9Fa__editorSection section.landing-page-module__ohf9Fa__editorSection \"Adjust the workoutto your priori\"",
+    "msg": "593px tall; one screen under the nav is 900px",
+    "fix": "make the section one full screen (--h: 1, layout-v4.md section 2)",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "screen-short"
+    ],
+    "wheres": [
+     "section.landing-page-module__ohf9Fa__editorSection section.landing-page-module__ohf9Fa__editorSection \"Adjust the workoutto your priori\""
+    ]
+   },
+   {
+    "check": "screen-height",
+    "where": "section.landing-page-module__ohf9Fa__editorSection section.landing-page-module__ohf9Fa__editorSection \"Adjust the workoutto your priori\"",
+    "msg": "593px, 0.66 screens; a section is exactly one or two (--h)",
+    "fix": "make the section exactly one or two screens (--h: 1 or 2)",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "screen-height"
+    ],
+    "wheres": [
+     "section.landing-page-module__ohf9Fa__editorSection section.landing-page-module__ohf9Fa__editorSection \"Adjust the workoutto your priori\""
+    ]
+   },
+   {
+    "check": "neighbour",
+    "where": "section.landing-page-module__ohf9Fa__editorSection section.landing-page-module__ohf9Fa__editorSection \"Adjust the workoutto your priori\"",
+    "msg": "framed, 81px of section.landing-page-module__ohf9Fa__access section.landing-page-module__ohf9Fa__access \"Choose how you trainFreeTry one \" shows",
+    "fix": "keep the next section's heading and picture out of this screen",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "neighbour"
+    ],
+    "wheres": [
+     "section.landing-page-module__ohf9Fa__editorSection section.landing-page-module__ohf9Fa__editorSection \"Adjust the workoutto your priori\""
+    ]
+   },
+   {
+    "check": "screen-short",
+    "where": "section.landing-page-module__ohf9Fa__access section.landing-page-module__ohf9Fa__access \"Choose how you trainFreeTry one \"",
+    "msg": "600px tall; one screen under the nav is 900px",
+    "fix": "make the section one full screen (--h: 1, layout-v4.md section 2)",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "layout",
+    "ids": [
+     "screen-short"
+    ],
+    "wheres": [
+     "section.landing-page-module__ohf9Fa__access section.landing-page-module__ohf9Fa__access \"Choose how you trainFreeTry one \""
+    ]
+   },
+   {
+    "check": "screen-height",
+    "where": "section.landing-page-module__ohf9Fa__access section.landing-page-module__ohf9Fa__access \"Choose how you trainFreeTry one \"",
+    "msg": "600px, 0.67 screens; a section is exactly one or two (--h)",
+    "fix": "make the section exactly one or two screens (--h: 1 or 2)",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "layout",
+    "ids": [
+     "screen-height"
+    ],
+    "wheres": [
+     "section.landing-page-module__ohf9Fa__access section.landing-page-module__ohf9Fa__access \"Choose how you trainFreeTry one \""
+    ]
+   },
+   {
+    "check": "neighbour",
+    "where": "section.landing-page-module__ohf9Fa__access section.landing-page-module__ohf9Fa__access \"Choose how you trainFreeTry one \"",
+    "msg": "framed, 85px of #questions section.landing-page-module__ohf9Fa__faq \"Questionsbefore you startExplore\" shows",
+    "fix": "keep the next section's heading and picture out of this screen",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "layout",
+    "ids": [
+     "neighbour"
+    ],
+    "wheres": [
+     "section.landing-page-module__ohf9Fa__access section.landing-page-module__ohf9Fa__access \"Choose how you trainFreeTry one \""
+    ]
+   },
+   {
+    "check": "screen-height",
+    "where": "#questions section.landing-page-module__ohf9Fa__faq \"Questionsbefore you startExplore\"",
+    "msg": "1070px, 1.19 screens; a section is exactly one or two (--h)",
+    "fix": "make the section exactly one or two screens (--h: 1 or 2)",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "screen-height"
+    ],
+    "wheres": [
+     "#questions section.landing-page-module__ohf9Fa__faq \"Questionsbefore you startExplore\""
+    ]
+   },
+   {
+    "check": "screen-short",
+    "where": "section.landing-page-module__ohf9Fa__closing section.landing-page-module__ohf9Fa__closing \"Prepare for your next matchBuild\"",
+    "msg": "460px tall; one screen under the nav is 900px",
+    "fix": "make the section one full screen (--h: 1, layout-v4.md section 2)",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "layout",
+    "ids": [
+     "screen-short"
+    ],
+    "wheres": [
+     "section.landing-page-module__ohf9Fa__closing section.landing-page-module__ohf9Fa__closing \"Prepare for your next matchBuild\""
+    ]
+   },
+   {
+    "check": "screen-height",
+    "where": "section.landing-page-module__ohf9Fa__closing section.landing-page-module__ohf9Fa__closing \"Prepare for your next matchBuild\"",
+    "msg": "460px, 0.51 screens; a section is exactly one or two (--h)",
+    "fix": "make the section exactly one or two screens (--h: 1 or 2)",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "layout",
+    "ids": [
+     "screen-height"
+    ],
+    "wheres": [
+     "section.landing-page-module__ohf9Fa__closing section.landing-page-module__ohf9Fa__closing \"Prepare for your next matchBuild\""
+    ]
+   },
+   {
+    "check": "hero-fold",
+    "where": "section.wrap.landing-page-module__ohf9Fa__hero section.wrap.landing-page-module__ohf9Fa__hero \"You play padel. Do you train for\"",
+    "msg": "starts at y 104, not under the nav",
+    "fix": "the hero fills the first screen alone, its button inside it",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "layout",
+    "ids": [
+     "hero-fold"
+    ],
+    "wheres": [
+     "section.wrap.landing-page-module__ohf9Fa__hero section.wrap.landing-page-module__ohf9Fa__hero \"You play padel. Do you train for\""
+    ]
+   },
+   {
+    "check": "neighbour",
+    "where": "#how-it-works section.landing-page-module__ohf9Fa__story \"Guidance through every sessionFo\"",
+    "msg": "framed, 106px of section.landing-page-module__ohf9Fa__personalSection section.landing-page-module__ohf9Fa__personalSection \"60 days of trainingaround your s\" shows",
+    "fix": "keep the next section's heading and picture out of this screen",
+    "widths": [
+     390
+    ],
+    "from": "layout",
+    "ids": [
+     "neighbour"
+    ],
+    "wheres": [
+     "#how-it-works section.landing-page-module__ohf9Fa__story \"Guidance through every sessionFo\""
+    ]
+   }
+  ],
+  "warns": [
+   {
+    "check": "flush",
+    "where": "main#main > section.wrap.landing-page-module__ohf9Fa__hero > div.landing-page-module__ohf9Fa__courtPhoto > img \"img: Fran Guerrero planting his outside \"",
+    "msg": "its last line sits 14px above the rule on top of section#why-axyro",
+    "fix": "give the section its padding at the edge where the ground changes (the closing call keeps a clear gap above the footer)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "caption",
+    "where": "div#main-content > div.landing-page-module__ohf9Fa__landing > aside.landing-page-module__ohf9Fa__credit \"Court photograph by Calleja10 · CC BY-SA\"",
+    "msg": "a licence credit under the picture (\"Court photograph by Calleja10 · CC BY-SA\")",
+    "fix": "put every credit in one line in the footer, never under the picture",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "no-visual",
+    "where": "section#how-it-works \"Guidance through every session\"",
+    "msg": "pictures, effects and mocks cover 21% of this section; a feature section needs a visual (about 25% or more)",
+    "fix": "give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "copy-buttons",
+    "where": "section.landing-page-module__ohf9Fa__editorSection > div.landing-page-module__ohf9Fa__editorDetailGrid > div.landing-page-module__ohf9Fa__editorCopy > a.landing-page-module__ohf9Fa__cta \"Build my personalized plan\"",
+    "msg": "\"Build my personalized plan\" does not start with a verb (book, buy, try, start, get, see...)",
+    "fix": "label buttons with a verb and what the visitor gets (\"Book a room\", \"Start free trial\")",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "copy-actions",
+    "where": "div.app-frame > header.site-header > nav.primary-nav > a.nav-link:nth-of-type(5) \"Start Training\"",
+    "msg": "2 labels for one target /plan/setup: \"Start Training\", \"Build my personalized plan\"",
+    "fix": "few actions, one wording: at most 2 in the hero, the main action word for word in nav, hero and close",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "heading-scale",
+    "where": "div.landing-page-module__ohf9Fa__storyGrid > div.landing-page-module__ohf9Fa__stickyPlayer > div.landing-page-module__ohf9Fa__playerReadout > b \"00:20\"",
+    "msg": "figures in 3 sizes, 28, 35, 44px (\"10 min\" at 28px, \"00:20\" at 44px)",
+    "fix": "set the page's figures (stats, measures, prices) in one or two sizes",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "off-grid",
+    "where": "div.landing-page-module__ohf9Fa__storyGrid > div.landing-page-module__ohf9Fa__stickyPlayer > div.landing-page-module__ohf9Fa__playerTop > span:nth-of-type(1) \"Player preview\"",
+    "msg": "left edge at 144px, 24px off the page margin at 120px (31 elements, like h2); 3 more in this section off the grid too (span at 144px, strong at 144px, span at 144px) (inside a held section or scroll scene, whose motion --quick does not check)",
+    "fix": "move it onto the page margin, or the column edge its section uses",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "section-gaps",
+    "where": "main#main > section.landing-page-module__ohf9Fa__adaptSection / section#exercise-library",
+    "msg": "81px between these sections, -41% against the median 138px",
+    "fix": "use one gap between sections (all within 25% of each other)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "photo-set",
+    "where": "main#main > section.wrap.landing-page-module__ohf9Fa__hero > div.landing-page-module__ohf9Fa__courtPhoto > img \"image\"",
+    "msg": "6 photographs in more than one look: saturation from 0.03 to 0.36; the odd one out is image",
+    "fix": "grade the photographs to one look (light, colour, warmth), or replace the odd one out",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "nav-family",
+    "where": "div:nth-of-type(2) > div.app-frame > header.site-header",
+    "msg": "the nav's links come in 2 sizes (12, 16px)",
+    "fix": "keep one nav on every screen: the same bar, fill, links and type",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "nav-labels",
+    "where": "div.app-frame > header.site-header > nav.primary-nav > a.nav-link:nth-of-type(1) \"Why Axyro\"",
+    "msg": "\"Why Axyro\" opens a section headed \"Train the step before the shot.\"",
+    "fix": "name each nav link after the heading of the section it opens",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "nav-labels",
+    "where": "div.app-frame > header.site-header > nav.primary-nav > a.nav-link:nth-of-type(2) \"How It Works\"",
+    "msg": "\"How It Works\" opens a section headed \"Guidance through every session\"",
+    "fix": "name each nav link after the heading of the section it opens",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "nav-labels",
+    "where": "div.app-frame > header.site-header > nav.primary-nav > a.nav-link:nth-of-type(3) \"Training\"",
+    "msg": "\"Training\" opens a section headed \"Learn each movement with clear technique cues\"",
+    "fix": "name each nav link after the heading of the section it opens",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "nav-labels",
+    "where": "div.app-frame > header.site-header > nav.primary-nav > a.nav-link:nth-of-type(4) \"FAQ\"",
+    "msg": "\"FAQ\" opens a section headed \"Questions before you start\"",
+    "fix": "name each nav link after the heading of the section it opens",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "link-styles",
+    "where": "div#main-content > div.landing-page-module__ohf9Fa__landing > aside.landing-page-module__ohf9Fa__credit > a:nth-of-type(1) \"Calleja10\"",
+    "msg": "text links in 3 looks: no line, regular (3, like \"Explore How It Works\"); underline, bold (3, like \"Build around my goal\"); underline, regular (2, like \"Calleja10\")",
+    "fix": "give text links one look wherever they sit: one underline, one weight",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "stranded-action",
+    "where": "section.landing-page-module__ohf9Fa__adaptSection > div > div.landing-page-module__ohf9Fa__adaptFooter > a.landing-page-module__ohf9Fa__cta \"Start Training\"",
+    "msg": "stands 424px across from the nearest text of its block (\"Update your dates in Refine yo\")",
+    "fix": "put the button under or beside the text it belongs to",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "copy-length",
+    "where": "main#main > section.wrap.landing-page-module__ohf9Fa__hero > div.landing-page-module__ohf9Fa__heroCopy > h1.landing-page-module__ohf9Fa__heroHeadline \"You play padel. Do you train for it?\"",
+    "msg": "a headline of 8 words on 4 lines at 100.8px: a paragraph set in display type",
+    "fix": "cut the heading to one short line (2 to 12 words) and move the rest into the text under it",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "copy-length",
+    "where": "section#questions \"Questions before you start\"",
+    "msg": "5 sections over 90 words a screen outside the UI mocks (\"Questions before you sta\" 262, \"60 days of training arou\" 160, \"Match moved? Your plan c\" 128); 104 words a screen across the page (1087 words in 10.5 screens): a tech page says it in about 80 or fewer",
+    "fix": "cut every section to its heading, one line and the product UI: the UI says the rest; no second paragraph, no list of feature sentences",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "nav-current",
+    "where": "div:nth-of-type(2) > div.app-frame > header.site-header",
+    "msg": "the nav stays on screen with 4 links to the page's sections, but never marks the one you are in (no link changes as the page scrolls)",
+    "fix": "mark the link of the section on screen (a colour, a weight or a line under it) as the visitor scrolls",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "photo-repeat",
+    "where": "div.landing-page-module__ohf9Fa__storyGrid > div.landing-page-module__ohf9Fa__stickyPlayer > div.landing-page-module__ohf9Fa__playerVisual.landing-page-module__ohf9Fa__restVisual > img \"image\"",
+    "msg": "the photograph image is shown 9 times on the page: a picture the visitor has already seen",
+    "fix": "show each photograph once: a different picture of what this section names, or none",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "action-count",
+    "where": "section.landing-page-module__ohf9Fa__closing > div.landing-page-module__ohf9Fa__closingCopy > div.landing-page-module__ohf9Fa__actions > a.landing-page-module__ohf9Fa__cta",
+    "msg": "the main action \"Start Training\" is on 6 buttons and links: the nav, the hero and the closing call carry it; elsewhere a section has its own action",
+    "fix": "the main action in the nav, the hero and the closing call; give the other sections their own action",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "one-screen",
+    "where": "main#main > section.landing-page-module__ohf9Fa__adaptSection \"Match moved? Your plan can move too.\"",
+    "msg": "3 sections are shorter than the screen, so the next one's heading or picture shows with them: \"Match moved? Your plan can move too.\" is 601px of the 824px under the nav, and \"Learn each movement with clear\" shows below it (\"Adjust the workout t\", \"Choose how you train\")",
+    "fix": "give each section the screen (min-height: 100svh less the nav, its content centred), or join two short ones into one",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "font-load",
+    "where": "main#main > section.wrap.landing-page-module__ohf9Fa__hero > div.landing-page-module__ohf9Fa__heroCopy > h1.landing-page-module__ohf9Fa__heroHeadline \"Inter\"",
+    "msg": "\"Inter\" is asked for by the h1, the h2s and the body text but never loaded (no font link or @font-face loads it): it shows in its fallback",
+    "fix": "load every family the type asks for: name it in the font link as start.mjs prints it, spelt as Google Fonts spells it, or ask for a family the page loads",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "visual-empty",
+    "where": "div.landing-page-module__ohf9Fa__storyGrid > div.landing-page-module__ohf9Fa__stickyPlayer > div.landing-page-module__ohf9Fa__playerVisual > img \"picture side-plank-rotation.webp\"",
+    "msg": "the picture side-plank-rotation.webp is nearly empty at 1440px: 2 colours in its 550x379px, 98.4% one colour (a thin line drawing or a logo can be this plain: look at it)",
+    "fix": "make the visual draw at this width: a picture that loads, an effect that renders, or its still fallback; never an empty ground or frame",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "share-meta",
+    "where": "head",
+    "msg": "the head lacks an icon: a shared link shows no picture or title of its own",
+    "fix": "copy the head block of starter.html: og tags, twitter:card, the icon and theme-color (references/system.md, Head)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "section-air",
+    "where": "main#main > section.landing-page-module__ohf9Fa__adaptSection / section#exercise-library",
+    "msg": "81px of air between the content of these two sections: 128-480px (64-600px WARN) (every gap out of the band at 1440px, top to bottom: 122px after \"60 days of traininga\", 81px after \"Match moved?Your pla\", 115px after \"Learn each movementw\") (SR-3)",
+    "fix": "keep 128-480px of air between the content of neighbouring sections (112-420px on a phone): the sections' padding (--padt, --padb)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "section-air",
+    "where": "section#exercise-library / main#main > section.landing-page-module__ohf9Fa__editorSection",
+    "msg": "115px of air between the content of these two sections: 128-480px (64-600px WARN) (SR-3)",
+    "fix": "keep 128-480px of air between the content of neighbouring sections (112-420px on a phone): the sections' padding (--padt, --padb)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "section-air",
+    "where": "main#main > section.landing-page-module__ohf9Fa__personalSection / main#main > section.landing-page-module__ohf9Fa__adaptSection",
+    "msg": "122px of air between the content of these two sections: 128-480px (64-600px WARN) (SR-3)",
+    "fix": "keep 128-480px of air between the content of neighbouring sections (112-420px on a phone): the sections' padding (--padt, --padb)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "button-styles",
+    "where": "button#base-ui-_R_9talb_",
+    "msg": "the menu button is filled in #242424, a fill none of the page's buttons use (#d9fc54): one more button look",
+    "fix": "draw the menu button as the secondary button (an outline in the ink) or as a bare icon",
+    "widths": [
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "cta",
+    "where": "section#how-it-works \"Guidance through every session\"",
+    "msg": "a section over 1.5 screens long with no link or button in it",
+    "fix": "add the action: a button in the hero, one on every priced item, one in the closing section",
+    "widths": [
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "heading-scale",
+    "where": "section#why-axyro > div:nth-of-type(1) > h2 \"Train the step before the shot.\"",
+    "msg": "h2 headings in 2 sizes, 32px (\"Guidance through every s\") to 38.4px (x1.20)",
+    "fix": "size headings by level: the h1 largest, one size per level, each level below the one above",
+    "widths": [
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "off-grid",
+    "where": "h2#start-training-heading \"Prepare for your next match\"",
+    "msg": "the section's heading starts at 48px, 28px off the page margin (20px), and no other section starts there",
+    "fix": "move it onto the page margin, or the column edge its section uses",
+    "widths": [
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "right-edge",
+    "where": "section.landing-page-module__ohf9Fa__editorSection > div.landing-page-module__ohf9Fa__editorDetailGrid > div.landing-page-module__ohf9Fa__editorCopy > a.landing-page-module__ohf9Fa__cta \"Build my personalized plan\"",
+    "msg": "its right edge stops 52px short of the content's right edge (370px), which div.landing-page-module__ohf9Fa__editorPreview reaches",
+    "fix": "end it on the content's right edge, like the other blocks of its section",
+    "widths": [
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "section-gaps",
+    "where": "main#main > section.wrap.landing-page-module__ohf9Fa__hero / section#why-axyro",
+    "msg": "52px between these sections, -47% against the median 99px",
+    "fix": "use one gap between sections (all within 25% of each other)",
+    "widths": [
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "section-gaps",
+    "where": "main#main > section.landing-page-module__ohf9Fa__access / section#questions",
+    "msg": "71px between these sections, -28% against the median 99px",
+    "fix": "use one gap between sections (all within 25% of each other)",
+    "widths": [
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "orphan",
+    "where": "h2#adapt-heading \"Match moved? Your plan can move too.\"",
+    "msg": "its last line holds only \"too.\"",
+    "fix": "rebalance the text (text-wrap: pretty, or a shorter line) so the last line holds more than one short word",
+    "widths": [
+     390
+    ],
+    "from": "consistency"
+   }
+  ],
+  "crashed": [],
+  "seconds": {
+   "consistency": 161,
+   "layout": 13
+  }
+ },
+ "open": [
+  {
+   "check": "hero-fill",
+   "where": "section#why-axyro \"Train the step before the shot.\"",
+   "msg": "the next section shows on the first screen: it starts at 896px on a 900px screen (the hero ends at 780px)",
+   "fix": "let the hero fill the first screen alone (min-height: 100svh, less above it): nothing of the next section on load",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "hero-fill"
+   ],
+   "wheres": [
+    "section#why-axyro \"Train the step before the shot.\""
+   ]
+  },
+  {
+   "check": "flush",
+   "where": "main#main > section.landing-page-module__ohf9Fa__closing > div.landing-page-module__ohf9Fa__closingImage > img \"img: Lateral movement exercise from Axyr\"",
+   "msg": "its first line sits 0px under the top edge of section.landing-page-module__ohf9Fa__closing, where the ground changes",
+   "fix": "give the section its padding at the edge where the ground changes (the closing call keeps a clear gap above the footer)",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "flush"
+   ],
+   "wheres": [
+    "main#main > section.landing-page-module__ohf9Fa__closing > div.landing-page-module__ohf9Fa__closingImage > img \"img: Lateral movement exercise from Axyr\""
+   ]
+  },
+  {
+   "check": "no-visual",
+   "where": "main#main > section.landing-page-module__ohf9Fa__personalSection \"60 days of training around your schedule\"",
+   "msg": "no picture, effect or mock in this section; a feature section needs a visual",
+   "fix": "give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "no-visual"
+   ],
+   "wheres": [
+    "main#main > section.landing-page-module__ohf9Fa__personalSection \"60 days of training around your schedule\""
+   ]
+  },
+  {
+   "check": "no-visual",
+   "where": "main#main > section.landing-page-module__ohf9Fa__editorSection \"Adjust the workout to your priorities\"",
+   "msg": "no picture, effect or mock in this section; a feature section needs a visual",
+   "fix": "give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "no-visual"
+   ],
+   "wheres": [
+    "main#main > section.landing-page-module__ohf9Fa__editorSection \"Adjust the workout to your priorities\""
+   ]
+  },
+  {
+   "check": "no-visual",
+   "where": "main#main > section.landing-page-module__ohf9Fa__access \"Choose how you train\"",
+   "msg": "no picture, effect or mock in this section; a feature section needs a visual",
+   "fix": "give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "no-visual"
+   ],
+   "wheres": [
+    "main#main > section.landing-page-module__ohf9Fa__access \"Choose how you train\""
+   ]
+  },
+  {
+   "check": "card-family",
+   "where": "div > div.landing-page-module__ohf9Fa__scheduleDemo > div.landing-page-module__ohf9Fa__scheduleDays > div.landing-page-module__ohf9Fa__scheduleDay.landing-page-module__ohf9Fa__scheduleTrain:nth-of-type(1) \"Mon Train 10 minutes\"",
+   "msg": "7 cards of one kind (.landing-page-module__ohf9Fa__scheduleDay) side by side in 2 fills, each used twice or more: #d9fc54 (2), #292522 (5)",
+   "fix": "draw one card part one way: one fill and one title face for every card of a kind (one featured card may differ)",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "card-family"
+   ],
+   "wheres": [
+    "div > div.landing-page-module__ohf9Fa__scheduleDemo > div.landing-page-module__ohf9Fa__scheduleDays > div.landing-page-module__ohf9Fa__scheduleDay.landing-page-module__ohf9Fa__scheduleTrain:nth-of-type(1) \"Mon Train 10 minutes\""
+   ]
+  },
+  {
+   "check": "copy-headings",
+   "where": "section#how-it-works > div.landing-page-module__ohf9Fa__sectionIntro > h2 \"Guidance through every session\"",
+   "msg": "\"Guidance through every session\" names no product, part, place or section (13 headings like it; at most one brand line per page) (and 12 more like it: \"Follow each movement\", \"Choose your audio guidan\", \"Recover between interval\", \"Set your days and sessio\", ...)",
+   "fix": "name the thing in every heading: the product, a part, the place or a section noun",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "copy-headings"
+   ],
+   "wheres": [
+    "section#how-it-works > div.landing-page-module__ohf9Fa__sectionIntro > h2 \"Guidance through every session\""
+   ]
+  },
+  {
+   "check": "heading-scale",
+   "where": "section#why-axyro > div:nth-of-type(1) > h2 \"Train the step before the shot.\"",
+   "msg": "h2 headings in 5 sizes, 38px (\"Questions before you sta\") to 72px (x1.89)",
+   "fix": "size headings by level: the h1 largest, one size per level, each level below the one above",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "heading-scale"
+   ],
+   "wheres": [
+    "section#why-axyro > div:nth-of-type(1) > h2 \"Train the step before the shot.\""
+   ]
+  },
+  {
+   "check": "heading-scale",
+   "where": "div.landing-page-module__ohf9Fa__storyGrid > div:nth-of-type(2) > article.landing-page-module__ohf9Fa__chapter:nth-of-type(1) > h3 \"Follow each movement\"",
+   "msg": "h3 headings in 4 sizes, 22px (\"Leg strength\") to 32px (x1.45)",
+   "fix": "size headings by level: the h1 largest, one size per level, each level below the one above",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "heading-scale"
+   ],
+   "wheres": [
+    "div.landing-page-module__ohf9Fa__storyGrid > div:nth-of-type(2) > article.landing-page-module__ohf9Fa__chapter:nth-of-type(1) > h3 \"Follow each movement\""
+   ]
+  },
+  {
+   "check": "off-grid",
+   "where": "h2#adapt-heading \"Match moved? Your plan can move too.\"",
+   "msg": "left edge at 144px, 24px off the page margin at 120px (31 elements, like p); 5 more in this section off the grid too (strong at 144px, span at 144px, div.landing-page-module__ohf9Fa__scheduleDay.landing-page-module__ohf9Fa__scheduleTrain:nth-of-type(1) at 144px, p.landing-page-module__ohf9Fa__scheduleStatus at 144px, ...)",
+   "fix": "move it onto the page margin, or the column edge its section uses",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "off-grid"
+   ],
+   "wheres": [
+    "h2#adapt-heading \"Match moved? Your plan can move too.\""
+   ]
+  },
+  {
+   "check": "off-grid",
+   "where": "div:nth-of-type(2) > div.app-frame > footer.site-footer > div.site-footer__intro \"Axyro Guided home workouts for padel. © \"",
+   "msg": "left edge at 112px, 8px off the page margin at 120px (31 elements, like aside.landing-page-module__ohf9Fa__credit)",
+   "fix": "move it onto the page margin, or the column edge its section uses",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "off-grid"
+   ],
+   "wheres": [
+    "div:nth-of-type(2) > div.app-frame > footer.site-footer > div.site-footer__intro \"Axyro Guided home workouts for padel. © \""
+   ]
+  },
+  {
+   "check": "off-grid",
+   "where": "div.app-frame > footer.site-footer > div.site-footer__intro > p \"Guided home workouts for padel.\"",
+   "msg": "left edge at 112px, 8px off the page margin at 120px (31 elements, like aside.landing-page-module__ohf9Fa__credit)",
+   "fix": "move it onto the page margin, or the column edge its section uses",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "off-grid"
+   ],
+   "wheres": [
+    "div.app-frame > footer.site-footer > div.site-footer__intro > p \"Guided home workouts for padel.\""
+   ]
+  },
+  {
+   "check": "photo-upscale",
+   "where": "div.landing-page-module__ohf9Fa__storyGrid > div.landing-page-module__ohf9Fa__stickyPlayer > div.landing-page-module__ohf9Fa__playerVisual > img \"img: Side Plank with Rotation movement d\"",
+   "msg": "side-plank-rotation.webp: 366x272 shown at 550x379, blown up 1.50x",
+   "fix": "use a source at least as wide as the picture is shown (twice that for sharp screens)",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "photo-upscale"
+   ],
+   "wheres": [
+    "div.landing-page-module__ohf9Fa__storyGrid > div.landing-page-module__ohf9Fa__stickyPlayer > div.landing-page-module__ohf9Fa__playerVisual > img \"img: Side Plank with Rotation movement d\""
+   ]
+  },
+  {
+   "check": "photo-upscale",
+   "where": "div.landing-page-module__ohf9Fa__libraryGrid > article.landing-page-module__ohf9Fa__librarySample:nth-of-type(4) > div > img \"img: Side Plank with Rotation reference\"",
+   "msg": "image: 247x183 shown at 384x256, blown up 1.55x",
+   "fix": "use a source at least as wide as the picture is shown (twice that for sharp screens)",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "photo-upscale"
+   ],
+   "wheres": [
+    "div.landing-page-module__ohf9Fa__libraryGrid > article.landing-page-module__ohf9Fa__librarySample:nth-of-type(4) > div > img \"img: Side Plank with Rotation reference\""
+   ]
+  },
+  {
+   "check": "section-tile",
+   "where": "section#how-it-works \"Guidance through every session\"",
+   "msg": "the section is 1094px tall (1.22 screens at 1440x900), not one screen or two: the screen one screen on from its top (scroll 2535px) shows 194px of it and 706px of the next section, its heading \"60 days of training around you\" on screen",
+   "fix": "set every section after the hero to one screen or two (height: calc(var(--h,1) * 100vh)) and fit its content above --padb",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "section-tile"
+   ],
+   "wheres": [
+    "section#how-it-works \"Guidance through every session\""
+   ]
+  },
+  {
+   "check": "section-tile",
+   "where": "main#main > section.landing-page-module__ohf9Fa__personalSection \"60 days of training around your schedule\"",
+   "msg": "the section is 848px tall (0.94 screens at 1440x900), shorter than the screen: its tile (the screen from its top) shows 848px of it and 52px of the next section, its heading \"Match moved? Your plan can mov\" on screen",
+   "fix": "set every section after the hero to one screen or two (height: calc(var(--h,1) * 100vh)) and fit its content above --padb",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "section-tile"
+   ],
+   "wheres": [
+    "main#main > section.landing-page-module__ohf9Fa__personalSection \"60 days of training around your schedule\""
+   ]
+  },
+  {
+   "check": "section-tile",
+   "where": "main#main > section.landing-page-module__ohf9Fa__adaptSection \"Match moved? Your plan can move too.\"",
+   "msg": "the section is 601px tall (0.67 screens at 1440x900), shorter than the screen: its tile (the screen from its top) shows 601px of it and 251px of the next section, its heading \"Learn each movement with clear\" on screen",
+   "fix": "set every section after the hero to one screen or two (height: calc(var(--h,1) * 100vh)) and fit its content above --padb",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "section-tile"
+   ],
+   "wheres": [
+    "main#main > section.landing-page-module__ohf9Fa__adaptSection \"Match moved? Your plan can move too.\""
+   ]
+  },
+  {
+   "check": "focus-ring",
+   "where": ".paywall-intro > h2[tabindex=\"-1\"]:focus",
+   "msg": "\".paywall-intro > h2[tabindex=\"-1\"]:focus\" in src_app_globals_162hn9oqc8uss.css removes the focus outline and sets nothing in its place",
+   "fix": "keep the kit's :focus-visible ring, or put a change of the same strength (a 2px line in --action) in the rule that removes it",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "focus-ring"
+   ],
+   "wheres": [
+    ".paywall-intro > h2[tabindex=\"-1\"]:focus"
+   ]
+  },
+  {
+   "check": "focus-ring",
+   "where": ".calendar-day-panel h3:focus",
+   "msg": "\".calendar-day-panel h3:focus\" in src_app_globals_162hn9oqc8uss.css removes the focus outline and sets nothing in its place",
+   "fix": "keep the kit's :focus-visible ring, or put a change of the same strength (a 2px line in --action) in the rule that removes it",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "focus-ring"
+   ],
+   "wheres": [
+    ".calendar-day-panel h3:focus"
+   ]
+  },
+  {
+   "check": "focus-visible",
+   "where": "section#why-axyro > div.landing-page-module__ohf9Fa__heroStage:nth-of-type(2) > div.landing-page-module__ohf9Fa__heroImage:nth-of-type(2) > button.landing-page-module__ohf9Fa__demoToggle \"Pause preview\"",
+   "msg": "Tab stop 12, button \"Pause preview\": the focus lands on something you cannot see",
+   "fix": "keep the kit's ring (system.css :focus-visible, 2px in --action, there at once); a control that hides itself shows on focus",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "focus-visible"
+   ],
+   "wheres": [
+    "section#why-axyro > div.landing-page-module__ohf9Fa__heroStage:nth-of-type(2) > div.landing-page-module__ohf9Fa__heroImage:nth-of-type(2) > button.landing-page-module__ohf9Fa__demoToggle \"Pause preview\""
+   ]
+  },
+  {
+   "check": "focus-visible",
+   "where": "section#why-axyro > div.landing-page-module__ohf9Fa__heroStage:nth-of-type(2) > div.landing-page-module__ohf9Fa__movementPicker:nth-of-type(4) > button:nth-of-type(1) \"Preview Standing Dumbbell Wood Chop\"",
+   "msg": "Tab stop 13, button \"Preview Standing Dumbbell Wood Chop\": the focus lands on something you cannot see",
+   "fix": "keep the kit's ring (system.css :focus-visible, 2px in --action, there at once); a control that hides itself shows on focus",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "focus-visible"
+   ],
+   "wheres": [
+    "section#why-axyro > div.landing-page-module__ohf9Fa__heroStage:nth-of-type(2) > div.landing-page-module__ohf9Fa__movementPicker:nth-of-type(4) > button:nth-of-type(1) \"Preview Standing Dumbbell Wood Chop\""
+   ]
+  },
+  {
+   "check": "focus-visible",
+   "where": "div.landing-page-module__ohf9Fa__storyGrid:nth-of-type(2) > div.landing-page-module__ohf9Fa__stickyPlayer:nth-of-type(1) > div.landing-page-module__ohf9Fa__playerVisual:nth-of-type(2) > button.landing-page-module__ohf9Fa__demoToggle \"Play player preview\"",
+   "msg": "Tab stop 18, button \"Play player preview\": the focus lands on something you cannot see",
+   "fix": "keep the kit's ring (system.css :focus-visible, 2px in --action, there at once); a control that hides itself shows on focus",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "focus-visible"
+   ],
+   "wheres": [
+    "div.landing-page-module__ohf9Fa__storyGrid:nth-of-type(2) > div.landing-page-module__ohf9Fa__stickyPlayer:nth-of-type(1) > div.landing-page-module__ohf9Fa__playerVisual:nth-of-type(2) > button.landing-page-module__ohf9Fa__demoToggle \"Play player preview\""
+   ]
+  },
+  {
+   "check": "focus-visible",
+   "where": "main#main > section.landing-page-module__ohf9Fa__personalSection:nth-of-type(4) > div.landing-page-module__ohf9Fa__personalIntro > a.landing-page-module__ohf9Fa__cta \"Start Training\"",
+   "msg": "Tab stop 19, a \"Start Training\": the focus lands on something you cannot see",
+   "fix": "keep the kit's ring (system.css :focus-visible, 2px in --action, there at once); a control that hides itself shows on focus",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "focus-visible"
+   ],
+   "wheres": [
+    "main#main > section.landing-page-module__ohf9Fa__personalSection:nth-of-type(4) > div.landing-page-module__ohf9Fa__personalIntro > a.landing-page-module__ohf9Fa__cta \"Start Training\""
+   ]
+  },
+  {
+   "check": "moment-none",
+   "where": "(the page)",
+   "msg": "a software page (--type) deals no moment: every kind carries one, two on a long page (moments.md)",
+   "fix": "deal one (moments.mjs pick --page software) and mount it in its own section",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "moment-none"
+   ],
+   "wheres": [
+    "(the page)"
+   ]
+  },
+  {
+   "check": "hero-screen",
+   "where": "main#main > section.wrap.landing-page-module__ohf9Fa__hero \"You play padel. Do you train for it?Get \"",
+   "msg": "the hero ends at 780px on a 900px screen, 120px above the fold: it ends at the fold, 1px either way (SR-1)",
+   "fix": "make the hero exactly one screen (height: 100svh, its content fitted inside), never taller or shorter",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "hero-screen"
+   ],
+   "wheres": [
+    "main#main > section.wrap.landing-page-module__ohf9Fa__hero \"You play padel. Do you train for it?Get \""
+   ]
+  },
+  {
+   "check": "hero-screen",
+   "where": "section#why-axyro \"Train the step before the shot.When a ba\"",
+   "msg": "120px of the next section shows on the first screen (from 780px on a 900px screen): nothing below the hero shows at load (SR-1)",
+   "fix": "end the hero at the fold so nothing of the next section shows at load (hero height: 100svh)",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "hero-screen"
+   ],
+   "wheres": [
+    "section#why-axyro \"Train the step before the shot.When a ba\""
+   ]
+  },
+  {
+   "check": "section-height",
+   "where": "div:nth-of-type(2) > div.app-frame > footer.site-footer \"AxyroGuided home workouts for padel.© 20\"",
+   "msg": "the section is 116px tall (0.1 screens), 784px short of one screen (900px): every section after the hero is one screen or two, 2px either way (SR-2)",
+   "fix": "set the section to one screen or two (height: calc(var(--h,1) * 100vh), --h 1 or 2) and cut or split its content to fit",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "section-height"
+   ],
+   "wheres": [
+    "div:nth-of-type(2) > div.app-frame > footer.site-footer \"AxyroGuided home workouts for padel.© 20\""
+   ]
+  },
+  {
+   "check": "section-height",
+   "where": "main#main > section.landing-page-module__ohf9Fa__closing \"Prepare for your next matchBuild the wor\"",
+   "msg": "the section is 460px tall (0.5 screens), 440px short of one screen (900px): every section after the hero is one screen or two, 2px either way (SR-2)",
+   "fix": "set the section to one screen or two (height: calc(var(--h,1) * 100vh), --h 1 or 2) and cut or split its content to fit",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "section-height"
+   ],
+   "wheres": [
+    "main#main > section.landing-page-module__ohf9Fa__closing \"Prepare for your next matchBuild the wor\"",
+    "main#main > section.landing-page-module__ohf9Fa__editorSection \"Adjust the workoutto your prioritiesStar\"",
+    "main#main > section.landing-page-module__ohf9Fa__access \"Choose how you trainFreeTry one complete\""
+   ]
+  },
+  {
+   "check": "section-height",
+   "where": "section#exercise-library \"Learn each movementwith clear technique \"",
+   "msg": "the section starts at 4226px, 274px above the screen grid (5 x 900px): sections start on whole screens (and 8 more like it: \"Guidance through every s\", \"Adjust the workoutto you\", \"Questionsbefore you star\") (SR-2)",
+   "fix": "make every section above it exactly one or two screens tall, so this one starts on a whole screen",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "section-height",
+    "screen-height"
+   ],
+   "wheres": [
+    "section#exercise-library \"Learn each movementwith clear technique \"",
+    "#exercise-library section.landing-page-module__ohf9Fa__librarySection \"Learn each movementwith clear te\""
+   ]
+  },
+  {
+   "check": "section-air",
+   "where": "main#main > section.landing-page-module__ohf9Fa__adaptSection > div > div.landing-page-module__ohf9Fa__adaptFooter \"Update your dates in Refine your plan. A\"",
+   "msg": "a top border across 100% of the container, between the section's content: sections and their parts are told apart by air and ground, not lines (SR-3)",
+   "fix": "take the rule out: sections and their parts are parted by their ground and the air between them",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "section-air"
+   ],
+   "wheres": [
+    "main#main > section.landing-page-module__ohf9Fa__adaptSection > div > div.landing-page-module__ohf9Fa__adaptFooter \"Update your dates in Refine your plan. A\""
+   ]
+  },
+  {
+   "check": "one-section",
+   "where": "main#main > section.landing-page-module__ohf9Fa__access > h2 \"Choose how you train\"",
+   "msg": "the screen at scroll 5239px (the top of section 7) shows 315px of section 8 and the heading of section 8 whole and the content of 2 sections, over 24px each beside section 7: a screen shows one section (another may peek 8px, 24px WARN) (SR-4)",
+   "fix": "make each section exactly one screen or two, so a screen shows one section and no neighbour peeks",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "one-section"
+   ],
+   "wheres": [
+    "main#main > section.landing-page-module__ohf9Fa__access > h2 \"Choose how you train\""
+   ]
+  },
+  {
+   "check": "one-section",
+   "where": "section#questions > div:nth-of-type(1) > h2 \"Questionsbefore you start\"",
+   "msg": "the screen at scroll 5824px (the top of section 8) shows 300px of section 9 and the heading of section 9 whole and the content of 2 sections, over 24px each beside section 8: a screen shows one section (another may peek 8px, 24px WARN) (SR-4)",
+   "fix": "make each section exactly one screen or two, so a screen shows one section and no neighbour peeks",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "one-section"
+   ],
+   "wheres": [
+    "section#questions > div:nth-of-type(1) > h2 \"Questionsbefore you start\"",
+    "section#questions \"Questionsbefore you startExplore the mov\""
+   ]
+  },
+  {
+   "check": "one-heading",
+   "where": "section#how-it-works > div.landing-page-module__ohf9Fa__sectionIntro > h2 \"Guidance through every session\"",
+   "msg": "headings of two sections show whole on one screen at 14 of 146 scroll positions (9.6%; at scroll 1000, 1050, 3500, 3550px), here with \"Train the step before the shot.\": at most 3% on a desktop (SR-5)",
+   "fix": "make the sections one screen tall so their headings sit a screen apart and two never share one",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "one-heading"
+   ],
+   "wheres": [
+    "section#how-it-works > div.landing-page-module__ohf9Fa__sectionIntro > h2 \"Guidance through every session\""
+   ]
+  },
+  {
+   "check": "container-edges",
+   "where": "main#main > section.landing-page-module__ohf9Fa__adaptSection \"Match moved?Your plan can move too.You’r\"",
+   "msg": "the content of section 5 runs 144px from the left and 144px from the right (read from its outermost blocks: no .wrap): the page's container starts at 120px; the margin is 64-120px at 1440px (one container, equal margins, 2px either way) (SR-6)",
+   "fix": "use one container on every section and the nav (.wrap): one margin left and right, 64-120px on a desktop, 16-24px on a phone",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "container-edges"
+   ],
+   "wheres": [
+    "main#main > section.landing-page-module__ohf9Fa__adaptSection \"Match moved?Your plan can move too.You’r\""
+   ]
+  },
+  {
+   "check": "container-edges",
+   "where": "div:nth-of-type(2) > div.app-frame > footer.site-footer \"AxyroGuided home workouts for padel.© 20\"",
+   "msg": "the content of section 11 runs 112px from the left and 112px from the right (read from its outermost blocks: no .wrap): the page's container starts at 120px (one container, equal margins, 2px either way) (and 1 more like it: \"AAxyroWhy AxyroHow It Wo\") (SR-6)",
+   "fix": "use one container on every section and the nav (.wrap): one margin left and right, 64-120px on a desktop, 16-24px on a phone",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "container-edges"
+   ],
+   "wheres": [
+    "div:nth-of-type(2) > div.app-frame > footer.site-footer \"AxyroGuided home workouts for padel.© 20\""
+   ]
+  },
+  {
+   "check": "container-edges",
+   "where": "div:nth-of-type(2) \"Skip to contentAAxyroWhy AxyroHow It Wor\"",
+   "msg": "a <div> at the top of the page, outside header.nav, main, footer.closing and nav.actionbar (SR-6)",
+   "fix": "build the page as header.nav, a main of sections (each one in-flow .wrap plus background layers) and footer.closing",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "container-edges"
+   ],
+   "wheres": [
+    "div:nth-of-type(2) \"Skip to contentAAxyroWhy AxyroHow It Wor\""
+   ]
+  },
+  {
+   "check": "container-edges",
+   "where": "main#main > section.wrap.landing-page-module__ohf9Fa__hero \"You play padel. Do you train for it?Get \"",
+   "msg": "the section needs exactly one in-flow child .wrap (it has 2 in-flow children, 0 .wrap) (and 10 more like it: \"Train the step before th\", \"Guidance through every s\", \"60 days of trainingaroun\") (SR-6)",
+   "fix": "build the page as header.nav, a main of sections (each one in-flow .wrap plus background layers) and footer.closing",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "container-edges"
+   ],
+   "wheres": [
+    "main#main > section.wrap.landing-page-module__ohf9Fa__hero \"You play padel. Do you train for it?Get \""
+   ]
+  },
+  {
+   "check": "container-edges",
+   "where": "main#main > section.landing-page-module__ohf9Fa__personalSection > div.landing-page-module__ohf9Fa__personalIntro > span.landing-page-module__ohf9Fa__reassurance \"Personalized planning is included with A\"",
+   "msg": "1 text block starts on a left line at x 783, 663px from the container's left: text starts on the container's left, or on one split line (x 630, 732, 834) (SR-6)",
+   "fix": "start the text on the container's left, or on the one split line every split shares",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "container-edges"
+   ],
+   "wheres": [
+    "main#main > section.landing-page-module__ohf9Fa__personalSection > div.landing-page-module__ohf9Fa__personalIntro > span.landing-page-module__ohf9Fa__reassurance \"Personalized planning is included with A\""
+   ]
+  },
+  {
+   "check": "container-edges",
+   "where": "h2#start-training-heading \"Prepare for your next match\"",
+   "msg": "the h2 starts 656px right of the container's left: every h1 and h2 starts on it, 2px either way (and 1 more like it: x 770) (SR-6)",
+   "fix": "start the text on the container's left, or on the one split line every split shares",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "container-edges"
+   ],
+   "wheres": [
+    "h2#start-training-heading \"Prepare for your next match\""
+   ]
+  },
+  {
+   "check": "container-edges",
+   "where": "section#questions > div:nth-of-type(2) > details:nth-of-type(1) \"Who is Axyro for?The workouts are built \"",
+   "msg": "a box over half the container wide runs 700-1320px, not on the container's lines at 120-1320px (SR-6)",
+   "fix": "run the picture or box from the container's left line to its right line, or put it in a row or a split",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "container-edges"
+   ],
+   "wheres": [
+    "section#questions > div:nth-of-type(2) > details:nth-of-type(1) \"Who is Axyro for?The workouts are built \""
+   ]
+  },
+  {
+   "check": "container-edges",
+   "where": "section#questions > div:nth-of-type(2) > details:nth-of-type(2) \"Can I train alongside my matches?Yes. Ad\"",
+   "msg": "a box over half the container wide runs 700-1320px, not on the container's lines at 120-1320px (and 8 more like it: \"What if a session feels \", \"Does Axyro replace a pad\", \"Can I adjust a plan afte\") (SR-6)",
+   "fix": "run the picture or box from the container's left line to its right line, or put it in a row or a split",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "container-edges"
+   ],
+   "wheres": [
+    "section#questions > div:nth-of-type(2) > details:nth-of-type(2) \"Can I train alongside my matches?Yes. Ad\""
+   ]
+  },
+  {
+   "check": "split-pair",
+   "where": "section#how-it-works > div.landing-page-module__ohf9Fa__storyGrid \"Player preview10 min sessionRecoveryTake\"",
+   "msg": "the two columns of the split start 88px apart at the top: a split's columns are top-aligned, 8px either way (SR-8)",
+   "fix": "top-align both columns of the split (align-items: start)",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "split-pair"
+   ],
+   "wheres": [
+    "section#how-it-works > div.landing-page-module__ohf9Fa__storyGrid \"Player preview10 min sessionRecoveryTake\""
+   ]
+  },
+  {
+   "check": "split-pair",
+   "where": "section#how-it-works > div.landing-page-module__ohf9Fa__sectionIntro \"Guidance through every sessionFollow the\"",
+   "msg": "the two columns of the split start 67px apart at the top: a split's columns are top-aligned, 8px either way (SR-8)",
+   "fix": "top-align both columns of the split (align-items: start)",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "split-pair"
+   ],
+   "wheres": [
+    "section#how-it-works > div.landing-page-module__ohf9Fa__sectionIntro \"Guidance through every sessionFollow the\""
+   ]
+  },
+  {
+   "check": "split-pair",
+   "where": "main#main > section.landing-page-module__ohf9Fa__editorSection > div.landing-page-module__ohf9Fa__editorDetailGrid \"Adjust the workoutto your prioritiesStar\"",
+   "msg": "the two columns of the split start 8px apart at the top (centred on each other): a split's columns are top-aligned, 8px either way (SR-8)",
+   "fix": "top-align both columns of the split (align-items: start)",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "split-pair"
+   ],
+   "wheres": [
+    "main#main > section.landing-page-module__ohf9Fa__editorSection > div.landing-page-module__ohf9Fa__editorDetailGrid \"Adjust the workoutto your prioritiesStar\""
+   ]
+  },
+  {
+   "check": "empty-visual",
+   "where": "div.landing-page-module__ohf9Fa__storyGrid > div.landing-page-module__ohf9Fa__stickyPlayer > div.landing-page-module__ohf9Fa__playerVisual.landing-page-module__ohf9Fa__restVisual > img \"side-plank-rotation.webp\"",
+   "msg": "the picture shows nothing here: with it hidden the screen looks the same (the picture is there but invisible: faded out, clipped or covered), so the visitor sees only the ground behind it",
+   "fix": "make the visual draw at every width: a picture that loads, an effect that renders, or its still fallback; never an empty frame",
+   "widths": [
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "empty-visual"
+   ],
+   "wheres": [
+    "div.landing-page-module__ohf9Fa__storyGrid > div.landing-page-module__ohf9Fa__stickyPlayer > div.landing-page-module__ohf9Fa__playerVisual.landing-page-module__ohf9Fa__restVisual > img \"side-plank-rotation.webp\""
+   ]
+  },
+  {
+   "check": "flush",
+   "where": "main#main > section.wrap.landing-page-module__ohf9Fa__hero > div.landing-page-module__ohf9Fa__courtPhoto > img \"img: Fran Guerrero planting his outside \"",
+   "msg": "its last line sits 0px above the lower edge of section.wrap.landing-page-module__ohf9Fa__hero, where the ground changes to section#why-axyro",
+   "fix": "give the section its padding at the edge where the ground changes (the closing call keeps a clear gap above the footer)",
+   "widths": [
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "flush"
+   ],
+   "wheres": [
+    "main#main > section.wrap.landing-page-module__ohf9Fa__hero > div.landing-page-module__ohf9Fa__courtPhoto > img \"img: Fran Guerrero planting his outside \""
+   ]
+  },
+  {
+   "check": "nav-covers",
+   "where": "div:nth-of-type(2) > div.app-frame > header.site-header \"A Axyro Sign in\"",
+   "msg": "sits on top of the text \"Explore a curated library of 40 exercise\" while the page scrolls: part of the line shows beside it",
+   "fix": "make the fixed nav one opaque band across the whole screen, or let it scroll away with the page",
+   "widths": [
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "nav-covers"
+   ],
+   "wheres": [
+    "div:nth-of-type(2) > div.app-frame > header.site-header \"A Axyro Sign in\""
+   ]
+  },
+  {
+   "check": "overlap-text",
+   "where": "div.landing-page-module__ohf9Fa__storyGrid > div.landing-page-module__ohf9Fa__stickyPlayer > div.landing-page-module__ohf9Fa__playerVisual.landing-page-module__ohf9Fa__restVisual > img \"img: Side Plank with Rotation movement d\"",
+   "msg": "lies over the text \"Recovery\" (div.landing-page-module__ohf9Fa__restCopy > strong)",
+   "fix": "move the box off the text (or the text off the box)",
+   "widths": [
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "overlap-text"
+   ],
+   "wheres": [
+    "div.landing-page-module__ohf9Fa__storyGrid > div.landing-page-module__ohf9Fa__stickyPlayer > div.landing-page-module__ohf9Fa__playerVisual.landing-page-module__ohf9Fa__restVisual > img \"img: Side Plank with Rotation movement d\""
+   ]
+  },
+  {
+   "check": "button-styles",
+   "where": "section.wrap.landing-page-module__ohf9Fa__hero > div.landing-page-module__ohf9Fa__heroCopy > div.landing-page-module__ohf9Fa__actions > a.landing-page-module__ohf9Fa__cta \"Start Training\"",
+   "msg": "one button style (soft, fill #d9fc54) with labels in 2 sizes: 13, 16px (\"Start Training\", \"Add side plank from library\")",
+   "fix": "one primary and one secondary button: one shape, one height per size, one label size",
+   "widths": [
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "button-styles"
+   ],
+   "wheres": [
+    "section.wrap.landing-page-module__ohf9Fa__hero > div.landing-page-module__ohf9Fa__heroCopy > div.landing-page-module__ohf9Fa__actions > a.landing-page-module__ohf9Fa__cta \"Start Training\""
+   ]
+  },
+  {
+   "check": "heading-scale",
+   "where": "section#why-axyro > div.landing-page-module__ohf9Fa__heroStage > div.landing-page-module__ohf9Fa__workoutLabel > span.landing-page-module__ohf9Fa__timer \"00:30\"",
+   "msg": "the figure \"00:30\" is set at 35px, larger than the section headings (h2 32px); 1 more like it",
+   "fix": "set figures at the h2 size or under: a stat reads as data, not as the heading",
+   "widths": [
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "heading-scale"
+   ],
+   "wheres": [
+    "section#why-axyro > div.landing-page-module__ohf9Fa__heroStage > div.landing-page-module__ohf9Fa__workoutLabel > span.landing-page-module__ohf9Fa__timer \"00:30\""
+   ]
+  },
+  {
+   "check": "off-grid",
+   "where": "div.landing-page-module__ohf9Fa__storyGrid > div.landing-page-module__ohf9Fa__stickyPlayer > div.landing-page-module__ohf9Fa__playerTop > span:nth-of-type(1) \"Player preview\"",
+   "msg": "left edge at 36px, 16px off the page margin at 20px (65 elements, like p); 9 more in this section off the grid too (span at 36px, strong at 36px, span at 36px, h3 at 28px, ...)",
+   "fix": "move it onto the page margin, or the column edge its section uses",
+   "widths": [
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "off-grid"
+   ],
+   "wheres": [
+    "div.landing-page-module__ohf9Fa__storyGrid > div.landing-page-module__ohf9Fa__stickyPlayer > div.landing-page-module__ohf9Fa__playerTop > span:nth-of-type(1) \"Player preview\""
+   ]
+  },
+  {
+   "check": "off-grid",
+   "where": "section#questions > div:nth-of-type(2) > details:nth-of-type(1) > summary \"Who is Axyro for?\"",
+   "msg": "left edge at 36px, 16px off the page margin at 20px (65 elements, like a.landing-page-module__ohf9Fa__planLink); 9 more in this section off the grid too (summary at 36px, summary at 36px, summary at 36px, summary at 36px, ...)",
+   "fix": "move it onto the page margin, or the column edge its section uses",
+   "widths": [
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "off-grid"
+   ],
+   "wheres": [
+    "section#questions > div:nth-of-type(2) > details:nth-of-type(1) > summary \"Who is Axyro for?\""
+   ]
+  },
+  {
+   "check": "off-grid",
+   "where": "div.app-frame > footer.site-footer > nav:nth-of-type(1) > a:nth-of-type(1) \"Home\"",
+   "msg": "left edge at 16px, 4px off the page margin at 20px (65 elements, like aside.landing-page-module__ohf9Fa__credit)",
+   "fix": "move it onto the page margin, or the column edge its section uses",
+   "widths": [
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "off-grid"
+   ],
+   "wheres": [
+    "div.app-frame > footer.site-footer > nav:nth-of-type(1) > a:nth-of-type(1) \"Home\""
+   ]
+  },
+  {
+   "check": "off-grid",
+   "where": "div.app-frame > footer.site-footer > nav:nth-of-type(1) > a:nth-of-type(5) \"Activity\"",
+   "msg": "left edge at 16px, 4px off the page margin at 20px (65 elements, like aside.landing-page-module__ohf9Fa__credit)",
+   "fix": "move it onto the page margin, or the column edge its section uses",
+   "widths": [
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "off-grid"
+   ],
+   "wheres": [
+    "div.app-frame > footer.site-footer > nav:nth-of-type(1) > a:nth-of-type(5) \"Activity\""
+   ]
+  },
+  {
+   "check": "off-grid",
+   "where": "div.app-frame > footer.site-footer > nav:nth-of-type(2) > a:nth-of-type(1) \"Help\"",
+   "msg": "left edge at 16px, 4px off the page margin at 20px (65 elements, like aside.landing-page-module__ohf9Fa__credit)",
+   "fix": "move it onto the page margin, or the column edge its section uses",
+   "widths": [
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "off-grid"
+   ],
+   "wheres": [
+    "div.app-frame > footer.site-footer > nav:nth-of-type(2) > a:nth-of-type(1) \"Help\""
+   ]
+  },
+  {
+   "check": "edge-left",
+   "where": "#how-it-works p \"Follow the movement, timing and \"",
+   "msg": "starts at x 878; the lines are 120 and the column starts",
+   "fix": "start it on the .wrap left line",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "edge-left"
+   ],
+   "wheres": [
+    "#how-it-works p \"Follow the movement, timing and \""
+   ]
+  },
+  {
+   "check": "edge-left",
+   "where": "#how-it-works h3 \"Follow each movement\"",
+   "msg": "starts at x 770; the lines are 120 and the column starts",
+   "fix": "start it on the .wrap left line",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "edge-left"
+   ],
+   "wheres": [
+    "#how-it-works h3 \"Follow each movement\""
+   ]
+  },
+  {
+   "check": "edge-left",
+   "where": "#how-it-works p \"A clear movement reference and s\"",
+   "msg": "starts at x 770; the lines are 120 and the column starts",
+   "fix": "start it on the .wrap left line",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "edge-left"
+   ],
+   "wheres": [
+    "#how-it-works p \"A clear movement reference and s\""
+   ]
+  },
+  {
+   "check": "edge-left",
+   "where": "#how-it-works h3 \"Choose your audio guidance\"",
+   "msg": "starts at x 770; the lines are 120 and the column starts",
+   "fix": "start it on the .wrap left line",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "edge-left"
+   ],
+   "wheres": [
+    "#how-it-works h3 \"Choose your audio guidance\""
+   ]
+  },
+  {
+   "check": "edge-left",
+   "where": "#how-it-works p \"Optional countdown tones signal \"",
+   "msg": "starts at x 770; the lines are 120 and the column starts",
+   "fix": "start it on the .wrap left line",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "edge-left"
+   ],
+   "wheres": [
+    "#how-it-works p \"Optional countdown tones signal \""
+   ]
+  },
+  {
+   "check": "edge-left",
+   "where": "#how-it-works h3 \"Recover between intervals\"",
+   "msg": "starts at x 770; the lines are 120 and the column starts",
+   "fix": "start it on the .wrap left line",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "edge-left"
+   ],
+   "wheres": [
+    "#how-it-works h3 \"Recover between intervals\""
+   ]
+  },
+  {
+   "check": "edge-left",
+   "where": "#how-it-works p \"Work, side switches and recovery\"",
+   "msg": "starts at x 770; the lines are 120 and the column starts",
+   "fix": "start it on the .wrap left line",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "edge-left"
+   ],
+   "wheres": [
+    "#how-it-works p \"Work, side switches and recovery\""
+   ]
+  },
+  {
+   "check": "edge-left",
+   "where": "section.landing-page-module__ohf9Fa__personalSection p \"Your priorities, your available \"",
+   "msg": "starts at x 782.8; the lines are 120 and the column starts",
+   "fix": "start it on the .wrap left line",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "edge-left"
+   ],
+   "wheres": [
+    "section.landing-page-module__ohf9Fa__personalSection p \"Your priorities, your available \""
+   ]
+  },
+  {
+   "check": "edge-left",
+   "where": "section.landing-page-module__ohf9Fa__adaptSection h2 \"Match moved?Your plan can move t\"",
+   "msg": "starts at x 144; the lines are 120 and the column starts",
+   "fix": "start it on the .wrap left line",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "edge-left"
+   ],
+   "wheres": [
+    "section.landing-page-module__ohf9Fa__adaptSection h2 \"Match moved?Your plan can move t\""
+   ]
+  },
+  {
+   "check": "edge-left",
+   "where": "section.landing-page-module__ohf9Fa__adaptSection p \"You’re not locked into the week \"",
+   "msg": "starts at x 794.2; the lines are 120 and the column starts",
+   "fix": "start it on the .wrap left line",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "edge-left"
+   ],
+   "wheres": [
+    "section.landing-page-module__ohf9Fa__adaptSection p \"You’re not locked into the week \""
+   ]
+  },
+  {
+   "check": "edge-left",
+   "where": "section.landing-page-module__ohf9Fa__adaptSection p \"Update your dates in Refine your\"",
+   "msg": "starts at x 144; the lines are 120 and the column starts",
+   "fix": "start it on the .wrap left line",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "edge-left"
+   ],
+   "wheres": [
+    "section.landing-page-module__ohf9Fa__adaptSection p \"Update your dates in Refine your\""
+   ]
+  },
+  {
+   "check": "edge-left",
+   "where": "section.landing-page-module__ohf9Fa__access h3 \"Pro\"",
+   "msg": "starts at x 770; the lines are 120 and the column starts",
+   "fix": "start it on the .wrap left line",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "edge-left"
+   ],
+   "wheres": [
+    "section.landing-page-module__ohf9Fa__access h3 \"Pro\""
+   ]
+  },
+  {
+   "check": "edge-left",
+   "where": "section.landing-page-module__ohf9Fa__access p \"Train with the full library and \"",
+   "msg": "starts at x 770; the lines are 120 and the column starts",
+   "fix": "start it on the .wrap left line",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "edge-left"
+   ],
+   "wheres": [
+    "section.landing-page-module__ohf9Fa__access p \"Train with the full library and \""
+   ]
+  },
+  {
+   "check": "edge-left",
+   "where": "section.landing-page-module__ohf9Fa__closing h2 \"Prepare for your next match\"",
+   "msg": "starts at x 776; the lines are 120 and the column starts",
+   "fix": "start it on the .wrap left line",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "edge-left"
+   ],
+   "wheres": [
+    "section.landing-page-module__ohf9Fa__closing h2 \"Prepare for your next match\""
+   ]
+  },
+  {
+   "check": "edge-left",
+   "where": "section.landing-page-module__ohf9Fa__closing p \"Build the work behind your next \"",
+   "msg": "starts at x 776; the lines are 120 and the column starts",
+   "fix": "start it on the .wrap left line",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "edge-left"
+   ],
+   "wheres": [
+    "section.landing-page-module__ohf9Fa__closing p \"Build the work behind your next \""
+   ]
+  },
+  {
+   "check": "lines",
+   "where": "page",
+   "msg": "headings and leads start on 3 lines (x 120, 144, 776); the page has 120 and one split line",
+   "fix": "put the block on the .wrap lines or the grid columns",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "lines"
+   ],
+   "wheres": [
+    "page"
+   ]
+  },
+  {
+   "check": "screen-short",
+   "where": "section.wrap.landing-page-module__ohf9Fa__hero section.wrap.landing-page-module__ohf9Fa__hero \"You play padel. Do you train for\"",
+   "msg": "676px tall; one screen under the nav is 900px",
+   "fix": "make the section one full screen (--h: 1, layout-v4.md section 2)",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "layout",
+   "ids": [
+    "screen-short"
+   ],
+   "wheres": [
+    "section.wrap.landing-page-module__ohf9Fa__hero section.wrap.landing-page-module__ohf9Fa__hero \"You play padel. Do you train for\""
+   ]
+  },
+  {
+   "check": "screen-short",
+   "where": "#why-axyro section.landing-page-module__ohf9Fa__matchDemand \"Train the step before the shot.W\"",
+   "msg": "855px tall; one screen under the nav is 900px",
+   "fix": "make the section one full screen (--h: 1, layout-v4.md section 2)",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "screen-short",
+    "screen-height"
+   ],
+   "wheres": [
+    "#why-axyro section.landing-page-module__ohf9Fa__matchDemand \"Train the step before the shot.W\""
+   ]
+  },
+  {
+   "check": "screen-height",
+   "where": "#how-it-works section.landing-page-module__ohf9Fa__story \"Guidance through every sessionFo\"",
+   "msg": "1094px, 1.22 screens; a section is exactly one or two (--h)",
+   "fix": "make the section exactly one or two screens (--h: 1 or 2)",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "screen-height"
+   ],
+   "wheres": [
+    "#how-it-works section.landing-page-module__ohf9Fa__story \"Guidance through every sessionFo\""
+   ]
+  },
+  {
+   "check": "screen-short",
+   "where": "section.landing-page-module__ohf9Fa__personalSection section.landing-page-module__ohf9Fa__personalSection \"60 days of trainingaround your s\"",
+   "msg": "848px tall; one screen under the nav is 900px",
+   "fix": "make the section one full screen (--h: 1, layout-v4.md section 2)",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "screen-short"
+   ],
+   "wheres": [
+    "section.landing-page-module__ohf9Fa__personalSection section.landing-page-module__ohf9Fa__personalSection \"60 days of trainingaround your s\""
+   ]
+  },
+  {
+   "check": "screen-height",
+   "where": "section.landing-page-module__ohf9Fa__personalSection section.landing-page-module__ohf9Fa__personalSection \"60 days of trainingaround your s\"",
+   "msg": "848px, 0.94 screens; a section is exactly one or two (--h)",
+   "fix": "make the section exactly one or two screens (--h: 1 or 2)",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "layout",
+   "ids": [
+    "screen-height"
+   ],
+   "wheres": [
+    "section.landing-page-module__ohf9Fa__personalSection section.landing-page-module__ohf9Fa__personalSection \"60 days of trainingaround your s\""
+   ]
+  },
+  {
+   "check": "neighbour",
+   "where": "section.landing-page-module__ohf9Fa__personalSection section.landing-page-module__ohf9Fa__personalSection \"60 days of trainingaround your s\"",
+   "msg": "framed, 28px of section.landing-page-module__ohf9Fa__adaptSection section.landing-page-module__ohf9Fa__adaptSection \"Match moved?Your plan can move t\" shows",
+   "fix": "keep the next section's heading and picture out of this screen",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "neighbour"
+   ],
+   "wheres": [
+    "section.landing-page-module__ohf9Fa__personalSection section.landing-page-module__ohf9Fa__personalSection \"60 days of trainingaround your s\""
+   ]
+  },
+  {
+   "check": "screen-short",
+   "where": "section.landing-page-module__ohf9Fa__adaptSection section.landing-page-module__ohf9Fa__adaptSection \"Match moved?Your plan can move t\"",
+   "msg": "601px tall; one screen under the nav is 900px",
+   "fix": "make the section one full screen (--h: 1, layout-v4.md section 2)",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "screen-short"
+   ],
+   "wheres": [
+    "section.landing-page-module__ohf9Fa__adaptSection section.landing-page-module__ohf9Fa__adaptSection \"Match moved?Your plan can move t\""
+   ]
+  },
+  {
+   "check": "screen-height",
+   "where": "section.landing-page-module__ohf9Fa__adaptSection section.landing-page-module__ohf9Fa__adaptSection \"Match moved?Your plan can move t\"",
+   "msg": "601px, 0.67 screens; a section is exactly one or two (--h)",
+   "fix": "make the section exactly one or two screens (--h: 1 or 2)",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "screen-height"
+   ],
+   "wheres": [
+    "section.landing-page-module__ohf9Fa__adaptSection section.landing-page-module__ohf9Fa__adaptSection \"Match moved?Your plan can move t\""
+   ]
+  },
+  {
+   "check": "neighbour",
+   "where": "section.landing-page-module__ohf9Fa__adaptSection section.landing-page-module__ohf9Fa__adaptSection \"Match moved?Your plan can move t\"",
+   "msg": "framed, 142px of #exercise-library section.landing-page-module__ohf9Fa__librarySection \"Learn each movementwith clear te\" shows",
+   "fix": "keep the next section's heading and picture out of this screen",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "neighbour"
+   ],
+   "wheres": [
+    "section.landing-page-module__ohf9Fa__adaptSection section.landing-page-module__ohf9Fa__adaptSection \"Match moved?Your plan can move t\""
+   ]
+  },
+  {
+   "check": "screen-short",
+   "where": "section.landing-page-module__ohf9Fa__editorSection section.landing-page-module__ohf9Fa__editorSection \"Adjust the workoutto your priori\"",
+   "msg": "593px tall; one screen under the nav is 900px",
+   "fix": "make the section one full screen (--h: 1, layout-v4.md section 2)",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "screen-short"
+   ],
+   "wheres": [
+    "section.landing-page-module__ohf9Fa__editorSection section.landing-page-module__ohf9Fa__editorSection \"Adjust the workoutto your priori\""
+   ]
+  },
+  {
+   "check": "screen-height",
+   "where": "section.landing-page-module__ohf9Fa__editorSection section.landing-page-module__ohf9Fa__editorSection \"Adjust the workoutto your priori\"",
+   "msg": "593px, 0.66 screens; a section is exactly one or two (--h)",
+   "fix": "make the section exactly one or two screens (--h: 1 or 2)",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "screen-height"
+   ],
+   "wheres": [
+    "section.landing-page-module__ohf9Fa__editorSection section.landing-page-module__ohf9Fa__editorSection \"Adjust the workoutto your priori\""
+   ]
+  },
+  {
+   "check": "neighbour",
+   "where": "section.landing-page-module__ohf9Fa__editorSection section.landing-page-module__ohf9Fa__editorSection \"Adjust the workoutto your priori\"",
+   "msg": "framed, 81px of section.landing-page-module__ohf9Fa__access section.landing-page-module__ohf9Fa__access \"Choose how you trainFreeTry one \" shows",
+   "fix": "keep the next section's heading and picture out of this screen",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "neighbour"
+   ],
+   "wheres": [
+    "section.landing-page-module__ohf9Fa__editorSection section.landing-page-module__ohf9Fa__editorSection \"Adjust the workoutto your priori\""
+   ]
+  },
+  {
+   "check": "screen-short",
+   "where": "section.landing-page-module__ohf9Fa__access section.landing-page-module__ohf9Fa__access \"Choose how you trainFreeTry one \"",
+   "msg": "600px tall; one screen under the nav is 900px",
+   "fix": "make the section one full screen (--h: 1, layout-v4.md section 2)",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "layout",
+   "ids": [
+    "screen-short"
+   ],
+   "wheres": [
+    "section.landing-page-module__ohf9Fa__access section.landing-page-module__ohf9Fa__access \"Choose how you trainFreeTry one \""
+   ]
+  },
+  {
+   "check": "screen-height",
+   "where": "section.landing-page-module__ohf9Fa__access section.landing-page-module__ohf9Fa__access \"Choose how you trainFreeTry one \"",
+   "msg": "600px, 0.67 screens; a section is exactly one or two (--h)",
+   "fix": "make the section exactly one or two screens (--h: 1 or 2)",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "layout",
+   "ids": [
+    "screen-height"
+   ],
+   "wheres": [
+    "section.landing-page-module__ohf9Fa__access section.landing-page-module__ohf9Fa__access \"Choose how you trainFreeTry one \""
+   ]
+  },
+  {
+   "check": "neighbour",
+   "where": "section.landing-page-module__ohf9Fa__access section.landing-page-module__ohf9Fa__access \"Choose how you trainFreeTry one \"",
+   "msg": "framed, 85px of #questions section.landing-page-module__ohf9Fa__faq \"Questionsbefore you startExplore\" shows",
+   "fix": "keep the next section's heading and picture out of this screen",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "layout",
+   "ids": [
+    "neighbour"
+   ],
+   "wheres": [
+    "section.landing-page-module__ohf9Fa__access section.landing-page-module__ohf9Fa__access \"Choose how you trainFreeTry one \""
+   ]
+  },
+  {
+   "check": "screen-height",
+   "where": "#questions section.landing-page-module__ohf9Fa__faq \"Questionsbefore you startExplore\"",
+   "msg": "1070px, 1.19 screens; a section is exactly one or two (--h)",
+   "fix": "make the section exactly one or two screens (--h: 1 or 2)",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "screen-height"
+   ],
+   "wheres": [
+    "#questions section.landing-page-module__ohf9Fa__faq \"Questionsbefore you startExplore\""
+   ]
+  },
+  {
+   "check": "screen-short",
+   "where": "section.landing-page-module__ohf9Fa__closing section.landing-page-module__ohf9Fa__closing \"Prepare for your next matchBuild\"",
+   "msg": "460px tall; one screen under the nav is 900px",
+   "fix": "make the section one full screen (--h: 1, layout-v4.md section 2)",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "layout",
+   "ids": [
+    "screen-short"
+   ],
+   "wheres": [
+    "section.landing-page-module__ohf9Fa__closing section.landing-page-module__ohf9Fa__closing \"Prepare for your next matchBuild\""
+   ]
+  },
+  {
+   "check": "screen-height",
+   "where": "section.landing-page-module__ohf9Fa__closing section.landing-page-module__ohf9Fa__closing \"Prepare for your next matchBuild\"",
+   "msg": "460px, 0.51 screens; a section is exactly one or two (--h)",
+   "fix": "make the section exactly one or two screens (--h: 1 or 2)",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "layout",
+   "ids": [
+    "screen-height"
+   ],
+   "wheres": [
+    "section.landing-page-module__ohf9Fa__closing section.landing-page-module__ohf9Fa__closing \"Prepare for your next matchBuild\""
+   ]
+  },
+  {
+   "check": "hero-fold",
+   "where": "section.wrap.landing-page-module__ohf9Fa__hero section.wrap.landing-page-module__ohf9Fa__hero \"You play padel. Do you train for\"",
+   "msg": "starts at y 104, not under the nav",
+   "fix": "the hero fills the first screen alone, its button inside it",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "layout",
+   "ids": [
+    "hero-fold"
+   ],
+   "wheres": [
+    "section.wrap.landing-page-module__ohf9Fa__hero section.wrap.landing-page-module__ohf9Fa__hero \"You play padel. Do you train for\""
+   ]
+  },
+  {
+   "check": "neighbour",
+   "where": "#how-it-works section.landing-page-module__ohf9Fa__story \"Guidance through every sessionFo\"",
+   "msg": "framed, 106px of section.landing-page-module__ohf9Fa__personalSection section.landing-page-module__ohf9Fa__personalSection \"60 days of trainingaround your s\" shows",
+   "fix": "keep the next section's heading and picture out of this screen",
+   "widths": [
+    390
+   ],
+   "from": "layout",
+   "ids": [
+    "neighbour"
+   ],
+   "wheres": [
+    "#how-it-works section.landing-page-module__ohf9Fa__story \"Guidance through every sessionFo\""
+   ]
+  }
+ ],
+ "waived": [],
+ "warnCount": 36,
+ "at": "2026-11-22T09:54:26.204Z",
+ "openTold": true
+}

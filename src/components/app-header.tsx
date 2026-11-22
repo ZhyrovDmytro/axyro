@@ -1,11 +1,11 @@
 "use client";
 
 import { Popover } from "@base-ui/react/popover";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth/auth-provider";
-import { PaywallLink } from "@/components/membership/paywall-modal";
 import { UiIcon } from "@/components/ui-icon";
 
 const primaryLinks = [
@@ -13,7 +13,7 @@ const primaryLinks = [
   { href: "/plan", label: "Plan" },
   { href: "/workouts", label: "Workouts" },
   { href: "/exercises", label: "Library" },
-  { href: "/activity", label: "Activity" },
+  { href: "/rehub", label: "Rehub" },
 ] as const;
 
 export function AppHeader() {
@@ -58,16 +58,7 @@ export function AppHeader() {
         }
       },
     };
-    return link.href === "/activity" ? (
-      <PaywallLink
-        {...props}
-        key={link.href}
-        context="progress"
-        returnTo={link.href}
-      />
-    ) : (
-      <Link {...props} key={link.href} />
-    );
+    return <Link {...props} key={link.href} />;
   });
 
   return (
@@ -79,9 +70,7 @@ export function AppHeader() {
           aria-label="Axyro home"
           onClick={() => setMenuOpen(false)}
         >
-          <span className="brand-mark" aria-hidden="true">
-            A
-          </span>
+          <Image src="/images/axyro-mark.png" alt="" width={32} height={32} unoptimized />
           <span>Axyro</span>
         </Link>
         <Popover.Trigger

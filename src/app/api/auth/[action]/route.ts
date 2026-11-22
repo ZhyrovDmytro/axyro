@@ -206,14 +206,22 @@ export async function POST(
       return json({ ok: true });
     }
     if (!session) return json({ error: "Sign in to continue" }, 401);
+    if (
+      ["profile", "password", "delete"].includes(action) &&
+      (developmentAdminEnabled() || session.user.role === "admin")
+    )
+      return json(
+        {
+          error:
+            "Account changes are disabled in development and for administrators.",
+        },
+        403,
+      );
     if (action === "password") {
       const input = passwordChange.parse(body);
       const limited = await enforceRateLimit("auth-password", session.user.id);
       if (limited) return limited;
-      if (
-        session.user.isDevelopmentAdmin ||
-        !session.user.providers.includes("email")
-      )
+      if (!session.user.providers.includes("email"))
         return json(
           { error: "Manage credentials with your sign-in provider" },
           400,
@@ -241,8 +249,6 @@ export async function POST(
       const input = z
         .object({ displayName: z.string().trim().min(1).max(100) })
         .parse(body);
-      if (session.user.isDevelopmentAdmin)
-        return json({ error: "Development account profile is fixed" }, 400);
       await supabaseRequest(`/rest/v1/profiles?user_id=eq.${session.user.id}`, {
         method: "PATCH",
         token: session.accessToken,
@@ -257,15 +263,13 @@ export async function POST(
       z.object({ confirmation: z.literal("DELETE") }).parse(body);
       const limited = await enforceRateLimit("auth-delete", session.user.id);
       if (limited) return limited;
-      if (!session.user.isDevelopmentAdmin) {
-        const { cancelBillingForUser } =
-          await import("@/services/billing/server");
-        await cancelBillingForUser(session.user.id);
-        await supabaseRequest(`/auth/v1/admin/users/${session.user.id}`, {
-          method: "DELETE",
-          admin: true,
-        });
-      }
+      const { cancelBillingForUser } =
+        await import("@/services/billing/server");
+      await cancelBillingForUser(session.user.id);
+      await supabaseRequest(`/auth/v1/admin/users/${session.user.id}`, {
+        method: "DELETE",
+        admin: true,
+      });
       await clearSession();
       return json({ ok: true });
     }

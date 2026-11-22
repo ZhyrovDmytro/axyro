@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { supportEmail } from "@/lib/publishing";
 import { PrivacyDataSettings } from "@/components/settings/privacy-data-settings";
 
 export const metadata: Metadata = {
@@ -9,5 +10,5 @@ export const metadata: Metadata = {
 };
 
 export default function SettingsPage() {
-  return <PrivacyDataSettings />;
+  return <PrivacyDataSettings supportEmail={supportEmail} />;
 }

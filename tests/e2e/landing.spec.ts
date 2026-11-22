@@ -16,7 +16,7 @@ for (const width of [320, 1280]) {
       name: "Prepare for your next match",
     });
     await expect(
-      closing.getByRole("link", { name: "Create my plan", exact: true }),
+      closing.getByRole("link", { name: "Create your plan", exact: true }),
     ).toHaveAttribute("href", "/plan/setup");
     await expect(
       closing.getByRole("link", { name: "Try a free workout first" }),
@@ -77,7 +77,7 @@ test("cold homepage includes the free workout link before JavaScript starts", as
   try {
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-      "Train anywhere. Win on court.",
+      "Play better padel. Train beyond the court.",
     );
     await expect(
       page.getByRole("link", { name: "Try a free workout first" }).first(),
@@ -92,17 +92,18 @@ test("guest landing offers a working free workout and accessible preview", async
 }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "Train anywhere. Win on court.",
+    "Play better padel. Train beyond the court.",
   );
   await openNavigation(page);
   await expect(
     page.getByRole("navigation", { name: "Primary navigation" }),
   ).toBeVisible();
   for (const link of await page
-    .getByRole("link", { name: "Create my plan", exact: true })
+    .getByRole("link", { name: "Create your plan", exact: true })
     .all()) {
     await expect(link).toHaveAttribute("href", "/plan/setup");
   }
+  await page.locator("#why-axyro").scrollIntoViewIfNeeded();
   await expect(
     page.getByLabel("Standing Dumbbell Wood Chop movement demonstration", { exact: true }),
   ).toBeVisible();
@@ -241,6 +242,7 @@ test("hero rotates exercises and pause holds the current poster", async ({
   await page.clock.install();
   await page.goto("/");
   const demo = page.locator('[class*="heroImage"]');
+  await demo.scrollIntoViewIfNeeded();
   await expect(
     page.getByRole("button", { name: "Pause preview" }),
   ).toBeVisible();
@@ -287,6 +289,7 @@ test("hero does not auto-rotate with reduced motion or while offscreen", async (
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   const demo = page.locator('[class*="heroImage"]');
+  await demo.scrollIntoViewIfNeeded();
   await expect(
     page.getByRole("button", { name: "Play movement" }),
   ).toBeVisible();
@@ -335,7 +338,7 @@ test("Fancy preview selection is keyboard accessible and holds the selected post
     page.getByRole("button", { name: "Play movement", exact: true }),
   ).toBeVisible();
   const plan = page
-    .getByRole("link", { name: "Create my plan", exact: true })
+    .getByRole("link", { name: "Create your plan", exact: true })
     .first();
   await plan.focus();
   expect(await plan.evaluate((el) => getComputedStyle(el).transform)).toBe(
@@ -348,6 +351,7 @@ for (const width of [320, 1280]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/");
     const items = page.locator("#questions details");
+    await expect(items).toHaveCount(5);
     await expect(items.first()).toBeVisible();
     for (const item of await items.all()) {
       const answer = item.locator("p");
@@ -369,3 +373,13 @@ for (const width of [320, 1280]) {
     ).toBe(true);
   });
 }
+
+test("court film respects reduced motion and can be played and paused", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  const play = page.getByRole("button", { name: "Play court film" });
+  await expect(play).toBeVisible();
+  await play.click();
+  await page.getByRole("button", { name: "Pause court film" }).click();
+  await expect(play).toBeFocused();
+});

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata, Viewport } from "next";
 
 import { AuthProvider } from "@/components/auth/auth-provider";
@@ -11,7 +12,7 @@ import {
 
 import { AppHeader } from "@/components/app-header";
 
-import { publicOrigin } from "@/lib/publishing";
+import { publicOrigin, supportEmail } from "@/lib/publishing";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -22,7 +23,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#111111",
+  themeColor: "#111412",
 };
 
 export default function RootLayout({
@@ -43,6 +44,27 @@ export default function RootLayout({
                 <div id="main-content" tabIndex={-1}>
                   <AccountContent>{children}</AccountContent>
                 </div>
+                <footer className="site-footer">
+                  <div className="site-footer__intro">
+                    <strong>Axyro</strong>
+                    <p>Guided home workouts for padel.</p>
+                    <small>© {new Date().getFullYear()} Axyro</small>
+                  </div>
+                  <nav aria-label="Footer navigation">
+                    <Link href="/">Home</Link>
+                    <Link href="/plan">Training plan</Link>
+                    <Link href="/workouts">Workouts</Link>
+                    <Link href="/exercises">Exercise library</Link>
+                    <Link href="/account">Account</Link>
+                    <Link href="/settings">Settings</Link>
+                  </nav>
+                  <nav aria-label="Support and legal">
+                    <Link href="/help">Help</Link>
+                    <a href={`mailto:${supportEmail}`}>{supportEmail}</a>
+                    <Link href="/privacy">Privacy</Link>
+                    <Link href="/terms">Terms</Link>
+                  </nav>
+                </footer>
               </div>
             </EntitlementProvider>
           </AuthProvider>

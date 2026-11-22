@@ -7,7 +7,7 @@ import { exercises } from "@/content/exercises";
 import { UiIcon } from "@/components/ui-icon";
 import styles from "./landing-page.module.css";
 
-const selection = [
+const editorSelection = [
   ["split-stance-acceleration-march", "march-preview.png", "First-step drive"],
   [
     "standing-dumbbell-wood-chop",
@@ -24,9 +24,44 @@ const selection = [
   benefit,
 }));
 
+const trainingAreas = [
+  ["lateral-stick", "Leg strength", "Land in balance after a wide volley."],
+  [
+    "wall-slide-lift-off",
+    "Overhead mobility",
+    "Reach up for a bandeja with control.",
+  ],
+  [
+    "split-step-lateral-drive",
+    "Change of direction",
+    "Push off for the next ball after a split step.",
+  ],
+  [
+    "side-plank-rotation",
+    "Core stability",
+    "Stay steady as you turn into a forehand.",
+  ],
+  [
+    "intermittent-lateral-shuffle",
+    "Conditioning",
+    "Repeat short lateral efforts for a long rally.",
+  ],
+  [
+    "open-book-rotation",
+    "Recovery and mobility",
+    "Ease into rotation between match days.",
+  ],
+].map(([id, title, benefit]) => ({
+  exercise: exercises.find((item) => item.id === id)!,
+  title,
+  benefit,
+}));
+
 export function LibraryAndEditor() {
   const [added, setAdded] = useState(false);
-  const editorItems = added ? selection.slice(0, 3) : selection.slice(0, 2);
+  const editorItems = added
+    ? editorSelection.slice(0, 3)
+    : editorSelection.slice(0, 2);
   return (
     <>
       <section
@@ -53,41 +88,20 @@ export function LibraryAndEditor() {
         </div>
         <div className={styles.libraryTeaser}>
           <div className={styles.libraryGrid}>
-            {selection.map(({ exercise, image, benefit }) => (
+            {trainingAreas.map(({ exercise, title, benefit }) => (
               <article className={styles.librarySample} key={exercise.id}>
                 <div>
                   <Image
-                    src={`/images/landing/${image}`}
+                    src={exercise.media.firstFrameUri!}
                     alt={`${exercise.name} reference`}
                     fill
                     sizes="(max-width: 760px) 90vw, 30vw"
                   />
                 </div>
-                <span>{benefit}</span>
-                <h3>{exercise.name}</h3>
+                <h3>{title}</h3>
+                <p>{benefit}</p>
               </article>
             ))}
-          </div>
-          <div className={styles.libraryContinuation}>
-            <div
-              className={`${styles.libraryGrid} library-overflow`}
-              aria-hidden="true"
-            >
-              <span />
-              <span />
-              <span />
-            </div>
-            <div className={styles.libraryFade}>
-              <strong>
-                More ways to prepare.
-                <br />
-                One plan built around you.
-              </strong>
-              <Link href="/plan/setup" className={styles.cta}>
-                Create my plan <UiIcon name="arrow-right" />
-              </Link>
-              <span>Full exercise library included with Pro.</span>
-            </div>
           </div>
         </div>
       </section>
@@ -158,7 +172,7 @@ export function LibraryAndEditor() {
                     <strong>{exercise.name}</strong>
                     <span>2 rounds · 30s work · 20s rest</span>
                   </div>
-                  {exercise.id === selection[2].exercise.id && (
+                  {exercise.id === editorSelection[2].exercise.id && (
                     <button
                       type="button"
                       aria-label="Remove side plank from example"

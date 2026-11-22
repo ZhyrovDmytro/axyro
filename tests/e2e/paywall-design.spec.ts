@@ -135,9 +135,11 @@ for (const width of [320, 390, 1280]) {
     const search = page.getByRole("searchbox");
     await search.fill("shoulder");
     await expect(page).toHaveURL(/\/exercises\?q=shoulder$/);
-    await openNavigation(page);
-    const nav = page.getByRole("navigation", { name: "Primary navigation" });
-    await nav.getByRole("link", { name: "Activity", exact: true }).click();
+    const trigger = page.getByRole("link", {
+      name: "Explore Pro",
+      exact: true,
+    });
+    await trigger.click();
     const modal = page.getByRole("dialog", { name: "Axyro Pro membership" });
     await expect(modal).toBeVisible();
     await expect(page).toHaveURL(/\/exercises(?:\?q=shoulder)?$/);
@@ -179,15 +181,11 @@ for (const width of [320, 390, 1280]) {
     });
     await page.keyboard.press("Escape");
     await expect(modal).toHaveCount(0);
-    await expect(
-      width < 768
-        ? page.getByRole("button", { name: "Menu", exact: true })
-        : nav.getByRole("link", { name: "Activity", exact: true }),
-    ).toBeFocused();
+    await expect(trigger).toBeFocused();
     await expect(search).toHaveValue("shoulder");
     expect(await page.evaluate(() => document.body.style.overflow)).toBe("");
-    await openNavigation(page);
-    await nav.getByRole("link", { name: "Activity", exact: true }).click();
+    await page.goto("/settings");
+    await page.getByRole("link", { name: "Activity", exact: true }).click();
     await expect(
       modal.getByRole("heading", {
         name: "Unlock your full training progress",
@@ -195,6 +193,7 @@ for (const width of [320, 390, 1280]) {
     ).toBeVisible();
     await page.mouse.click(2, 2);
     await expect(modal).toHaveCount(0);
+    await page.goto("/exercises");
     await page
       .locator(".library-invitation")
       .getByRole("link", { name: "Explore Pro", exact: true })
@@ -217,10 +216,9 @@ test("Pro members navigate to Plan and Activity without a paywall", async ({
   await page.route("**/api/billing/status", (route) =>
     route.fulfill({ json: { hasPro: true, subscription: null } }),
   );
-  await page.goto("/exercises");
-  await openNavigation(page);
+  await page.goto("/settings");
   const nav = page.getByRole("navigation", { name: "Primary navigation" });
-  await nav.getByRole("link", { name: "Activity", exact: true }).click();
+  await page.getByRole("link", { name: "Activity", exact: true }).click();
   await expect(page).toHaveURL(/\/activity$/);
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await openNavigation(page);
@@ -240,12 +238,8 @@ test("a pending Pro check continues to the requested page without flashing offer
     await ready;
     await route.fulfill({ json: { hasPro: true, subscription: null } });
   });
-  await page.goto("/exercises");
-  await openNavigation(page);
-  await page
-    .getByRole("navigation", { name: "Primary navigation" })
-    .getByRole("link", { name: "Activity", exact: true })
-    .click();
+  await page.goto("/settings");
+  await page.getByRole("link", { name: "Activity", exact: true }).click();
   const modal = page.getByRole("dialog");
   await expect(page).toHaveURL(/\/activity$/);
   await expect(page.getByRole("main")).toHaveAttribute("aria-busy", "true");
@@ -289,11 +283,8 @@ test("unavailable memberships have a visible close control in a smaller desktop 
   await page.route("**/api/billing/products", (route) =>
     route.fulfill({ json: { products: [] } }),
   );
-  await page.goto("/exercises");
-  await openNavigation(page);
-  const trigger = page
-    .getByRole("navigation", { name: "Primary navigation" })
-    .getByRole("link", { name: "Activity", exact: true });
+  await page.goto("/settings");
+  const trigger = page.getByRole("link", { name: "Activity", exact: true });
   await trigger.click();
   const modal = page.getByRole("dialog", { name: "Axyro Pro membership" });
   await expect(modal.getByRole("alert")).toContainText(
@@ -308,5 +299,5 @@ test("unavailable memberships have a visible close control in a smaller desktop 
   await close.click();
   await expect(modal).toHaveCount(0);
   await expect(trigger).toBeFocused();
-  await expect(page).toHaveURL(/\/exercises$/);
+  await expect(page).toHaveURL(/\/settings$/);
 });

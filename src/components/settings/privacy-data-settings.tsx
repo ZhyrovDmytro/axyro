@@ -1,5 +1,6 @@
 "use client";
 
+import { PaywallLink } from "@/components/membership/paywall-modal";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/auth-provider";
 import { useRouter } from "next/navigation";
@@ -20,11 +21,12 @@ import { createBrowserUserDataService } from "@/services/persistence/user-data-s
 
 type Confirmation = "reset" | "delete" | null;
 
-export function PrivacyDataSettings() {
+export function PrivacyDataSettings({ supportEmail }: { supportEmail: string }) {
   const { user } = useAuth();
-  const trainingDataLocation = user && !user.isDevelopmentAdmin
-    ? "from this device and your synced account data"
-    : "from this device";
+  const trainingDataLocation =
+    user && !user.isDevelopmentAdmin
+      ? "from this device and your synced account data"
+      : "from this device";
   const router = useRouter();
   const { plan, profile, ready: planReady, setPlan } = useTrainingPlan();
   const activePlan = plan && plan.endDate >= toDateKey(new Date());
@@ -84,7 +86,7 @@ export function PrivacyDataSettings() {
     }
     setActionError(null);
     setConfirmation(null);
-    router.replace("/plan/setup");
+    router.replace(user ? "/plan/setup" : "/");
     router.refresh();
   }
 
@@ -99,6 +101,26 @@ export function PrivacyDataSettings() {
             : "Your preferences save on this device."}
         </p>
       </header>
+
+      {user && (
+        <section className="context-card">
+          <h2>Workout history</h2>
+          <PaywallLink className="text-link" href="/activity" context="progress" returnTo="/activity">
+            Activity
+          </PaywallLink>
+        </section>
+      )}
+
+      <section className="context-card">
+        <h2>About Axyro</h2>
+        <p>
+          Guided home workouts for padel. Try one complete starter workout free.
+          Axyro Pro includes personalized plans and the full exercise library.
+        </p>
+        <p>
+          Questions? Email <a className="text-link" href={`mailto:${supportEmail}`}>{supportEmail}</a>.
+        </p>
+      </section>
 
       {actionError && (
         <p className="form-error" role="alert">
@@ -184,31 +206,32 @@ export function PrivacyDataSettings() {
           ))}
         </div>
         <p>{intensityPresets[preferredIntensity].description}</p>
-        {activePlan ? (
-          <p>
-            <Link className="text-link" href="/plan/refine?change=duration">
-              Change session length
-            </Link>
-            {" · "}
-            {plan.profile.sessionDurationMinutes} min
-          </p>
-        ) : (
-          <fieldset
-            className="setting-fieldset"
-            disabled={!planReady || !profile}
-          >
-            <legend className="sr-only">Default session length</legend>
-            <DurationOptions
-              legend="Default session length"
-              value={
-                savedDuration ??
-                parseDailyDuration(profile?.sessionDurationMinutes)
-              }
-              onChange={changeDuration}
-            />
-          </fieldset>
-        )}
-        {!profile && planReady && (
+        {user &&
+          (activePlan ? (
+            <p>
+              <Link className="text-link" href="/plan/refine?change=duration">
+                Change session length
+              </Link>
+              {" · "}
+              {plan.profile.sessionDurationMinutes} min
+            </p>
+          ) : (
+            <fieldset
+              className="setting-fieldset"
+              disabled={!planReady || !profile}
+            >
+              <legend className="sr-only">Default session length</legend>
+              <DurationOptions
+                legend="Default session length"
+                value={
+                  savedDuration ??
+                  parseDailyDuration(profile?.sessionDurationMinutes)
+                }
+                onChange={changeDuration}
+              />
+            </fieldset>
+          ))}
+        {user && !profile && planReady && (
           <p>
             <Link className="text-link" href="/plan/setup">
               Set up your plan
@@ -221,59 +244,60 @@ export function PrivacyDataSettings() {
 
       <section className="context-card">
         <h2>Data storage</h2>
-        <p>
-          Your account saves your profile, plan, workout history, preferences
-          and active progress, with a separate copy on this device. Guest
-          workouts are saved on this device.
-        </p>
-        <p>
-          Supabase stores account and training data. Stripe manages
-          subscriptions. Optional AI planning sends setup answers and an
-          adaptation profile to OpenAI through our server. Axyro has no
-          advertising or analytics integration.
-        </p>
-        <p>
-          Optional discomfort information is used only to avoid affected
-          exercise loading and automatic progression. Axyro does not diagnose or
-          treat pain.
-        </p>
+        {user && !user.isDevelopmentAdmin ? (
+          <>
+            <p>
+              Your account saves your profile, plan, workout history,
+              preferences and active progress, with a separate copy on this
+              device.
+            </p>
+            <p>
+              Supabase stores account and training data. Stripe manages
+              subscriptions. Optional AI planning sends setup answers and an
+              adaptation profile to OpenAI through our server. Axyro has no
+              advertising or analytics integration.
+            </p>
+            <p>
+              Optional discomfort information is used only to avoid affected
+              exercise loading and automatic progression. Axyro does not
+              diagnose or treat pain.
+            </p>
+          </>
+        ) : (
+          <p>Your workout history and preferences are stored on this device.</p>
+        )}
         <Link className="text-link" href="/privacy">
           Read the privacy notice
         </Link>
       </section>
 
-      <section className="context-card">
-        <h2>About Axyro</h2>
-        <p>
-          Guided home workouts for padel. Try one complete starter workout free.
-          Axyro Pro includes personalized plans and the full exercise library.
-        </p>
-      </section>
-
-      <section className="context-card">
-        <h2>Reset training plan</h2>
-        <p>
-          Removes the current and upcoming plan and any active workout. Your
-          saved profile, completed workout history, feedback, and preferences
-          remain available.
-        </p>
-        <button
-          className="button button--secondary"
-          type="button"
-          onClick={() => {
-            setActionError(null);
-            setConfirmation("reset");
-          }}
-        >
-          Reset training plan
-        </button>
-      </section>
+      {user && plan && (
+        <section className="context-card">
+          <h2>Reset training plan</h2>
+          <p>
+            Removes the current and upcoming plan and any active workout. Your
+            saved profile, completed workout history, feedback, and preferences
+            remain available.
+          </p>
+          <button
+            className="button button--secondary"
+            type="button"
+            onClick={() => {
+              setActionError(null);
+              setConfirmation("reset");
+            }}
+          >
+            Reset training plan
+          </button>
+        </section>
+      )}
 
       <section className="context-card">
         <h2>Delete all my data</h2>
         <p>
-          Deletes your training profile, plans, history, feedback, preferences,
-          and active workout {trainingDataLocation}.
+          {user
+            ? `Deletes your training profile, plans, history, feedback, preferences, and active workout ${trainingDataLocation}.`
+            : "Clears your workout data and preferences from this device."}
         </p>
         <button
           className="text-button text-button--danger"
@@ -306,7 +330,9 @@ export function PrivacyDataSettings() {
             <p>
               {confirmation === "reset"
                 ? "This removes your current and upcoming plan. Your completed workout history and saved profile stay available."
-                : `This permanently removes your training profile, plans, workout history, feedback, preferences, and active workout ${trainingDataLocation}.`}
+                : !user
+                  ? "This permanently clears your workout data and preferences from this device."
+                  : `This permanently removes your training profile, plans, workout history, feedback, preferences, and active workout ${trainingDataLocation}.`}
             </p>
             <div className="button-row">
               <button

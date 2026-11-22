@@ -53,7 +53,7 @@ preview generation does not bypass those authorization checks.
 
 ## Screens
 
-`/signin`, `/signup`, `/forgot-password`, `/reset-password`, `/account`, `/upgrade`, `/terms`. Existing workout/plan/library screens retain their visual patterns. Account provides name editing, membership management, password controls only for email accounts, logout and explicit destructive deletion. The header account control links to these settings; workout settings remain at `/settings`.
+`/signin`, `/signup`, `/forgot-password`, `/reset-password`, `/account`, `/upgrade`, `/terms`. Existing workout/plan/library screens retain their visual patterns. Account provides name editing, membership management, a Change password button that opens a modal form for email accounts, logout and explicit destructive deletion. The header account control links to these settings; workout settings remain at `/settings`.
 
 ## Development and launch
 
@@ -155,3 +155,5 @@ the route retains its access prompt. The generated-plan activation offer remains
 other Plan invitations do not incorrectly claim a plan has already been created.
 Account/legal/free-workout links and browser navigation remain available. Pro
 accounts and trusted admin overrides retain full access.
+
+Signed-in development sessions and administrators can inspect the account forms, including password change and deletion confirmation. Final profile, password and deletion submissions are disabled and rejected by the account API. Sign-out remains available.

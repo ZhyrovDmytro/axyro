@@ -26,7 +26,7 @@ test("filter changes reset pagination and can be reset from the search panel", a
   await expect(page).toHaveURL(/\/exercises$/);
 });
 
-test("keyboard users can skip navigation and reach Activity", async ({
+test("keyboard users can skip navigation and reach the library", async ({
   page,
 }) => {
   await page.goto("/workouts");
@@ -41,12 +41,9 @@ test("keyboard users can skip navigation and reach Activity", async ({
   await openNavigation(page);
   await page
     .getByRole("navigation", { name: "Primary navigation" })
-    .getByRole("link", { name: "Activity" })
+    .getByRole("link", { name: "Library" })
     .press("Enter");
-  await expect(
-    page.getByRole("dialog", { name: "Sign in to continue" }),
-  ).toBeVisible();
-  await expect(page).toHaveURL(/\/workouts(?:#main-content)?$/);
+  await expect(page).toHaveURL(/\/exercises$/);
 });
 
 test("setup moves focus forward and back", async ({ page }) => {

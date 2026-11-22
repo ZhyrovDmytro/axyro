@@ -122,9 +122,9 @@ test("calendar shows persisted completed and skipped training alongside matches"
     ),
   );
   expect(stripes[0].background).toBe(
-    "linear-gradient(rgb(255, 107, 36) 0%, rgb(255, 107, 36) 50%, rgb(120, 185, 235) 50%, rgb(120, 185, 235) 100%)",
+    "linear-gradient(rgb(217, 252, 84) 0%, rgb(217, 252, 84) 50%, rgb(120, 185, 235) 50%, rgb(120, 185, 235) 100%)",
   );
-  expect(stripes[1].color).toBe("rgb(255, 107, 36)");
+  expect(stripes[1].color).toBe("rgb(217, 252, 84)");
   expect(stripes[2].color).toBe("rgb(120, 185, 235)");
   expect(stripes.map((stripe) => stripe.width)).toEqual(["2px", "2px", "2px"]);
   await expect(done.locator(".calendar-status-compact")).toBeVisible();

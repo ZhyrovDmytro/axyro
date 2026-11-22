@@ -16,8 +16,11 @@ const starter = starterWorkouts.find(
 )!;
 const starterHref = `/workouts/${starter.slug}`;
 const heroMovements = [
-  "standing-dumbbell-wood-chop", "lateral-stick", "bird-dog",
-  "dynamic-court-march", "side-plank-rotation",
+  "standing-dumbbell-wood-chop",
+  "lateral-stick",
+  "bird-dog",
+  "dynamic-court-march",
+  "side-plank-rotation",
 ].map((id) => {
   const exercise = exercises.find((item) => item.id === id)!;
   return { exercise, poster: exercise.media.firstFrameUri! };
@@ -53,8 +56,8 @@ const chapters = [
 ] as const;
 const questions = [
   [
-    "Can I adjust a plan after I’ve started?",
-    "Yes. Open Refine your plan to update your training days, session length, equipment or match dates. Axyro uses those changes to shape upcoming training around your availability and matches, with recovery kept in the schedule.",
+    "Who is Axyro for?",
+    "The workouts are built around padel. Beginners can choose a lighter effort, follow the demonstrations and start with a five-minute session.",
   ],
   [
     "Can I try Axyro without an account?",
@@ -62,38 +65,48 @@ const questions = [
   ],
   [
     "Do I need a gym or equipment?",
-    "Axyro is built for home training, using bodyweight and optional light dumbbells. Each workout lists what you need before you start",
+    "Axyro is built for home training, using bodyweight and optional light dumbbells. Each workout lists what you need before you start.",
   ],
   [
     "What if I only have five minutes?",
     "Choose 5, 10 or 20 minutes on the workout preview. Ten is the default. Work and recovery fit within your session, and changing effort does not extend it.",
   ],
   [
-    "What’s included with Pro?",
-    "Pro unlocks personalized 60-day plans and full workout and exercise-library access. Plans use your goals, equipment and availability, with recovery around your match schedule. Current pricing is shown before purchase.",
-  ],
-  [
-    "Can I pause or turn audio off?",
-    "Any time. Pause and resume, mute guidance, skip ahead or return to a previous exercise. Where audio is unavailable, visual cues keep you on track.",
+    "Can I train alongside my matches?",
+    "Yes. Add your match days when you set up a plan so training and recovery can fit around them.",
   ],
 ];
 
-function LandingDemo({ exercise, playing }: { exercise: (typeof exercises)[number]; playing: boolean }) {
+function LandingDemo({
+  exercise,
+  playing,
+}: {
+  exercise: (typeof exercises)[number];
+  playing: boolean;
+}) {
   const [failedUri, setFailedUri] = useState<string>();
   const { firstFrameUri, playbackUri } = exercise.media;
   const label = `${exercise.name} movement demonstration`;
   return playing && playbackUri && failedUri !== playbackUri ? (
-    <video aria-label={label} autoPlay muted loop playsInline
-      poster={firstFrameUri} src={playbackUri} onError={() => setFailedUri(playbackUri)} />
+    <video
+      aria-label={label}
+      autoPlay
+      muted
+      loop
+      playsInline
+      poster={firstFrameUri}
+      src={playbackUri}
+      onError={() => setFailedUri(playbackUri)}
+    />
   ) : (
     <Image alt={label} src={firstFrameUri!} fill unoptimized />
   );
 }
 
-function PlanLink() {
+function PlanLink({ label = "Create your plan" }: { label?: string }) {
   return (
     <Link href="/plan/setup" className={styles.cta}>
-      Create my plan <UiIcon name="arrow-right" />
+      {label} <UiIcon name="arrow-right" />
     </Link>
   );
 }
@@ -102,6 +115,40 @@ function subscribeToMotionPreference(onChange: () => void) {
   const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
   preference.addEventListener("change", onChange);
   return () => preference.removeEventListener("change", onChange);
+}
+
+function CourtFilm({ reducedMotion }: { reducedMotion: boolean }) {
+  const film = useRef<HTMLVideoElement>(null);
+  const [paused, setPaused] = useState(true);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    const video = film.current;
+    if (!video) return;
+    if (reducedMotion) video.pause();
+    else void video.play().catch(() => {});
+  }, [reducedMotion]);
+
+  return (
+    <>
+      <video ref={film} className={styles.film} aria-hidden="true"
+        muted playsInline loop preload="none" poster="/images/landing/court-film.webp"
+        src="/images/landing/court-film.mp4"
+        onPlay={() => setPaused(false)} onPause={() => setPaused(true)}
+        onError={() => setFailed(true)} />
+      {!failed && (
+        <button type="button" className={styles.filmControl}
+          aria-label={paused ? "Play court film" : "Pause court film"}
+          onClick={() => {
+            const video = film.current;
+            if (video?.paused) void video.play().catch(() => {});
+            else video?.pause();
+          }}>
+          <UiIcon name={paused ? "play" : "pause"} />
+        </button>
+      )}
+    </>
+  );
 }
 
 export function LandingPage() {
@@ -161,27 +208,44 @@ export function LandingPage() {
   return (
     <div className={styles.landing}>
       <main id="main">
-        <section className={styles.hero}>
+        <section className={styles.filmHero}>
+          <CourtFilm reducedMotion={reducedMotion} />
           <div className={styles.heroCopy}>
+            <div className={styles.filmEyebrow}>BUILT FOR PADEL PLAYERS</div>
             <h1 className={styles.heroHeadline}>
-              Train anywhere. Win on court.
+              Play better padel. <em>Train beyond the court.</em>
             </h1>
             <p>
-              Practise the side step, the turn and the stop at home. Pick a
-              5, 10 or 20 minute workout, or build a 60-day Pro plan around
-              the days you play.
+              Build strength, move faster, and stay ready for every shot. Personalized
+              workouts designed for padel players, right at home.
             </p>
             <div className={styles.actions}>
-              <PlanLink />
-              <Link href={starterHref} className={styles.freeLink}>
-                Try a free workout first <UiIcon name="arrow-right" />
-              </Link>
+              <PlanLink label="Build My Training Plan" />
+              <a href="#how-it-works" className={styles.freeLink}>
+                See How It Works <UiIcon name="arrow-right" />
+              </a>
             </div>
+          </div>
+        </section>
+        <section className={styles.matchDemand} id="why-axyro">
+          <div>
+            <h2>Train the step before the shot.</h2>
+            <p>
+              When a ball comes off the glass, getting your racket back is only
+              half the job. Your legs have to brake, your hips turn and your
+              feet find balance for the return.
+            </p>
+            <p>
+              Practise those movements between matches. Pick a drill to see what
+              the work looks like.
+            </p>
           </div>
           <div className={styles.heroStage} ref={heroRef}>
             <div className={styles.stageTop}>
               <span>Exercise library</span>
-              <span>{heroIndex + 1} / {heroMovements.length}</span>
+              <span>
+                {heroIndex + 1} / {heroMovements.length}
+              </span>
             </div>
             <div className={styles.heroImage}>
               {heroMovements.map(({ exercise }, index) => (
@@ -191,7 +255,10 @@ export function LandingPage() {
                   aria-hidden={index !== heroIndex}
                 >
                   {index === heroIndex && (
-                    <LandingDemo exercise={exercise} playing={playing && heroVisible} />
+                    <LandingDemo
+                      exercise={exercise}
+                      playing={playing && heroVisible}
+                    />
                   )}
                 </div>
               ))}
@@ -246,7 +313,8 @@ export function LandingPage() {
             <p>
               Follow the movement, timing and recovery
               <br />
-              from your phone.
+              from warm-up to cooldown. Finish your session and record how it
+              felt.
             </p>
           </div>
           <div className={styles.storyGrid} ref={storyRef}>
@@ -261,7 +329,10 @@ export function LandingPage() {
               <div
                 className={`${styles.playerVisual} ${chapter === 2 ? styles.restVisual : ""}`}
               >
-                <LandingDemo exercise={playerMovement} playing={playerPlaying && chapter !== 2} />
+                <LandingDemo
+                  exercise={playerMovement}
+                  playing={playerPlaying && chapter !== 2}
+                />
                 {chapter !== 2 && (
                   <button
                     className={styles.demoToggle}
@@ -320,6 +391,24 @@ export function LandingPage() {
         </section>
         <PlanStory />
         <LibraryAndEditor />
+        <section className={styles.access}>
+          <h2>Choose how you train</h2>
+          <div>
+            <h3>Free</h3>
+            <p>Try one complete guided workout. No account or card required.</p>
+            <Link href={starterHref} className={styles.freeLink}>
+              Try a free workout first <UiIcon name="arrow-right" />
+            </Link>
+          </div>
+          <div>
+            <h3>Pro</h3>
+            <p>
+              Train with the full library and a personal plan that fits your
+              match days. Review adjustments as you go.
+            </p>
+            <PlanLink />
+          </div>
+        </section>
         <section className={styles.faq} id="questions">
           <div>
             <h2>
@@ -367,18 +456,7 @@ export function LandingPage() {
           </div>
         </section>
       </main>
-      <footer className={styles.footer}>
-        <Link href="/" className="brand">
-          Axyro
-        </Link>
-        <span>Make room for movement.</span>
-        <nav aria-label="Support and legal">
-          <Link href="/help">Help</Link>
-          <Link href="/privacy">Privacy</Link>
-          <Link href="/terms">Terms</Link>
-          <Link href="/signin">Sign in</Link>
-        </nav>
-      </footer>
+
     </div>
   );
 }

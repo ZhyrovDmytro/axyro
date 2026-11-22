@@ -28,7 +28,7 @@ export function PlanStory() {
             next session waiting for you.
           </p>
           <Link href="/plan/setup" className={styles.cta}>
-            Create my plan <UiIcon name="arrow-right" />
+            Create your plan <UiIcon name="arrow-right" />
           </Link>
           <span className={styles.reassurance}>
             Personalized planning is included with Axyro Pro.
@@ -209,9 +209,9 @@ export function PlanStory() {
             </p>
             <Link
               href="/plan/setup"
-              className={`${styles.cta} ${styles.ctaDark}`}
+              className={styles.cta}
             >
-              Create my plan <UiIcon name="arrow-right" />
+              Create your plan <UiIcon name="arrow-right" />
             </Link>
           </div>
         </div>

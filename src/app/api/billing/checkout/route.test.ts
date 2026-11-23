@@ -254,7 +254,7 @@ describe("live contract checkout", () => {
       });
       expect((await POST(accepted())).status).toBe(200);
       const checkout = vi.mocked(stripeRequest).mock.calls.at(-1)?.[1];
-      expect(checkout?.get("metadata[contract_acceptance]")).toBe("required");
+      expect(checkout?.get("metadata[contract_acceptance]")).toBe("accepted");
       expect(checkout?.get("metadata[contract_version]")).toBe("2026-11-23");
       expect(checkout?.get("metadata[contract_origin]")).toBe(
         "https://axyro.example",

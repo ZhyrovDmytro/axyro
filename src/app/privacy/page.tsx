@@ -72,6 +72,12 @@ export default function PrivacyPage() {
         <article className="instruction-section">
           <h2>Retention and control</h2>
           <p>
+            If you withdraw from a purchase, we record your name, contract
+            reference, email address and submission time to handle the
+            withdrawal and meet consumer-law obligations. Resend delivers the
+            confirmation to the address you provide.
+          </p>
+          <p>
             Your training data remains when Pro expires. Account deletion
             removes the account and linked profile/training records and cancels
             the linked Stripe subscription. Settings can reset training data.

@@ -24,7 +24,8 @@ export function AccountContent({ children }: { children: React.ReactNode }) {
     pathname === "/exercises" ||
     pathname.startsWith("/exercises/") ||
     pathname === "/privacy" ||
-    pathname === "/terms";
+    pathname === "/terms" ||
+    pathname === "/withdrawal";
 
   if (independent) return children;
   if (loading) {

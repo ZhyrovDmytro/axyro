@@ -3,8 +3,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/services/billing/server", () => ({
   reconcileCustomer: vi.fn(),
+  billingOrigin: () => "https://axyro.example",
   billingError: () => Response.json({ error: "Unavailable" }, { status: 503 }),
 }));
+vi.mock("@/services/billing/contract-confirmation", () => ({
+  confirmPurchase: vi.fn(),
+}));
+import { confirmPurchase } from "@/services/billing/contract-confirmation";
 import { reconcileCustomer } from "@/services/billing/server";
 import { POST } from "./route";
 
@@ -13,8 +18,12 @@ function request(
   type: string,
   customer: unknown = "cus_verified",
   signed = true,
+  details = {},
 ) {
-  const body = JSON.stringify({ type, data: { object: { customer } } });
+  const body = JSON.stringify({
+    type,
+    data: { object: { customer, ...details } },
+  });
   const timestamp = Math.floor(Date.now() / 1000);
   const signature = createHmac("sha256", secret)
     .update(`${timestamp}.${body}`)
@@ -49,6 +58,24 @@ describe("signed billing webhook delivery", () => {
     expect(await response.json()).toEqual({ received: true });
     expect(reconcileCustomer).toHaveBeenCalledExactlyOnceWith("cus_verified");
   });
+
+  it.each([
+    ["https://axyro.example", 1],
+    ["https://axyro-staging.netlify.app", 0],
+  ])(
+    "sends confirmation only for the checkout's originating site %s",
+    async (origin, sends) => {
+      const response = await POST(
+        request("checkout.session.completed", "cus_verified", true, {
+          metadata: { contract_version: "2026-11-23", contract_origin: origin },
+          payment_status: "paid",
+        }),
+      );
+      expect(response.status).toBe(200);
+      expect(reconcileCustomer).toHaveBeenCalledOnce();
+      expect(confirmPurchase).toHaveBeenCalledTimes(sends);
+    },
+  );
 
   it("accepts expanded customer references", async () => {
     expect(

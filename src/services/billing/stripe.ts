@@ -32,9 +32,9 @@ export const stripeSubscriptionSchema = z.object({
 export const stripeUrlSchema = z.object({ url: z.url() });
 export async function products() {
   return Promise.all(priceIds().map(async (id) => {
-    const price = z.object({ id: z.string(), active: z.boolean(), unit_amount: z.number().int().nonnegative(), currency: z.string(), recurring: z.object({ interval: z.enum(["month", "year"]), interval_count: z.number().int().positive() }) }).parse(await stripeRequest(`prices/${encodeURIComponent(id)}`));
+    const price = z.object({ id: z.string(), active: z.boolean(), unit_amount: z.number().int().nonnegative(), tax_behavior: z.string().nullish(), currency: z.string(), recurring: z.object({ interval: z.enum(["month", "year"]), interval_count: z.number().int().positive() }) }).parse(await stripeRequest(`prices/${encodeURIComponent(id)}`));
     if (!price.active) throw new Error("A configured billing product is unavailable.");
-    return { id: price.id, amount: price.unit_amount, currency: price.currency, interval: price.recurring.interval, intervalCount: price.recurring.interval_count };
+    return { id: price.id, amount: price.unit_amount, currency: price.currency, interval: price.recurring.interval, intervalCount: price.recurring.interval_count, taxInclusive: price.tax_behavior === "inclusive" };
   }));
 }
 export function verifyWebhook(body: string, signature: string, secret: string, now = Date.now()) {

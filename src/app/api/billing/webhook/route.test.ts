@@ -65,15 +65,27 @@ describe("signed billing webhook delivery", () => {
   ])(
     "sends confirmation only for the checkout's originating site %s",
     async (origin, sends) => {
+      const metadata = {
+        contract_version: "2026-11-23",
+        contract_origin: origin,
+        contract_acceptance: "accepted",
+        operator: "Axyro sandbox test",
+      };
       const response = await POST(
         request("checkout.session.completed", "cus_verified", true, {
-          metadata: { contract_version: "2026-11-23", contract_origin: origin },
+          metadata,
           payment_status: "paid",
         }),
       );
       expect(response.status).toBe(200);
       expect(reconcileCustomer).toHaveBeenCalledOnce();
       expect(confirmPurchase).toHaveBeenCalledTimes(sends);
+      if (sends) {
+        expect(confirmPurchase).toHaveBeenCalledWith(
+          expect.objectContaining({ metadata, payment_status: "paid" }),
+          undefined,
+        );
+      }
     },
   );
 

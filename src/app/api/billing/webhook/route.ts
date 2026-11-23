@@ -40,6 +40,8 @@ export async function POST(request: Request) {
                 .object({
                   contract_version: z.string().optional(),
                   contract_origin: z.string().optional(),
+                  contract_acceptance: z.string().optional(),
+                  operator: z.string().optional(),
                 })
                 .nullable()
                 .optional(),

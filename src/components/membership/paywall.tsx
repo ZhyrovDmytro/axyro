@@ -346,8 +346,7 @@ export function Paywall({
               onChange={(event) => setAcceptedTerms(event.target.checked)}
             />
             <span>
-              I accept the membership terms and request Pro access as soon as
-              payment succeeds.
+              I accept the membership terms and request immediate Pro access.
             </span>
           </label>
         )}

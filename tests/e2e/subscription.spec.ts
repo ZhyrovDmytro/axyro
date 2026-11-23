@@ -14,7 +14,7 @@ const account = {
 
 test("membership currency preserves billing period and submits the selected price", async ({
   page,
-}) => {
+}, testInfo) => {
   await mockServices(page);
   await page.route("**/api/billing/products", (route) =>
     route.fulfill({
@@ -95,6 +95,9 @@ test("membership currency preserves billing period and submits the selected pric
     exact: true,
   });
   await expect(continueToStripe).toBeDisabled();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await acceptTerms.scrollIntoViewIfNeeded();
+  await page.screenshot({ path: testInfo.outputPath("contract-confirmation-390.png") });
   await acceptTerms.check();
   await page
     .getByRole("button", { name: "Continue to Stripe", exact: true })

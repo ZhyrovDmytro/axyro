@@ -194,3 +194,33 @@ disclosures remain separate launch requirements.
 References: [Stripe test cards](https://docs.stripe.com/testing),
 [Stripe sandboxes](https://docs.stripe.com/sandboxes),
 [webhook endpoint configuration](https://docs.stripe.com/api/webhook_endpoints/create).
+
+## Contract purchase and withdrawal verification
+
+The existing sandbox and the two webhook endpoints are shared by staging and
+the public test site. New checkouts attach their source origin to the Stripe
+session. The webhook still reconciles the customer on both sites, while the
+originating site sends the contract email and uses its own links in that email.
+The withdrawal scheduler reads notices for its own Netlify site ID.
+
+Before testing, set the sandbox Terms of service URL to the staging terms page,
+apply the billing migration, and configure a verified billing sender and a
+monitored staging inbox. Stripe returned HTTP 400 for the sandbox session with
+mandatory terms acceptance while the URL was unset. Keep the current public
+deployment outside the test.
+
+Use a dedicated regular sandbox account and Stripe test card. Verify the
+selected price, renewal period, terms checkbox and explicit payment obligation
+in the hosted form. Complete the purchase and verify that the contract email
+includes the actual price, purchase reference, renewal, withdrawal instructions
+and URLs for the staging site. Verify the application grants Pro after the
+signed event.
+
+Open the withdrawal link from the email with a signed-out browser, enter the
+purchase reference and confirm. Compare the submitted form, downloadable
+receipt, email and database timestamp. Check that support received the notice.
+Exercise the scheduled retry with a simulated delivery failure on an isolated
+staging record, then use the Netlify Run now control once delivery is restored.
+Confirm previously sent emails stay marked and that only the pending email
+arrives. Use the same purchase to verify the manual Stripe sandbox refund,
+the cancellation webhook and the removal of Pro access.

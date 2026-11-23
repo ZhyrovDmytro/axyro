@@ -13,6 +13,7 @@ const quotas = {
   "auth-delete": [3, 900],
   planner: [6, 3600],
   billing: [10, 900],
+  "billing-withdrawal": [5, 900],
 } as const;
 
 function protectionUnavailable() {
@@ -29,7 +30,7 @@ function protectionUnavailable() {
 
 export async function enforceAuthRateLimit(
   request: Request,
-  action: "auth-signin" | "auth-signup" | "auth-recover",
+  action: "auth-signin" | "auth-signup" | "auth-recover" | "billing-withdrawal",
   email: string,
 ): Promise<Response | null> {
   if (developmentAdminEnabled()) return null;

@@ -571,3 +571,30 @@ business and markets. Recheck current requirements when completing legal tasks.
 | 2026-11-21 | L14 | Added the approved support address to the local footer, Settings and Help. Production publication and end-to-end delivery verification remain pending. |
 
 2026-11-22 · L03 / L19 · PR #9 release candidate. The Netlify preview passed all three deployed guest smoke tests. First hosted quality job passed. Six browser regressions were investigated and their targeted checks passed locally after fixes. Production publication and the updated hosted checks are pending at this checkpoint.
+
+2026-11-23 · L06/L08/L09/L11: Added the recurring purchase summary, Stripe
+terms and contract email integration, public two-step withdrawal, independently
+stored submission, downloadable receipt, transactional emails and operator
+runbook. Local browser tests use simulated provider boundaries. The hosted
+migration, configured trader contact and mail delivery, Czech locale wording,
+tax and hosted payment/refund lifecycle still need verification. L11 remains
+Partial. Live checkout requires explicit configuration.
+
+Verified locally that the migration isolates both billing tables from anonymous and authenticated database roles and preserves the first submission timestamp on retry. The real Stripe sandbox rejected contract checkout with HTTP 400 because its Terms of service URL is unset. Sandbox settings remain unchanged pending staging authorization.
+
+After the visual review, 20 targeted browser tests passed across purchase,
+membership and withdrawal. Screens were inspected at phone and desktop widths.
+The review shortened the paywall, restored a single visible keyboard focus ring
+and gave the receipt download a clear action. All 662 unit tests, TypeScript,
+lint and the webpack production build passed locally.
+
+2026-11-23 · L06/L08/L11: Added origin-bound contract emails for the shared
+Stripe sandbox and a scheduled resend for withdrawal notices with pending email
+delivery. The job is scoped by Netlify site ID and uses Resend idempotency
+keys during the retry window. PostgreSQL verification confirmed site isolation,
+role access, duplicate submission handling and pending query behavior. Unit
+coverage now verifies the correct provider event origin and sends only the
+missing withdrawal email on retry. The hosted sandbox URL, verified sender,
+migration and refund lifecycle remain awaiting staging setup.
+
+An integrated local browser check ran the real withdrawal route and Netlify retry entry point over a PostgreSQL fixture. A simulated failed customer email recovered after the browser tab closed. The durable notice and operator alert were preserved.

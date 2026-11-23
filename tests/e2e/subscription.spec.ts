@@ -55,6 +55,15 @@ test("membership currency preserves billing period and submits the selected pric
   let submittedPrice = "";
   await page.route("**/api/billing/checkout", async (route) => {
     submittedPrice = route.request().postDataJSON().priceId;
+    if (submittedPrice === "eur_year") {
+      return route.fulfill({
+        status: 409,
+        json: {
+          pendingPriceId: "eur_month",
+          pendingUntil: "2026-11-24T10:00:00Z",
+        },
+      });
+    }
     await route.fulfill({
       status: 503,
       json: { error: "Test checkout stopped" },
@@ -73,10 +82,21 @@ test("membership currency preserves billing period and submits the selected pric
   await expect(
     page.getByRole("radio", { name: /Monthly/ }),
   ).toHaveAccessibleName(/6.99/);
-  await page.getByRole("button", { name: "Start Pro", exact: true }).click();
+  await page.getByRole("radio", { name: /Yearly/ }).check();
+  await page
+    .getByRole("button", { name: "Continue to Stripe", exact: true })
+    .click();
+  await expect(page.getByRole("alert")).toContainText(
+    /checkout is already open for .*6.99 every month/i,
+  );
+  await expect(page.getByRole("radio", { name: /Monthly/ })).toBeChecked();
+  expect(submittedPrice).toBe("eur_year");
+  await page
+    .getByRole("button", { name: "Continue to Stripe", exact: true })
+    .click();
   await expect(
     page
-      .getByRole("region", { name: "Unlock every padel workout" })
+      .getByRole("region", { name: "The full padel workout library" })
       .getByRole("alert"),
   ).toHaveText("Test checkout stopped");
   expect(submittedPrice).toBe("eur_month");
@@ -203,7 +223,7 @@ test("Free workout to Pro checkout continues directly into personal plan and sig
   expect(state.generations()).toBe(0);
   await expect(page.getByLabel("Currency", { exact: true })).toHaveCount(0);
   await page
-    .getByRole("button", { name: "Unlock My Plan", exact: true })
+    .getByRole("button", { name: "Continue to Stripe", exact: true })
     .click();
   await expect.poll(state.generations, { timeout: 30000 }).toBe(1);
   await expect(page.locator(".plan-preview")).toHaveCount(0);

@@ -184,11 +184,15 @@ test("account profile, password and deletion forms share accessible controls", a
   await page
     .getByRole("button", { name: "Delete account", exact: true })
     .click();
-  await expect(page.getByLabel("Type DELETE to confirm")).toHaveAttribute(
+  const dialog = page.getByRole("dialog", { name: "Permanently delete your account?" });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByLabel("Type DELETE to confirm")).toHaveAttribute(
     "pattern",
     "DELETE",
   );
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await dialog.getByRole("button", { name: "Keep my account" }).click();
+  await expect(dialog).toBeHidden();
 });
 
 test("unavailable account services retain the free workout fallback", async ({

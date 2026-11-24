@@ -36,15 +36,10 @@ for (const signedIn of [false, true]) {
         header.getByRole("link", { name: "Axyro home" }),
       ).toBeVisible();
       await expect(page).toHaveTitle(/Axyro/);
-      await expect(
-        header.getByRole("link", {
-          name: signedIn ? "Account" : "Sign in",
-          exact: true,
-        }),
-      ).toBeVisible();
       const nav = page.getByRole("navigation", {
         name: "Primary navigation",
       });
+      const actions = width < 768 ? nav : header;
       const menu = header.getByRole("button", { name: /^(Menu|Close)$/ });
       if (width < 768) {
         await expect(nav).toBeHidden();
@@ -88,12 +83,13 @@ for (const signedIn of [false, true]) {
         "Workouts",
         "Library",
         "Rehub",
+        ...(width < 768 ? [signedIn ? "Account" : "Sign in", "Settings"] : []),
       ]);
       await expect(
         nav.getByRole("link", { name: "Home", exact: true }),
       ).toHaveAttribute("aria-current", "page");
       await expect(
-        header.getByRole("link", {
+        actions.getByRole("link", {
           name: signedIn ? "Account" : "Sign in",
           exact: true,
         }),
@@ -140,12 +136,12 @@ for (const signedIn of [false, true]) {
         nav.getByRole("link", { name: "Workouts", exact: true }),
       ).toHaveAttribute("aria-current", "page");
       await expect(
-        header.getByRole("link", {
+        actions.getByRole("link", {
           name: signedIn ? "Account" : "Sign in",
           exact: true,
         }),
       ).toBeVisible();
-      const accountLink = header.getByRole("link", {
+      const accountLink = actions.getByRole("link", {
         name: signedIn ? "Account" : "Sign in",
         exact: true,
       });
@@ -154,10 +150,11 @@ for (const signedIn of [false, true]) {
         signedIn ? "/account" : "/signin",
       );
       await accountLink.press("Enter");
+      if (width < 768) await menu.click();
       await expect(accountLink).toHaveAttribute("aria-current", "page");
       if (!signedIn)
         await expect(accountLink).toHaveAttribute("href", "/signin");
-      await header.getByRole("link", { name: "Settings" }).click();
+      await actions.getByRole("link", { name: "Settings" }).click();
       await expect(
         page.getByRole("heading", { name: "Settings" }),
       ).toBeVisible();

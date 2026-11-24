@@ -1,10 +1,15 @@
+import { confirmPurchase } from "@/services/billing/contract-confirmation";
 import { z } from "zod";
 import {
   readRequestText,
   RequestBodyTooLargeError,
 } from "@/services/http/request-body";
 import { verifyWebhook } from "@/services/billing/stripe";
-import { billingError, reconcileCustomer } from "@/services/billing/server";
+import {
+  billingError,
+  billingOrigin,
+  reconcileCustomer,
+} from "@/services/billing/server";
 export const runtime = "nodejs";
 export async function POST(request: Request) {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -26,13 +31,26 @@ export async function POST(request: Request) {
     const event = z
       .object({
         type: z.string(),
+        created: z.number().int().optional(),
         data: z.object({
-          object: z.object({
-            customer: z
-              .union([z.string(), z.object({ id: z.string() })])
-              .nullable()
-              .optional(),
-          }),
+          object: z
+            .object({
+              payment_status: z.string().optional(),
+              metadata: z
+                .object({
+                  contract_version: z.string().optional(),
+                  contract_origin: z.string().optional(),
+                  contract_acceptance: z.string().optional(),
+                  operator: z.string().optional(),
+                })
+                .nullable()
+                .optional(),
+              customer: z
+                .union([z.string(), z.object({ id: z.string() })])
+                .nullable()
+                .optional(),
+            })
+            .passthrough(),
         }),
       })
       .parse(JSON.parse(body));
@@ -52,6 +70,17 @@ export async function POST(request: Request) {
         await reconcileCustomer(
           typeof customer === "string" ? customer : customer.id,
         );
+    }
+    if (
+      [
+        "checkout.session.completed",
+        "checkout.session.async_payment_succeeded",
+      ].includes(event.type) &&
+      event.data.object.metadata?.contract_version &&
+      event.data.object.metadata.contract_origin === billingOrigin() &&
+      event.data.object.payment_status === "paid"
+    ) {
+      await confirmPurchase(event.data.object, event.created);
     }
     return Response.json({ received: true });
   } catch (error) {

@@ -98,7 +98,27 @@ describe("Checkout trust boundaries", () => {
     const calls = vi.mocked(stripeRequest).mock.calls;
     expect(calls[0][2]).toBe(calls[1][2]);
     expect(calls[0][1]?.toString()).toBe(calls[1][1]?.toString());
+    expect(calls[0][1]?.get("branding_settings[background_color]")).toBe("#111412");
+    expect(calls[0][1]?.get("branding_settings[button_color]")).toBe("#d9fc54");
+    expect(calls[0][1]?.get("subscription_data[billing_mode][type]")).toBe("classic");
+    expect(calls[0][3]).toBe("2025-09-30.clover");
   });
+  it("does not redirect to a reserved checkout with a different price", async () => {
+    vi.mocked(reserveCheckout).mockResolvedValueOnce({
+      id: "11111111-1111-4111-8111-111111111111",
+      priceId: "price_previous",
+      returnTo: "/account",
+      expiresAt: 2_000_000_000,
+    });
+    const result = await POST(request({ priceId: "price_allowed" }));
+    expect(result.status).toBe(409);
+    expect(await result.json()).toMatchObject({
+      pendingPriceId: "price_previous",
+      pendingUntil: new Date(2_000_000_000_000).toISOString(),
+    });
+    expect(stripeRequest).not.toHaveBeenCalled();
+  });
+
   it("checks live provider state before checkout even if webhook has not arrived", async () => {
     vi.mocked(providerSubscriptions).mockResolvedValueOnce([
       {
@@ -186,5 +206,66 @@ describe("Checkout trust boundaries", () => {
     );
     expect(params.get("subscription_data[metadata][user_id]")).toBe("user-a");
     expect(params.has("subscription_data[trial_period_days]")).toBe(false);
+  });
+});
+
+describe("live contract checkout", () => {
+  function configureContract() {
+    vi.stubEnv("AXYRO_OPERATOR_NAME", "Sandbox Trader");
+    vi.stubEnv("AXYRO_OPERATOR_ADDRESS", "Sandbox address");
+    vi.stubEnv("AXYRO_OPERATOR_REGISTRATION", "Sandbox registration");
+    vi.stubEnv("AXYRO_OPERATOR_PHONE", "Sandbox phone");
+    vi.stubEnv("AXYRO_SUPPORT_EMAIL", "support@example.com");
+    vi.stubEnv("AXYRO_BILLING_FROM_EMAIL", "billing@example.com");
+    vi.stubEnv("AXYRO_BILLING_EMAIL_API_KEY", "test-email-key");
+  }
+
+  it("refuses live checkout until it is explicitly enabled", async () => {
+    vi.stubEnv("STRIPE_SECRET_KEY", "sk_live_mock");
+    vi.stubEnv("AXYRO_LIVE_CHECKOUT_ENABLED", "false");
+    configureContract();
+    try {
+      expect((await POST(request({ priceId: "price_allowed" }))).status).toBe(
+        503,
+      );
+      expect(stripeRequest).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
+  it("requires an inclusive price and records the terms acceptance configuration", async () => {
+    vi.stubEnv("STRIPE_SECRET_KEY", "sk_live_mock");
+    vi.stubEnv("AXYRO_LIVE_CHECKOUT_ENABLED", "true");
+    configureContract();
+    try {
+      expect((await POST(request({ priceId: "price_allowed" }))).status).toBe(
+        400,
+      );
+      expect(stripeRequest).not.toHaveBeenCalled();
+      const accepted = () =>
+        request({
+          priceId: "price_allowed",
+          acceptedTermsVersion: "2026-11-23",
+        });
+      vi.mocked(stripeRequest).mockResolvedValueOnce({
+        tax_behavior: "exclusive",
+      });
+      expect((await POST(accepted())).status).toBe(503);
+      expect(stripeRequest).toHaveBeenCalledTimes(1);
+      vi.mocked(stripeRequest).mockResolvedValueOnce({
+        tax_behavior: "inclusive",
+      });
+      expect((await POST(accepted())).status).toBe(200);
+      const checkout = vi.mocked(stripeRequest).mock.calls.at(-1)?.[1];
+      expect(checkout?.get("metadata[contract_acceptance]")).toBe("accepted");
+      expect(checkout?.get("metadata[contract_version]")).toBe("2026-11-23");
+      expect(checkout?.get("metadata[contract_origin]")).toBe(
+        "https://axyro.example",
+      );
+      expect(checkout?.get("adaptive_pricing[enabled]")).toBe("false");
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 });

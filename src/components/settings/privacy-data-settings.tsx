@@ -253,14 +253,11 @@ export function PrivacyDataSettings({ supportEmail }: { supportEmail: string }) 
             </p>
             <p>
               Supabase stores account and training data. Stripe manages
-              subscriptions. Optional AI planning sends setup answers and an
-              adaptation profile to OpenAI through our server. Axyro has no
+              subscriptions. Optional AI planning sends structured training preferences to OpenAI through our server. Axyro has no
               advertising or analytics integration.
             </p>
             <p>
-              Optional discomfort information is used only to avoid affected
-              exercise loading and automatic progression. Axyro does not
-              diagnose or treat pain.
+              Pain and discomfort reports are excluded from AI planning.
             </p>
           </>
         ) : (

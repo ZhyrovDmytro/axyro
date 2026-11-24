@@ -10,9 +10,9 @@ export const metadata = publicMetadata(
 
 export default function ExercisesPage() {
   return (
-    <main className="page-shell page-shell--inner exercise-library-page">
+    <main className="page-shell section-page exercise-library-page">
       <header className="page-intro">
-        <h1>Exercise library.</h1>
+        <h1 className="section-title">Exercise library.</h1>
         <p>Movement demos and technique cues.</p>
       </header>
       <Suspense>

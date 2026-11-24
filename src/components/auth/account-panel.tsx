@@ -9,9 +9,15 @@ import { UiIcon } from "@/components/ui-icon";
 import { useEntitlement } from "@/components/membership/entitlement-provider";
 import { removeUserStorage } from "@/services/persistence/user-storage";
 
+function openDialog(dialog: HTMLDialogElement | null) {
+  dialog?.showModal();
+}
+
 function openPasswordDialog(dialog: HTMLDialogElement | null) {
   dialog?.showModal();
-  dialog?.querySelector<HTMLInputElement>('input[name="currentPassword"]')?.focus();
+  dialog
+    ?.querySelector<HTMLInputElement>('input[name="currentPassword"]')
+    ?.focus();
 }
 
 export function AccountPanel() {
@@ -139,7 +145,7 @@ export function AccountPanel() {
           {user.role === "admin" ? " · Admin" : ""}
         </span>
       </header>
-      {error && (
+      {error && !deleting && (
         <p role="alert" className="form-error">
           {error}
         </p>
@@ -225,6 +231,9 @@ export function AccountPanel() {
             Upgrade to Pro
           </Link>
         )}
+        <Link className="text-link" href="/withdrawal">
+          Withdraw from your Pro contract
+        </Link>
       </section>
       <section className="context-card">
         <h2>Security</h2>
@@ -259,7 +268,9 @@ export function AccountPanel() {
                     type="button"
                     aria-label="Close password dialog"
                     disabled={busy}
-                    onClick={(event) => event.currentTarget.closest("dialog")?.close()}
+                    onClick={(event) =>
+                      event.currentTarget.closest("dialog")?.close()
+                    }
                   >
                     <UiIcon name="close" />
                   </button>
@@ -351,7 +362,7 @@ export function AccountPanel() {
       </section>
       <AccountResources />
       <section className="context-card">
-        <h2>Account controls</h2>
+        <h2>Sign out</h2>
         <div className="button-row">
           <button
             className="button button--secondary"
@@ -360,42 +371,74 @@ export function AccountPanel() {
           >
             Sign out
           </button>
-          <button
-            className="text-button text-button--danger"
-            onClick={() => setDeleting(!deleting)}
-            aria-expanded={deleting}
-          >
-            Delete account
-          </button>
         </div>
+      </section>
+      <section className="context-card">
+        <h2>Account deletion</h2>
+        <p>Permanently remove your account and training data.</p>
+        <button
+          className="text-button text-button--danger"
+          onClick={() => {
+            setError("");
+            setDeleting(true);
+          }}
+          disabled={busy}
+          aria-haspopup="dialog"
+        >
+          Delete account
+        </button>
         {deleting && (
-          <form className="account-form account-deletion" onSubmit={remove}>
-            <h3>Permanently delete your account?</h3>
-            <p>
-              Your account, training plan, workout history and stored profile
-              information will be deleted. Your linked Stripe subscription will
-              be cancelled immediately. This cannot be undone.
-            </p>
-            <label>
-              Type DELETE to confirm
-              <input
-                name="confirmation"
-                pattern="DELETE"
-                required
-                autoComplete="off"
-              />
-            </label>
-            <button className="button button--dark" disabled={busy || preview}>
-              Permanently delete account
-            </button>
-            <button
-              className="text-link"
-              type="button"
-              onClick={() => setDeleting(false)}
-            >
-              Keep my account
-            </button>
-          </form>
+          <dialog
+            ref={openDialog}
+            className="continuity-dialog"
+            aria-labelledby="delete-account-title"
+            onClose={() => setDeleting(false)}
+            onCancel={(event) => {
+              if (busy) event.preventDefault();
+            }}
+          >
+            <form className="account-form account-deletion" onSubmit={remove}>
+              <h2 id="delete-account-title">
+                Permanently delete your account?
+              </h2>
+              <p>
+                Your account, training plan, workout history and stored profile
+                information will be deleted. Your linked Stripe subscription
+                will be cancelled immediately. This cannot be undone.
+              </p>
+              {error && (
+                <p role="alert" className="form-error">
+                  {error}
+                </p>
+              )}
+              {busy && <p role="status">Deleting your account…</p>}
+              <label>
+                Type DELETE to confirm
+                <input
+                  name="confirmation"
+                  pattern="DELETE"
+                  required
+                  autoComplete="off"
+                />
+              </label>
+              <button
+                className="button button--dark"
+                disabled={busy || preview}
+              >
+                Permanently delete account
+              </button>
+              <button
+                className="text-link"
+                type="button"
+                disabled={busy}
+                onClick={(event) =>
+                  event.currentTarget.closest("dialog")?.close()
+                }
+              >
+                Keep my account
+              </button>
+            </form>
+          </dialog>
         )}
       </section>
     </main>

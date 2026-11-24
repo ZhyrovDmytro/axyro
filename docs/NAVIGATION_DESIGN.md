@@ -17,9 +17,7 @@ The landing page and app share the same primary links in order: Home, Plan, Work
 - Workout player: the shared header is hidden; the player's existing
   pause/save-and-exit controls remain responsible for leaving a workout.
 
-Desktop uses a single framed row. Below 768px, the same header contains the
-brand, account and settings icons, and a Menu button. The button opens the five
-primary links in a Base UI popover anchored beneath it. The popup is portalled
+Desktop pairs icons with destination labels and divides the account controls from the primary links. Below 768px the header contains the brand and Menu button. The dropdown lists the five primary destinations first, with a divider above Account (Sign in for guests) and Settings. A lime edge identifies the current destination. The popup is portalled
 outside the header and overlays the page without changing header or content
 geometry. Base UI handles outside interaction, Escape, and keyboard focus.
 There is no fixed bottom dock to collide with third-party attribution labels.

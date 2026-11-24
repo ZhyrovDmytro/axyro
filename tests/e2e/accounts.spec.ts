@@ -123,6 +123,13 @@ test("local development administrator uses a real server session when explicitly
     expect(response.status()).toBe(403);
     expect((await response.json()).error).toContain("Account changes are disabled");
   }
+  const deleteDialog = page.getByRole("dialog").filter({
+    has: page.getByRole("heading", { name: "Permanently delete your account?" }),
+  });
+  await deleteDialog
+    .getByRole("button", { name: "Keep my account", exact: true })
+    .click();
+  await expect(deleteDialog).toHaveCount(0);
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Keep your training with you." }),

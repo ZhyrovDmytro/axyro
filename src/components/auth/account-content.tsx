@@ -26,7 +26,8 @@ export function AccountContent({ children }: { children: React.ReactNode }) {
     pathname === "/rehub" ||
     pathname === "/help" ||
     pathname === "/privacy" ||
-    pathname === "/terms";
+    pathname === "/terms" ||
+    pathname === "/withdrawal";
 
   // HomeEntry renders the public landing page until an account is available.
   if (independent || (pathname === "/" && !user && !error)) return children;

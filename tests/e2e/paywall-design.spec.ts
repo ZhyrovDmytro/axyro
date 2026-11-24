@@ -42,18 +42,12 @@ for (const width of [320, 390, 1280]) {
       /Monthly/,
     );
     await expect(yearly).toHaveAccessibleName(/69.99.*year/);
-    const promoCode = page.getByRole("textbox", { name: "Promo code" });
-    await expect(promoCode).toHaveAccessibleDescription(
-      "Promo codes are coming soon. Codes entered here won’t change your price yet.",
-    );
-    await promoCode.fill("PADEL20");
-    await expect(promoCode).toHaveValue("PADEL20");
-    await expect(yearly).toHaveAccessibleName(/69.99.*year/);
+    await expect(page.getByText(/due at checkout and every/)).toBeVisible();
     await yearly.focus();
     await page.keyboard.press("Space");
     await expect(yearly).toBeChecked();
-    await expect(promoCode).toHaveValue("PADEL20");
-    const action = page.getByRole("button", { name: "Unlock My Plan" });
+    await expect(page.getByText(/69.99 due at checkout and every year/)).toBeVisible();
+    const action = page.getByRole("button", { name: "Continue to Stripe" });
     await expect(action).toBeEnabled();
     expect(
       await page.evaluate(
@@ -88,7 +82,7 @@ test("Free member sees membership loading before the purchase action", async ({
     page.getByRole("status").filter({ hasText: "Loading memberships" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Unlock My Plan" }),
+    page.getByRole("button", { name: "Continue to Stripe" }),
   ).toHaveCount(0);
   releaseProducts();
   await expect(
@@ -156,7 +150,7 @@ for (const width of [320, 390, 1280]) {
     await expect(modal.getByRole("radio").first()).toBeChecked();
     expect(await modal.boundingBox()).toEqual(before);
     await expect(
-      modal.getByRole("button", { name: "Start Pro" }),
+      modal.getByRole("button", { name: "Continue to Stripe" }),
     ).toBeEnabled();
     const close = modal.getByRole("button", { name: "Close paywall" });
     await expect(close).toBeVisible();
@@ -188,7 +182,7 @@ for (const width of [320, 390, 1280]) {
     await page.getByRole("link", { name: "Activity", exact: true }).click();
     await expect(
       modal.getByRole("heading", {
-        name: "Unlock your full training progress",
+        name: "Your workout history and progress",
       }),
     ).toBeVisible();
     await page.mouse.click(2, 2);
@@ -203,7 +197,7 @@ for (const width of [320, 390, 1280]) {
     ).toBeVisible();
     await expect(page).toHaveURL(/\/exercises(?:\?q=shoulder)?$/);
     await expect(
-      modal.getByRole("button", { name: "Start Pro" }),
+      modal.getByRole("button", { name: "Continue to Stripe" }),
     ).toBeEnabled();
     await modal.getByRole("button", { name: "Close paywall" }).click();
     await expect(modal).toHaveCount(0);

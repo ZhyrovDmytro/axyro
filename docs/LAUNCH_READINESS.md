@@ -1,6 +1,6 @@
 # Paid public launch tracker
 
-Last updated: 2026-11-21 (Europe/Prague).
+Last updated: 2026-11-23 (Europe/Prague).
 
 This is the shared checklist for launching Axyro as a paid public web app.
 Current verdict: **not ready to accept public payments**. Core membership code
@@ -37,15 +37,16 @@ No owners or target dates have been assigned yet.
 
 ## Required before accepting payments
 
-- [ ] **L01 — Dependency security** · Partial
-  - 2026-11-18 release recheck: production audit reports zero vulnerabilities,
-    but the full audit now flags GHSA-fc5q-39xc-vjpf / CVE-2026-112366 in
-    picomatch <=4.0.7 (17 high-severity dependency paths, all development-only
-    in the lockfile). Upstream lists no patched version; npm's forced downgrade
-    does not remove the affected glob matcher and is not applied. The existing
-    full-audit release gate remains enabled. This finding needs an explicit
-    owner release exception or an upstream fix before release promotion.
-    Reference: https://github.com/advisories/GHSA-fc5q-39xc-vjpf.
+- [x] **L01 — Dependency security** · Done
+  - 2026-11-23 recheck: GitHub withdrew the picomatch advisory
+    [GHSA-fc5q-39xc-vjpf](https://github.com/advisories/GHSA-fc5q-39xc-vjpf)
+    on 18 November after determining the report was not a security issue.
+    The exact CI command, `npm audit --audit-level=high`, and the separate
+    `npm audit --omit=dev` check both exited 0 with zero vulnerabilities on the
+    current lockfile. The dependency versions and audit gate did not change.
+  - 2026-11-18 historical check: the full audit was still reporting the
+    picomatch advisory through 17 development-only dependency paths. The
+    PR #6 release-only exception applied to that run.
   - Baseline: production dependency audit reported Next.js critical and Zod high
     severity advisories for the installed versions. This is an affected-version
     finding, not proof of an exploitable application path.
@@ -315,7 +316,7 @@ No owners or target dates have been assigned yet.
     ensure the notice matches actual hosting, auth, billing and optional AI use.
     Current source: `src/app/privacy/page.tsx`.
 
-- [ ] **L10 — Discomfort/pain data and optional AI processing** · Open
+- [ ] **L10 — Discomfort/pain data and optional AI processing** · Partial
   - Complete when: assess whether collected discomfort/pain information is health
     data; establish the applicable processing condition and any consent,
     withdrawal and sharing controls. Verify the treatment of these fields before
@@ -354,7 +355,7 @@ No owners or target dates have been assigned yet.
     Restrict operator access to Supabase/Stripe. A dedicated admin UI is not
     required if provider dashboards cover launch operations.
 
-- [ ] **L15 — Monitoring, incident response and rollback** · Open
+- [ ] **L15 — Monitoring, incident response and rollback** · Partial
   - Complete when: error/uptime monitoring and webhook-failure alerts work;
     billing reconciliation, incident ownership, backup recovery and deployment
     rollback procedures are documented and exercised at an appropriate scale.
@@ -404,7 +405,7 @@ No owners or target dates have been assigned yet.
     verification and an exercised rollback remain open. Main still deploys
     independently through Netlify; this workflow alone does not gate publishing.
 
-- [ ] **L20 — Tracking, storage and AI launch decisions** · Open
+- [ ] **L20 — Tracking, storage and AI launch decisions** · Partial
   - Complete when: record whether AI planning ships enabled, its data/cost limits
     and failure behavior. Inventory actual cookies/storage and any telemetry;
     implement applicable notice/consent controls before adding nonessential
@@ -571,3 +572,155 @@ business and markets. Recheck current requirements when completing legal tasks.
 | 2026-11-21 | L14 | Added the approved support address to the local footer, Settings and Help. Production publication and end-to-end delivery verification remain pending. |
 
 2026-11-22 · L03 / L19 · PR #9 release candidate. The Netlify preview passed all three deployed guest smoke tests. First hosted quality job passed. Six browser regressions were investigated and their targeted checks passed locally after fixes. Production publication and the updated hosted checks are pending at this checkpoint.
+
+### Czech individual operator review · 2026-11-22
+
+L09/L11/L12 remain Partial and L10 remains Open. Local policy pages now explain
+auth cookie lifetimes, browser storage, ordinary processing grounds, rights,
+complaints, withdrawal and ADR. The deployed privacy page still served the
+earlier four-section notice on review. Its anonymous HTTP response set no cookie.
+This check excludes JavaScript, authenticated requests and hosted checkout.
+
+- L09/L12: configure AXYRO_OPERATOR_NAME, AXYRO_OPERATOR_ADDRESS,
+  AXYRO_OPERATOR_REGISTRATION (IČO, register entry and VAT ID where applicable),
+  AXYRO_OPERATOR_PHONE and a verified AXYRO_SUPPORT_EMAIL before publication.
+  The operator is the individual until another entity actually takes over.
+  Verify processor contracts, regions, onward transfers, safeguards and how to
+  obtain copies. Determine billing, support, log, backup and consent retention.
+  Test a rights request including identity verification, export and deletion.
+- L09: inspect browser storage and requests on first visit, workout, signup,
+  Google login, checkout and return. Assess each persistent preference, adaptation
+  and history write against the feature explicitly requested. Remove optional
+  writes or obtain prior, revocable consent. Check hosting-injected scripts.
+- L10: resolve discomfort and pain feedback collected during setup and after
+  workouts, including legacy data, synchronization and optional AI payloads.
+  Establish Article 6 and Article 9 grounds or remove the sensitive processing.
+  Assess DPIA need and protect existing records before opening these flows.
+- L11: verify the appropriate Czech trade authorisation for both the software and
+  the guided exercise offering. Confirm Czech-language information for Czech
+  consumers, intended ages, VAT/OSS, invoices and applicable e-commerce
+  accessibility obligations or a documented microenterprise exemption.
+  Verify the recurring total including taxes, renewal interval, payment obligation,
+  immediate-start request if relevant and durable contract confirmation.
+  Provide the online withdrawal and confirmation function and send a dated receipt
+  on a durable medium. Exercise the refund and complaints processes end to end.
+  Standard Stripe cancellation alone does not evidence statutory withdrawal.
+
+References: [Czech storage guidance](https://uoou.gov.cz/verejnost/qa-otazky-a-odpovedi/cookies),
+[EU online withdrawal function, Article 11a](https://eur-lex.europa.eu/eli/dir/2023/2673/oj/eng),
+[Czech consumer ADR](https://coi.gov.cz/en/information-about-adr/),
+[Czech trade licensing](https://portal.gov.cz/en/sluzby-vs/koncese-S757).
+
+Fresh mobile Chromium verification on the production homepage, /privacy, /terms
+and /help recorded zero cookies and zero localStorage keys after each navigation.
+All observed requests used axyro.app. Session storage and interactive account,
+workout and payment flows were outside this measurement.
+
+2026-11-22 · L10: Removed public symptom inputs from setup, plan edits, daily adaptations and workout feedback in source. Removed free-text workout notes and excluded feedback-derived adaptation context from OpenAI. Legacy safety exclusions use deterministic planning. The app sync endpoint rejects changed records containing retired reports or notes from older clients. Verify production rollout and historical storage/backup handling before closing.
+
+2026-11-23 · L09/L10: The post-workout check-in now offers optional Easy, Just right and Hard ratings. Ratings stay with workout history and inform existing plan suggestions that the user can accept or decline. Updated the privacy notice with this purpose. The OpenAI request excludes feedback and derived adaptation profiles.
+
+2026-11-23 · L06/L08/L09/L11: Added the recurring purchase summary, Stripe
+terms and contract email integration, public two-step withdrawal, independently
+stored submission, downloadable receipt, transactional emails and operator
+runbook. Local browser tests use simulated provider boundaries. The hosted
+migration, configured trader contact and mail delivery, Czech locale wording,
+tax and hosted payment/refund lifecycle still need verification. L11 remains
+Partial. Live checkout requires explicit configuration.
+
+Verified locally that the migration isolates both billing tables from anonymous and authenticated database roles and preserves the first submission timestamp on retry. The real Stripe sandbox rejected contract checkout with HTTP 400 because its Terms of service URL is unset. Sandbox settings remain unchanged pending staging authorization.
+
+After the visual review, 20 targeted browser tests passed across purchase,
+membership and withdrawal. Screens were inspected at phone and desktop widths.
+The review shortened the paywall, restored a single visible keyboard focus ring
+and gave the receipt download a clear action. All 662 unit tests, TypeScript,
+lint and the webpack production build passed locally.
+
+2026-11-23 · L06/L08/L11: Added origin-bound contract emails for the shared
+Stripe sandbox and a scheduled resend for withdrawal notices with pending email
+delivery. The job is scoped by Netlify site ID and uses Resend idempotency
+keys during the retry window. PostgreSQL verification confirmed site isolation,
+role access, duplicate submission handling and pending query behavior. Unit
+coverage now verifies the correct provider event origin and sends only the
+missing withdrawal email on retry. The hosted sandbox URL, verified sender,
+migration and refund lifecycle remain awaiting staging setup.
+
+2026-11-23 · L06/L08/L11: Published the billing implementation to Axyro staging
+only, with the additive Supabase migration approved and verified. Stripe’s
+sandbox gated its Terms URL control behind business activation. Axyro now
+collects an explicit, versioned acknowledgment before redirecting and saves it
+on Checkout session metadata. Stripe Sandbox accepted the configuration for an
+unpaid EUR monthly session, which was then expired. Local browser tests passed
+for the new checkbox and for a previously reserved checkout at another price.
+The disposable account was created and signed in on staging. The Resend
+credential transfer and paid sandbox email/refund verification remain open.
+
+2026-11-23 · L06/L08/L11: Verified the contract purchase and withdrawal
+lifecycle on the published Axyro staging branch with a disposable regular
+buyer. Axyro required the explicit terms acknowledgment before opening Stripe.
+Stripe Sandbox displayed the payment obligation and completed a €6.99 monthly
+test payment. Staging granted Pro. The same purchase produced a dated
+withdrawal receipt and a support notification, both marked Delivered by Resend.
+The first checkout webhook returned 503 because the envelope validator discarded
+the accepted-terms and operator fields. Published fix `699acf7` as Netlify
+deploy `6b03fccf35e1c48cfe2d5b38`, then replayed the original signed event
+to staging. Resend marked the contract email Delivered. Verified the email
+contained the paid amount, renewal period, terms version, purchase reference and
+staging withdrawal link. Stripe verified the full sandbox refund and immediate
+cancellation. The staging account returned to Free and the test withdrawal was
+marked resolved. TypeScript, lint and 662 tests passed on the staging source
+with the webhook fix. Earlier post-Unslop local browser coverage passed 20 tests.
+This leaves L11 Partial for real operator particulars, launch-market terms and
+live production verification. The sandbox support inbox was temporary.
+
+2026-11-23 · L09/L10/L12: The post-workout form keeps optional Easy, Just right
+and Hard ratings to suggest training difficulty changes for the user to review.
+The product treats those ratings as account-linked personal data and limits
+their purpose to training feedback and personalization. Current forms omit
+symptom reports and free-text notes. OpenAI planner requests omit ratings,
+feedback-derived adaptation data and symptom reports. The sync route rejects
+new or changed records containing retired report fields. Keep L10 Partial until
+production runs the same collection controls and legacy records and backups
+have a verified handling plan. Confirm the Article 6 basis for ratings, the
+operator's provider agreements and transfer safeguards, and the actual retention
+and deletion schedule under L09/L12. Provider documentation alone does not prove
+that the operator has the agreements or configurations in place.
+
+2026-11-23 · L01: Closed the stale picomatch finding after confirming the upstream withdrawal and passing both the full CI audit command and production-only audit. No dependency, lockfile or CI edits.
+
+
+2026-11-23 · L15/L16/L17/L19/L20: The webpack release build passed, including
+all four built-production smoke tests. All 667 unit tests, TypeScript and lint
+passed. All three guest smoke checks passed on both deployed sites, and the
+withdrawal and billing-authorization smoke passed separately on staging.
+The staging withdrawal route returned 200 and its products API returned a
+terms version. The production withdrawal route returned 404 and its products
+API did not return a terms version.
+Added the billing smoke to the release suite, corrected its default staging
+origin and added billing grants, site-scoped writes and retry idempotency
+checks to the ephemeral database CI job. The quota and billing SQL assertions
+passed locally. Hosted execution of the new checks remains pending. Recorded
+the incident triage, billing reconciliation and recovery steps in
+[release checks](RELEASE_CHECKS.md). A synthetic PGlite backup restored one linked
+contract confirmation and withdrawal in 307 ms. Restored receipt and resolution
+timestamps matched the original values, and the role and site-isolation checks
+passed after restore. Alert delivery and hosted recovery still need a rehearsal.
+
+Fresh iPhone 14 WebKit emulation on production and staging passed the public
+pages and guest workout start, pause, resume and completion. Browsing Home,
+Sign in, Privacy, Terms and Upgrade produced no cookies, local storage, session
+storage, IndexedDB databases or cross-origin requests in either context. After
+finishing the free workout, each origin contained the guest workout-activity
+and preferences keys in local storage. Physical phones, authenticated and
+hosted checkout storage, and the deployed AI flag still need verification.
+
+The final local browser run passed all 204 tests after updating the navigation,
+account dialog and shortened questionnaire checks and isolating the test profile
+used to seed legacy constraints. The updated release candidate remains local.
+
+2026-11-24 · L06/L08: Added the Checkout Studio draft's charcoal and lime
+branding to Axyro's hosted subscription sessions. Session creation uses Stripe
+API `2025-09-30.clover` with explicit classic billing. Other requests and
+webhook payloads retain the Basil version. All 667 unit tests, TypeScript and
+lint passed. Before the release, the production withdrawal route returned 404
+and staging returned 200 with the current terms version in its products API.

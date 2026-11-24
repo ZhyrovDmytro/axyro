@@ -4,13 +4,13 @@ import { z } from "zod";
 export function priceIds() {
   return [process.env.STRIPE_USD_MONTHLY_PRICE_ID, process.env.STRIPE_USD_YEARLY_PRICE_ID, process.env.STRIPE_MONTHLY_PRICE_ID, process.env.STRIPE_YEARLY_PRICE_ID].filter((id): id is string => !!id);
 }
-export async function stripeRequest(path: string, body?: URLSearchParams, idempotencyKey?: string): Promise<unknown> {
+export async function stripeRequest(path: string, body?: URLSearchParams, idempotencyKey?: string, apiVersion = "2025-06-30.basil"): Promise<unknown> {
   if (!process.env.STRIPE_SECRET_KEY) throw new Error("Billing is not configured.");
   const response = await fetch(`https://api.stripe.com/v1/${path}`, {
     method: body ? "POST" : "GET",
     headers: {
       Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`,
-      "Stripe-Version": "2025-06-30.basil",
+      "Stripe-Version": apiVersion,
       ...(body ? { "Content-Type": "application/x-www-form-urlencoded" } : {}),
       ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
     },
@@ -32,9 +32,9 @@ export const stripeSubscriptionSchema = z.object({
 export const stripeUrlSchema = z.object({ url: z.url() });
 export async function products() {
   return Promise.all(priceIds().map(async (id) => {
-    const price = z.object({ id: z.string(), active: z.boolean(), unit_amount: z.number().int().nonnegative(), currency: z.string(), recurring: z.object({ interval: z.enum(["month", "year"]), interval_count: z.number().int().positive() }) }).parse(await stripeRequest(`prices/${encodeURIComponent(id)}`));
+    const price = z.object({ id: z.string(), active: z.boolean(), unit_amount: z.number().int().nonnegative(), tax_behavior: z.string().nullish(), currency: z.string(), recurring: z.object({ interval: z.enum(["month", "year"]), interval_count: z.number().int().positive() }) }).parse(await stripeRequest(`prices/${encodeURIComponent(id)}`));
     if (!price.active) throw new Error("A configured billing product is unavailable.");
-    return { id: price.id, amount: price.unit_amount, currency: price.currency, interval: price.recurring.interval, intervalCount: price.recurring.interval_count };
+    return { id: price.id, amount: price.unit_amount, currency: price.currency, interval: price.recurring.interval, intervalCount: price.recurring.interval_count, taxInclusive: price.tax_behavior === "inclusive" };
   }));
 }
 export function verifyWebhook(body: string, signature: string, secret: string, now = Date.now()) {

@@ -29,7 +29,7 @@ The planner stores only fields tied to current product behavior:
 | Training frequency and preferred days        | Yes             | Build the 60-day schedule                                  |
 | Preferred workout duration                   | Yes             | Fit timed sessions to the chosen target                    |
 | Available equipment                          | Yes             | Exclude incompatible exercises and workouts                |
-| Sore or uncomfortable areas                  | No              | Exclude affected loading and pause conflicting progression |
+
 | Upcoming match dates and importance          | No              | Protect recovery space around competition                  |
 
 The training questionnaire does not ask for sex, age, height, weight, contact
@@ -45,7 +45,7 @@ The following keys describe browser training data. Signed-in accounts use an acc
 
 | Key                           | Contents                                                                        | Purpose                                                |
 | ----------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| `veyro.training-profile.v2`   | Minimized planner profile, including optional discomfort areas                  | Rebuild a plan without repeating setup                 |
+| `veyro.training-profile.v2`   | Minimized planner profile, training preferences                  | Rebuild a plan without repeating setup                 |
 | `veyro.training-plan.v1`      | Profile copy, generated schedule, session snapshots, game dates and adaptations | Display and run the current 60-day plan                |
 | `veyro.workout-activity.v1`   | Scheduled, started, missed, skipped and completed activity; feedback            | Continuity, history and conservative future adaptation |
 | `veyro.active-workout.v1`     | Current executable workout and timer/phase state                                | Resume an interrupted workout                          |
@@ -64,7 +64,7 @@ default), planning is deterministic and no planning data is sent to OpenAI.
 When an operator explicitly enables the AI planner, the browser sends the
 athlete profile and compact adaptation profile to Axyro's server-only
 `POST /api/training-plan` route. That route sends a human-readable structured
-rendering of those answers and adaptation context plus up to 100 eligible compact
+allowlisted rendering of training preferences plus up to 100 eligible compact
 exercise candidates to OpenAI with response storage disabled.
 It does not send workout history records, media, coaching instructions, common
 mistakes, or the API key to the browser. The accepted compiled plan is returned
@@ -78,10 +78,7 @@ repeat this audit and update the in-product notice and release disclosures.
 
 ## Safety boundary
 
-Discomfort selections are optional protective inputs, not diagnoses. Axyro uses
-them only to avoid affected exercise loading and progression. It does not infer
-a medical condition, recommend treatment, or claim that training will resolve
-pain.
+Current forms collect structured training preferences and optional Easy, Just right or Hard workout ratings. Axyro stores ratings with the completed session and uses them to suggest plan changes for the user to review. They omit symptom questions and open-ended feedback notes. Legacy profiles with symptom exclusions use deterministic planning. The model receives neither adaptation profiles nor feedback, and repair requests omit raw validation errors. Historical records may persist until removed through data controls or a separately verified cleanup.
 
 ## Catalog updates
 

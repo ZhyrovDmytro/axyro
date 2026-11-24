@@ -236,17 +236,6 @@ export function ActivityDetail({ activityId }: { activityId: string }) {
           <WorkoutFeedbackForm
             key={activity.id}
             initialFeedback={feedback}
-            exercises={[
-              ...new Map(
-                (snapshot?.items ?? []).map((item) => [
-                  item.exerciseId,
-                  {
-                    id: item.exerciseId,
-                    name: item.exerciseName ?? item.exerciseId,
-                  },
-                ]),
-              ).values(),
-            ]}
             onSave={(answer) => {
               const event =
                 createBrowserWorkoutActivityRepository().saveFeedbackEvent({

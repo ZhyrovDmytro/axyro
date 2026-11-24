@@ -320,7 +320,6 @@ export function TrainingPlanDashboardContent({
     }
     wasEditingCalendarDay.current = editing;
   }, [isGameDialogOpen, gamePendingDeletionId, selectedDate, view]);
-  const [keepPainExclusions, setKeepPainExclusions] = useState(false);
   const [buildingNext, setBuildingNext] = useState(false);
   const [nextBlockError, setNextBlockError] = useState("");
   const { user } = useAuth();
@@ -348,8 +347,9 @@ export function TrainingPlanDashboardContent({
 
   if (!plan) {
     return (
-      <main className="page-shell plan-empty">
+      <main className="page-shell section-page plan-empty">
         <section>
+          <h1 className="section-title">Train for the way you play.</h1>
           {needsCatalogRefresh && (
             <p role="status">
               Your saved plan uses exercises that have been retired. Create an
@@ -357,7 +357,6 @@ export function TrainingPlanDashboardContent({
               is preserved.
             </p>
           )}
-          <h1>Train for the way you play.</h1>
           <p className="lede">
             Start with 10 minutes on your training days. A few answers shape
             your next 60 days, with 5- and 20-minute options when you need them.
@@ -895,7 +894,7 @@ export function TrainingPlanDashboardContent({
   );
 
   return (
-    <main className="page-shell page-shell--inner plan-page">
+    <main className="page-shell section-page plan-page">
       {adjustmentNotice && (
         <p className="safety-note" role="status">
           {adjustmentNotice.count
@@ -907,9 +906,8 @@ export function TrainingPlanDashboardContent({
       )}
       <section className="plan-hero">
         <div>
-          <p className="kicker">Training schedule</p>
           <div className="plan-hero__title-row">
-            <h1>Your training plan</h1>
+            <h1 className="section-title">Your training plan</h1>
             <PaywallLink
               className="text-link"
               href="/plan/refine"
@@ -1042,18 +1040,6 @@ export function TrainingPlanDashboardContent({
               </dd>
             </div>
           </dl>
-          {plan.profile.painAreas.length > 0 && (
-            <label className="plan-complete-card__check">
-              <input
-                checked={keepPainExclusions}
-                onChange={(event) =>
-                  setKeepPainExclusions(event.target.checked)
-                }
-                type="checkbox"
-              />
-              I still need my current pain/discomfort exclusions
-            </label>
-          )}
           <p>
             Your next block keeps your sport, goals, physical focus, padel
             priorities, equipment, schedule and duration. Recent workout
@@ -1073,7 +1059,7 @@ export function TrainingPlanDashboardContent({
                     previousPlan: plan,
                     now: new Date(),
                     recentFeedback: repository.getRecentFeedbackForAdaptation(),
-                    keepPainExclusions,
+                    keepPainExclusions: false,
                   });
                   await savePlanDurably(next, user.id, plan);
                 } catch {

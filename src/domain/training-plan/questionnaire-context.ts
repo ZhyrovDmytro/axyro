@@ -219,21 +219,6 @@ export const developmentAreaOptions: Array<
   },
 ];
 
-export const painOptions: Array<{
-  value: AthleteProfile["painAreas"][number];
-  label: string;
-}> = [
-  { value: "shoulder", label: "Shoulder" },
-  { value: "elbow-forearm", label: "Elbow or forearm" },
-  { value: "wrist-hand", label: "Wrist or hand" },
-  { value: "neck-upper-back", label: "Neck or upper back" },
-  { value: "lower-back", label: "Lower back" },
-  { value: "hip-groin", label: "Hip or groin" },
-  { value: "knee", label: "Knee" },
-  { value: "calf-achilles", label: "Calf or Achilles" },
-  { value: "ankle-foot", label: "Ankle or foot" },
-];
-
 function selectedOptions<T extends string>(
   selected: readonly T[],
   options: readonly QuestionnaireOption<T>[],
@@ -292,10 +277,6 @@ export function buildQuestionnaireContext(profile: AthleteProfile) {
         padelLimitationOptions,
       ),
     },
-    safetyExclusions: profile.painAreas.map((id) => ({
-      id,
-      label: painOptions.find((option) => option.value === id)?.label ?? id,
-    })),
     matches: profile.matches,
   };
 }

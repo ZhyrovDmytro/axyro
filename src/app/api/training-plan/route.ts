@@ -8,6 +8,7 @@ import {
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 
+import { defaultAdaptationProfile } from "@/domain/training-plan/adaptation-profile";
 import { exercises } from "@/content/exercises";
 import { sportExerciseProfiles } from "@/content/sport-exercise-profiles";
 import {
@@ -79,11 +80,10 @@ function deterministicResponse(
 function plannerInput(request: AiPlanRequest) {
   const candidates = modelCandidatesForProfile(
     request.profile,
-    request.adaptationProfile,
+    defaultAdaptationProfile,
   );
   return {
     questionnaireAnswers: buildQuestionnaireContext(request.profile),
-    recentTrainingContext: request.adaptationProfile,
     planRequirements: {
       durationDays: TRAINING_PLAN_DURATION_DAYS,
       weeklySessionCount: request.profile.sessionsPerWeek,
@@ -123,7 +123,7 @@ async function requestIntent({
       "The questionnaire answers are the primary planning brief. Every selected physical development area and every selected padel priority must be visibly addressed by at least one weekly session.",
       "Return exactly the requested number of weekly sessions.",
       "Choose only candidate IDs and use each ID at most once per session.",
-      "Respect pain, equipment, environment, avoided exercises, goals, selected physical development areas, padel movement priorities, and recent difficulty.",
+      "Respect equipment, environment, goals, selected physical development areas and padel movement priorities.",
       "Candidates are already filtered for eligibility. All technique levels are allowed; do not assume the user is a beginner, exclude candidates by technique level, or infer required weights from difficulty. Axyro controls effort through timed prescriptions and uses workout feedback for adaptation.",
       "Across the weekly sessions, cover every selected physical development area at least once and include capacity work that builds a general padel foundation.",
       "Use performance and transfer exercises to address concrete padel priorities, but do not build a plan entirely from sport-mimicking drills.",
@@ -135,7 +135,6 @@ async function requestIntent({
       "Use general names such as Strength & Power for broad foundation sessions, not for every workout. Titles describe a training intent, not guaranteed results; home footwork cannot promise opponent-reading or reaction skills.",
       "A name must represent the main exercise mix, not one accessory movement. Mention grip or forearm work only when a selected exercise has a dedicated grip_endurance or forearm_rotation movement role.",
       "Keep weekly session names meaningfully distinct. Do not use weekdays, ordinals, or generic labels such as Monday Session or Session 1.",
-      "Treat safety exclusions only as movements to avoid; never describe pain or discomfort as a training goal.",
       "Do not prescribe sets, repetitions, work time, rest, cadence, or progression. Axyro compiles those deterministically.",
       "Keep the explanation concise and user-facing.",
       repairErrors
@@ -194,7 +193,7 @@ export async function POST(rawRequest: Request) {
     );
   }
 
-  if (process.env.AI_PLANNER_ENABLED !== "true") {
+  if (request.profile.painAreas.length || process.env.AI_PLANNER_ENABLED !== "true") {
     return deterministicResponse(request, "disabled");
   }
   if (!process.env.OPENAI_API_KEY) {
@@ -233,7 +232,7 @@ export async function POST(rawRequest: Request) {
         break;
       }
       repairErrors =
-        error instanceof Error ? error.message.slice(0, 1200) : "Invalid plan.";
+        "The previous proposal did not meet the requested constraints.";
     }
   }
   return deterministicResponse(request, "model-failed");

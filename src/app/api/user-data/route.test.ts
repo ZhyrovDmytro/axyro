@@ -67,14 +67,24 @@ describe("user data server ownership", () => {
   it("reports concurrent writes without silently overwriting history", async () => {
     auth.supabaseRequest.mockResolvedValueOnce([]).mockResolvedValueOnce(false);
     expect(
-      (await PUT(request({ "veyro.preferences.v1": "settings" }))).status,
+      (await PUT(request({ "veyro.preferences.v1": "{}" }))).status,
     ).toBe(409);
   });
   it("accepts partial snapshots for a newly registered user", async () => {
     auth.supabaseRequest.mockResolvedValueOnce([]).mockResolvedValueOnce(true);
     expect(
-      (await PUT(request({ "veyro.preferences.v1": "settings" }))).status,
+      (await PUT(request({ "veyro.preferences.v1": "{}" }))).status,
     ).toBe(200);
+  });
+  it.each([
+    { profile: { painAreas: ["shoulder"] } },
+    { feedback: [{ reasons: ["PAIN_OR_DISCOMFORT"] }] },
+    { adaptations: [{ type: "body_area_discomfort" }] },
+    { feedback: [{ comment: "private note" }] },
+  ])("blocks retired reports from older clients before a database write", async (legacy) => {
+    auth.supabaseRequest.mockResolvedValueOnce([]);
+    expect((await PUT(request({ "veyro.workout-activity.v1": JSON.stringify(legacy) }))).status).toBe(400);
+    expect(auth.supabaseRequest).toHaveBeenCalledTimes(1);
   });
   it("rejects unknown snapshot keys", async () => {
     expect((await PUT(request({ role: "admin" }))).status).toBe(400);

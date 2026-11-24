@@ -9,7 +9,7 @@ test("guest preview keeps six real guides and offers account actions after the g
   await expect(
     page.getByRole("link", { name: "Explore Pro", exact: true }),
   ).toHaveAttribute("href", "/upgrade?context=library&returnTo=/exercises");
-  await expect(page.locator(".library-invitation")).toContainText(
+  await expect(page.getByRole("region", { name: "Unlock the full library with Pro." })).toContainText(
     "34 more exercises",
   );
   await expect(page.getByText("Locked guide", { exact: false })).toHaveCount(0);
@@ -19,7 +19,7 @@ test("guest preview keeps six real guides and offers account actions after the g
   ).toHaveAttribute("href", "/signup?next=/exercises");
   await expect(
     page
-      .locator(".library-invitation")
+      .getByRole("region", { name: "Unlock the full library with Pro." })
       .getByRole("link", { name: "Sign in", exact: true }),
   ).toHaveAttribute("href", "/signin?next=/exercises");
   await expect(

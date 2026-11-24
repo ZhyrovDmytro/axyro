@@ -9,11 +9,11 @@ import { useAuth } from "@/components/auth/auth-provider";
 import { UiIcon } from "@/components/ui-icon";
 
 const primaryLinks = [
-  { href: "/", label: "Home" },
-  { href: "/plan", label: "Plan" },
-  { href: "/workouts", label: "Workouts" },
-  { href: "/exercises", label: "Library" },
-  { href: "/rehub", label: "Rehub" },
+  { href: "/", label: "Home", icon: "home" },
+  { href: "/plan", label: "Plan", icon: "calendar" },
+  { href: "/workouts", label: "Workouts", icon: "dumbbell" },
+  { href: "/exercises", label: "Library", icon: "book-open" },
+  { href: "/rehub", label: "Rehub", icon: "recovery" },
 ] as const;
 
 export function AppHeader() {
@@ -50,7 +50,12 @@ export function AppHeader() {
       className: "nav-link",
       href: link.href,
       "aria-current": active ? ("page" as const) : undefined,
-      children: link.label,
+      children: (
+        <>
+          <UiIcon name={link.icon} />
+          {link.label}
+        </>
+      ),
       onClick: () => {
         if (menuOpen) {
           setMenuOpen(false);
@@ -70,7 +75,13 @@ export function AppHeader() {
           aria-label="Axyro home"
           onClick={() => setMenuOpen(false)}
         >
-          <Image src="/images/axyro-mark.png" alt="" width={32} height={32} unoptimized />
+          <Image
+            src="/images/axyro-mark.png"
+            alt=""
+            width={32}
+            height={32}
+            unoptimized
+          />
           <span>Axyro</span>
         </Link>
         <Popover.Trigger
@@ -95,25 +106,7 @@ export function AppHeader() {
               href={accountHref}
               onClick={() => setMenuOpen(false)}
             >
-              <svg
-                aria-hidden="true"
-                fill="none"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                />
-                <path
-                  d="M4 21v-2a8 6 0 0 1 16 0v2"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="1.8"
-                />
-              </svg>
+              <UiIcon name="account" />
               <span>{user ? "Account" : "Sign in"}</span>
             </Link>
           )}
@@ -133,7 +126,7 @@ export function AppHeader() {
         <Popover.Positioner
           className="mobile-nav-positioner"
           align="end"
-          sideOffset={16}
+          sideOffset={12}
           collisionPadding={16}
         >
           <Popover.Popup
@@ -143,6 +136,34 @@ export function AppHeader() {
           >
             <nav className="mobile-primary-nav" aria-label="Primary navigation">
               {navigationLinks}
+              <div
+                className="mobile-nav-personal"
+                role="group"
+                aria-label="Personal settings"
+              >
+                {loading ? (
+                  <span role="status">Loading account…</span>
+                ) : (
+                  <Link
+                    className="nav-link"
+                    href={accountHref}
+                    aria-current={accountActive ? "page" : undefined}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <UiIcon name="account" />
+                    {user ? "Account" : "Sign in"}
+                  </Link>
+                )}
+                <Link
+                  className="nav-link"
+                  href="/settings"
+                  aria-current={pathname === "/settings" ? "page" : undefined}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <UiIcon name="settings" />
+                  Settings
+                </Link>
+              </div>
             </nav>
           </Popover.Popup>
         </Popover.Positioner>

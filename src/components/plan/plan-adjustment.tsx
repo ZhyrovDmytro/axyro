@@ -21,7 +21,6 @@ import { getPlanWeekNumber } from "@/domain/training-plan/progression";
 import {
   developmentAreaOptions,
   hasPlanDumbbells,
-  painOptions,
   planEquipmentForChoice,
   planEquipmentOptions,
   padelMovementOptions,
@@ -50,7 +49,6 @@ const questions = [
   "duration",
   "equipment",
   "demand",
-  "comfort",
   "focus",
 ] as const;
 type Question = (typeof questions)[number];
@@ -60,7 +58,6 @@ const labels: Record<Question, string> = {
   duration: "Session length",
   equipment: "Equipment",
   demand: "Workout difficulty",
-  comfort: "Comfort",
   focus: "Training focus",
 };
 type Draft = {
@@ -80,7 +77,6 @@ const headings: Record<Question, string> = {
   duration: "How much time can you set aside?",
   equipment: "What equipment will you have?",
   demand: "How should we adjust your workouts?",
-  comfort: "Which areas should workouts avoid?",
   focus: "What should upcoming workouts prioritize?",
 };
 
@@ -157,8 +153,6 @@ function requestFrom(reason: Question, draft: Draft): Adjustment | null {
         equipment: profile.equipment,
         scope: scopes.equipment,
       };
-    case "comfort":
-      return { kind: reason, areas: profile.painAreas };
     case "focus":
       return {
         kind: reason,
@@ -412,7 +406,7 @@ function AdjustmentForm({
       profile: { ...current.profile, ...patch },
     }));
   const requests = (
-    ["comfort", "equipment", "schedule", "focus", "duration", "demand"] as const
+    ["equipment", "schedule", "focus", "duration", "demand"] as const
   ).flatMap((question) => {
     if (!draft.answered.includes(question)) return [];
     const request = requestFrom(question, {
@@ -644,18 +638,6 @@ function AdjustmentForm({
                   </div>
                 </fieldset>
               )}
-              {reason === "comfort" && (
-                <OptionList
-                  legend="Areas to avoid"
-                  options={painOptions}
-                  values={profile.painAreas}
-                  onToggle={(item) =>
-                    patchProfile({
-                      painAreas: toggle(profile.painAreas, item),
-                    })
-                  }
-                />
-              )}
               {reason === "focus" && (
                 <>
                   <OptionList
@@ -845,7 +827,6 @@ function AdjustmentForm({
                   <UiIcon name="scheduled" />
                   <span>{dates}</span>
                   {((scoped && scope === "ongoing") ||
-                    reason === "comfort" ||
                     reason === "focus") && (
                     <small>Also updates your saved default</small>
                   )}

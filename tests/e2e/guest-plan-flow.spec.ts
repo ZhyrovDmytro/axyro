@@ -1,4 +1,4 @@
-import { openNavigation } from "./helpers/navigation";
+import { accountNavigation, openNavigation } from "./helpers/navigation";
 import { expect, test, type Page } from "@playwright/test";
 import { installDeterministicPlanner } from "./helpers/planner";
 
@@ -247,8 +247,8 @@ for (const mode of ["signin", "signup"] as const) {
       return route.fulfill({ json: { user } });
     });
     await page.goto("/plan");
-    await page
-      .getByRole("banner")
+    await openNavigation(page);
+    await accountNavigation(page)
       .getByRole("link", { name: "Sign in", exact: true })
       .click();
     await expect(page).toHaveURL(/\/signin$/);
@@ -382,7 +382,7 @@ test("a member reviews and saves a refinement, then finishes a revised workout",
   const apply = page.getByRole("button", {
     name: "Apply to upcoming workouts",
   });
-  for (let i = 0; i < 4; i++) await nextStep.click();
+  for (let i = 0; i < 3; i++) await nextStep.click();
   await preview.click();
   await expect(
     page.getByRole("heading", { name: "Review changes" }),

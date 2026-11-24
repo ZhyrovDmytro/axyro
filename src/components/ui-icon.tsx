@@ -1,6 +1,11 @@
 import type { SVGProps } from "react";
 
 export type UiIconName =
+  | "calendar"
+  | "home"
+  | "dumbbell"
+  | "recovery"
+  | "account"
   | "arrow-left"
   | "arrow-right"
   | "arrow-up-right"
@@ -24,6 +29,14 @@ export type UiIconName =
   | "volume"
   | "volume-off";
 
+const navigationPaths = {
+  calendar: "M5 5h14a1 1 0 0 1 1 1v14H4V6a1 1 0 0 1 1-1ZM8 3v4m8-4v4M4 10h16",
+  home: "m3 10 9-7 9 7v10h-6v-7H9v7H3z",
+  dumbbell: "m7 14 7-7M3 12l9 9M2 16l6 6M12 3l9 9M16 2l6 6",
+  recovery: "M3 12h4l3-7 4 14 3-7h4",
+  account: "M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM4 21v-2a8 6 0 0 1 16 0v2",
+};
+
 type UiIconProps = SVGProps<SVGSVGElement> & {
   name: UiIconName;
 };
@@ -37,6 +50,26 @@ export function UiIcon({ name, ...props }: UiIconProps) {
     xmlns: "http://www.w3.org/2000/svg",
     ...props,
   } as const;
+
+  if (
+    name === "calendar" ||
+    name === "home" ||
+    name === "dumbbell" ||
+    name === "recovery" ||
+    name === "account"
+  ) {
+    return (
+      <svg {...commonProps}>
+        <path
+          d={navigationPaths[name]}
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
 
   if (name === "arrow-left") {
     return (

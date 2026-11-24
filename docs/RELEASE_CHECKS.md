@@ -8,7 +8,8 @@ does not close the account, billing, legal, media-rights or device launch gates.
 The `Release checks` GitHub Actions workflow runs on pull requests and pushes to
 `main`, using Node.js 24 and the committed lockfile without installation scripts.
 It runs zero-warning ESLint, Next.js route type generation, TypeScript, unit tests,
-the dependency audit (high/critical fail), the webpack production build and guest
+the database privilege and billing isolation checks, the dependency audit
+(high/critical fail), the webpack production build and guest
 production smoke tests. A second job runs the full development browser suite.
 No provider credentials are required. Failed browser runs retain reports/traces
 for seven days; do not add credentials or real personal data to test fixtures.
@@ -45,13 +46,15 @@ After Netlify finishes deploying the intended commit, run `Staging smoke` from
 GitHub Actions with the deployed staging origin. Alternatively:
 
 ```sh
-PLAYWRIGHT_BASE_URL=https://axyro-training.netlify.app npx playwright test --config=playwright.release.config.ts
+PLAYWRIGHT_BASE_URL=https://axyro-staging.netlify.app npx playwright test --config=playwright.release.config.ts
 ```
 
 Setting the URL disables the local server. Tests use real public routes without
 mocking provider APIs or logging in. They check public pages, disabled development
-administrator access, guest billing status, and free-player start, audio toggle,
-pause/resume and completion by skipping intervals. This is not verification of
+administrator access, guest billing status, free-player start, audio toggle,
+pause/resume and completion by skipping intervals. The billing smoke opens the
+withdrawal review by keyboard, checks guest billing authorization and rejects a
+cross-origin withdrawal request. This is not verification of
 a full timed session, speech output, real email delivery or payments.
 
 Record the source commit, Netlify deploy ID, workflow run URL and result in the
@@ -75,8 +78,8 @@ lifecycle on separately configured staging before accepting payments. See L03–
    automatic publishing.
 
 Republishing application code does not restore environment variables, database
-changes or provider state. This change adds no migrations. For future releases
-with migrations, plan compatible recovery under L04 before publishing. A rollback
+changes or provider state. Plan database and provider recovery under L04
+before publishing a release that changes either. A rollback
 drill remains unverified until the operator actually republishes and checks a
 previous deployment; deploy history availability alone is not a rehearsal.
 
@@ -99,3 +102,24 @@ project (hosted version `20261117164905`, `api_rate_limits`). Missing counters f
 Follow [request protection](REQUEST_PROTECTION.md) for migration order and live
 checks; a passing isolated SQL test does not establish hosted privileges or
 cross-instance behavior. GitHub/Netlify sign-ins, explicit Free-project resume approval, live database isolation/privilege assertions and staging runtime IP/spoof/429 checks passed. Staging `6afc85c987fe70a139886b22` / `5454238` passed all three mobile smoke tests. Real email/payment lifecycle and backup/rollback rehearsal remain open launch checks.
+
+## Incident triage and recovery
+
+1. The operator records the affected site, first observed time in UTC,
+   deployed commit, symptoms and the next update time. Use the public smoke
+   checks to identify which flows are affected. Keep account details and secrets
+   out of the incident log.
+2. For an outage or payment regression, pause promotion and use the rollback
+   procedure above if the incident began with a deploy. For a billing-data
+   incident, check Stripe delivery history and the app’s billing state before
+   replaying an event. Reconcile checkout, entitlement, withdrawal and delivery
+   records with the matching Stripe or Resend event. Use the separate
+   [billing runbook](billing.md) for refund and withdrawal handling.
+3. Rehearse database recovery in an isolated target. Verify the restore timestamp,
+   schema permissions, representative row counts and billing reconciliation
+   before directing any traffic to a restored database. Keep the exercise open
+   until these checks pass and the time to restore has been recorded.
+4. Before paid launch, configure uptime and failure alerts to reach the operator.
+   Exercise an alert for a failing probe, a Stripe webhook delivery failure and
+   a transactional email failure. Record the recipient, timestamps and recovery
+   result in the launch tracker.

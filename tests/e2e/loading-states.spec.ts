@@ -1,4 +1,4 @@
-import { openNavigation } from "./helpers/navigation";
+import { accountNavigation, openNavigation } from "./helpers/navigation";
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { mockFreeMember } from "./helpers/free-member";
@@ -58,8 +58,9 @@ for (const width of [390, 1280]) {
     releaseSession();
     await expect(page.getByRole("link", { name: "Build My Training Plan" })).toBeVisible();
     releaseData();
+    await openNavigation(page);
     await expect(
-      page.getByRole("banner").getByRole("link", { name: "Account", exact: true }),
+      accountNavigation(page).getByRole("link", { name: "Account", exact: true }),
     ).toBeVisible();
     await expect(
       page.getByRole("heading", { name: "Train at home for padel" }),
@@ -99,7 +100,8 @@ test("library search survives account initialization", async ({ page }) => {
   const search = page.getByRole("searchbox", { name: "Search exercises" });
   await search.fill("shoulder");
   releaseSession();
-  await expect(page.getByRole("link", { name: "Account", exact: true })).toBeVisible();
+  await openNavigation(page);
+  await expect(accountNavigation(page).getByRole("link", { name: "Account", exact: true })).toBeVisible();
   await expect(search).toHaveValue("shoulder");
   await expect(page).toHaveURL(/\/exercises\?q=shoulder$/);
 });
@@ -228,8 +230,9 @@ test("personal home waits for membership without flashing discovery", async ({
     await route.fallback();
   });
   await page.goto("/");
+  await openNavigation(page);
   await expect(
-    page.getByRole("banner").getByRole("link", { name: "Account", exact: true }),
+    accountNavigation(page).getByRole("link", { name: "Account", exact: true }),
   ).toBeVisible();
   await expect(page.getByRole("main")).toHaveAttribute("aria-busy", "true");
   await expect(

@@ -22,6 +22,8 @@ import { getBillingAccess } from "@/services/billing/server";
 const originalFlag = process.env.AI_PLANNER_ENABLED;
 
 afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
   if (originalFlag === undefined) delete process.env.AI_PLANNER_ENABLED;
   else process.env.AI_PLANNER_ENABLED = originalFlag;
 });
@@ -67,6 +69,35 @@ describe("training plan route", () => {
     );
     expect(response.status).toBe(422);
     expect(await response.json()).toMatchObject({ code: "unsupported-plan" });
+  });
+  it("excludes feedback and raw repair errors from every model request", async () => {
+    vi.stubEnv("AI_PLANNER_ENABLED", "true");
+    vi.stubEnv("OPENAI_API_KEY", "test-only");
+    const requests: string[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (_url, init: RequestInit) => {
+      requests.push(String(init.body));
+      return Response.json({ id: "test", output: [], status: "completed" });
+    }));
+    const body = {
+      today: "2026-09-28",
+      profile: {
+        sport: "other", experience: "beginner", sessionsPerWeek: 1,
+        sessionDurationMinutes: 10, preferredDays: ["monday"],
+        equipment: ["bodyweight"], goals: ["strength"], painAreas: [] as string[],
+      },
+      adaptationProfile: { ...defaultAdaptationProfile, avoidExercises: ["private-feedback-marker"] },
+    };
+    const send = () => POST(new Request("http://localhost/api/training-plan", {
+      method: "POST", body: JSON.stringify(body),
+    }));
+    await send();
+    expect(requests).toHaveLength(2);
+    for (const request of requests) {
+      expect(request).not.toMatch(/private-feedback-marker|recentTrainingContext|safetyExclusions|painAreas/);
+    }
+    body.profile.painAreas = ["shoulder"];
+    await send();
+    expect(requests).toHaveLength(2);
   });
   it("rejects guests before evaluating plan input", async () => {
     vi.mocked(getBillingAccess).mockResolvedValueOnce({

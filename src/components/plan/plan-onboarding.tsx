@@ -33,7 +33,6 @@ import {
   padelLimitationOptions,
   padelMovementOptions,
   padelPowerOptions,
-  painOptions,
   planEquipmentForChoice,
   planEquipmentOptions,
 } from "@/domain/training-plan/questionnaire-context";
@@ -53,7 +52,6 @@ const initialPadelSteps = [
   "padel-movement",
   "padel-power",
   "padel-capacity",
-  "pain",
   "schedule",
   "equipment",
   "review",
@@ -63,7 +61,6 @@ const initialGeneralSteps = [
   "sport",
   "goals",
   "weak-areas",
-  "pain",
   "schedule",
   "equipment",
   "review",
@@ -78,7 +75,6 @@ const stepLabels: Record<StepId, string> = {
   "padel-power": "Power & control",
   "padel-capacity": "Mobility & capacity",
   "weak-areas": "Strength focus",
-  pain: "Comfort",
   goals: "Goals",
   schedule: "Schedule",
   equipment: "Equipment",
@@ -420,15 +416,6 @@ export function PlanOnboarding() {
     });
   }
 
-  function togglePainArea(area: AthleteProfile["painAreas"][number]) {
-    const selected = profile.painAreas.includes(area);
-    patchProfile({
-      painAreas: selected
-        ? profile.painAreas.filter((item) => item !== area)
-        : [...profile.painAreas, area],
-    });
-  }
-
   async function goForward(event: FormEvent) {
     event.preventDefault();
     if (generationRequest.current || savingRef.current || membershipLoading)
@@ -486,7 +473,7 @@ export function PlanOnboarding() {
         requestAnimationFrame(() => resolve()),
       );
       if (controller.signal.aborted) return;
-      if (!hasPro) {
+      if (!hasPro || result.data.painAreas.length > 0) {
         nextPlan = generateTrainingPlan(result.data, today, [], {
           adaptationProfile,
         });
@@ -504,7 +491,7 @@ export function PlanOnboarding() {
         if (response.status === 422) {
           if (controller.signal.aborted) return;
           setError(
-            "No plan fits these answers yet. Try a shorter session or review your available equipment. Keep your current discomfort selections accurate. Your answers are saved so you can return later.",
+            "No plan fits these answers yet. Try a shorter session or review your available equipment. Your answers are saved so you can return later.",
           );
           generationRequest.current = null;
           setIsGenerating(false);
@@ -546,7 +533,7 @@ export function PlanOnboarding() {
       if (controller.signal.aborted) return;
       setError(
         error instanceof UnsupportedPlanDurationError
-          ? "No plan fits these answers yet. Try a shorter session or review your available equipment. Keep your current discomfort selections accurate. Your answers are saved so you can return later."
+          ? "No plan fits these answers yet. Try a shorter session or review your available equipment. Your answers are saved so you can return later."
           : "Your plan could not be created. Check your connection and browser storage, then try again. Your answers are still here.",
       );
       setIsGenerating(false);
@@ -585,7 +572,7 @@ export function PlanOnboarding() {
                 ? steps.length - 1
                 : balancedShortcut &&
                     profile.sport === "padel" &&
-                    currentStep === "pain"
+                    currentStep === "schedule"
                   ? steps.indexOf("weak-areas")
                   : Math.max(0, current - 1),
             );
@@ -795,46 +782,6 @@ export function PlanOnboarding() {
           </fieldset>
         )}
 
-        {currentStep === "pain" && (
-          <fieldset>
-            <legend>
-              Is anything painful, sore or uncomfortable right now?
-            </legend>
-            <p className="question-help">
-              Optional safety check. These areas will be protected or avoided;
-              they will not be treated as areas to strengthen. Use the previous
-              step for a non-painful weak area you want to develop.
-            </p>
-            <div className="choice-grid choice-grid--compact">
-              <Choice
-                checked={profile.painAreas.length === 0}
-                name="pain-free"
-                onChange={() => patchProfile({ painAreas: [] })}
-                value="none"
-              >
-                None / skip
-              </Choice>
-              {painOptions.map((option) => (
-                <Choice
-                  checked={profile.painAreas.includes(option.value)}
-                  key={option.value}
-                  name="pain-areas"
-                  onChange={() => togglePainArea(option.value)}
-                  type="checkbox"
-                  value={option.value}
-                >
-                  {option.label}
-                </Choice>
-              ))}
-            </div>
-            <p className="safety-note">
-              Axyro does not diagnose or treat pain. Stop if a movement causes
-              pain or increasing discomfort; seek qualified care for new,
-              severe, worsening, or persistent symptoms.
-            </p>
-          </fieldset>
-        )}
-
         {currentStep === "goals" && (
           <fieldset>
             <legend>What do you want to improve?</legend>
@@ -1023,22 +970,6 @@ export function PlanOnboarding() {
                 </div>
               )}
               <div>
-                <dt>
-                  Current safety exclusions {editAnswer("pain", "comfort")}
-                </dt>
-                <dd>
-                  {profile.painAreas.length > 0
-                    ? profile.painAreas
-                        .map(
-                          (area) =>
-                            painOptions.find((option) => option.value === area)
-                              ?.label,
-                        )
-                        .join(", ")
-                    : "None reported"}
-                </dd>
-              </div>
-              <div>
                 <dt>Weekly rhythm {editAnswer("schedule", "schedule")}</dt>
                 <dd>
                   {profile.preferredDays
@@ -1056,8 +987,7 @@ export function PlanOnboarding() {
               <strong>How this preview works</strong>
               <p>
                 Axyro always compiles and validates the plan with deterministic
-                rules based on sport, priorities, schedule, equipment and any
-                optional discomfort selections. When AI planning is enabled, it
+                rules based on sport, priorities, schedule and equipment. When AI planning is enabled, it
                 proposes the exercise mix; Axyro still owns timing, safety and
                 progression. Technique labels do not limit your exercise pool.
                 Choose effort before you start. You can change spoken guidance
@@ -1089,7 +1019,7 @@ export function PlanOnboarding() {
                 onClick={() => {
                   patchProfile({ padelLimitations: [] });
                   setBalancedShortcut(true);
-                  setStep(steps.indexOf("pain"));
+                  setStep(steps.indexOf("schedule"));
                 }}
               >
                 Use balanced padel training

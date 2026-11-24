@@ -3,16 +3,24 @@ import AxeBuilder from "@axe-core/playwright";
 import { generateTrainingPlan } from "../../src/domain/training-plan/generate-training-plan";
 import { representativeAthleteProfiles } from "../../src/domain/training-plan/evaluation-profiles";
 
-async function openAdjustment(page: Page) {
+async function openAdjustment(page: Page, legacyConstraints = false) {
   const login = await page.request.post("/api/auth/signin", {
     headers: { Origin: new URL(test.info().project.use.baseURL!).origin },
     data: { email: "admin", password: "admin" },
   });
   expect(login.ok()).toBe(true);
   const plan = generateTrainingPlan(
-    representativeAthleteProfiles[1],
+    { ...representativeAthleteProfiles[1] },
     new Date(),
   );
+  if (legacyConstraints) {
+    plan.profile.painAreas = [
+      "shoulder",
+      "neck-upper-back",
+      "lower-back",
+      "hip-groin",
+    ];
+  }
   await page.goto("/plan");
   await page.evaluate(
     (seed) =>
@@ -135,7 +143,7 @@ test("plan adjustment steps retain answers and combine changes into one review",
   await expect(secondExercise).toBeChecked();
   await continueButton.click();
   await expect(
-    page.getByRole("heading", { name: "Which areas should workouts avoid?" }),
+    page.getByRole("heading", { name: "What should upcoming workouts prioritize?" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Back", exact: true }).click();
   await expect(secondExercise).toBeChecked();
@@ -154,7 +162,6 @@ test("plan adjustment steps retain answers and combine changes into one review",
   });
   await page.setViewportSize({ width: 390, height: 900 });
   await keep.check();
-  await continueButton.click();
   await continueButton.click();
   await page
     .getByRole("button", { name: "Review changes", exact: true })
@@ -213,18 +220,10 @@ test("plan adjustment steps retain answers and combine changes into one review",
 test("removes incompatible workouts only after reviewing and applying", async ({
   page,
 }) => {
-  const plan = await openAdjustment(page);
+  const plan = await openAdjustment(page, true);
   const next = page.getByRole("button", { name: "Continue", exact: true });
   for (let step = 0; step < 4; step++) await next.click();
-  for (const area of [
-    "Shoulder",
-    "Neck or upper back",
-    "Lower back",
-    "Hip or groin",
-  ]) {
-    await page.getByRole("checkbox", { name: area, exact: true }).check();
-  }
-  await next.click();
+  await page.getByRole("checkbox", { name: "Core and lower back", exact: true }).check();
   const review = page.getByRole("button", {
     name: "Review changes",
     exact: true,
@@ -246,7 +245,8 @@ test("removes incompatible workouts only after reviewing and applying", async ({
   await removals.first().check();
   await page
     .getByRole("checkbox", { name: "Core and lower back", exact: true })
-    .check();
+    .uncheck();
+  await page.getByRole("checkbox", { name: "Core and lower back", exact: true }).check();
   await expect(conflicts).toHaveCount(0);
   await review.click();
   await expect(removals.first()).not.toBeChecked();

@@ -118,40 +118,30 @@ function subscribeToMotionPreference(onChange: () => void) {
 }
 
 function CourtFilm({ reducedMotion }: { reducedMotion: boolean }) {
-  const film = useRef<HTMLVideoElement>(null);
-  const [paused, setPaused] = useState(true);
-  const [failed, setFailed] = useState(false);
-
-  useEffect(() => {
-    const video = film.current;
-    if (!video) return;
-    if (reducedMotion) video.pause();
-    else void video.play().catch(() => {});
-  }, [reducedMotion]);
+  if (reducedMotion) return null;
 
   return (
-    <>
-      <video ref={film} className={styles.film} aria-hidden="true"
-        muted playsInline loop preload="none" poster="/images/landing/court-film.webp"
-        src="/images/landing/court-film.mp4"
-        onPlay={() => setPaused(false)} onPause={() => setPaused(true)}
-        onError={() => setFailed(true)} />
-      {!failed && (
-        <button type="button" className={styles.filmControl}
-          aria-label={paused ? "Play court film" : "Pause court film"}
-          onClick={() => {
-            const video = film.current;
-            if (video?.paused) void video.play().catch(() => {});
-            else video?.pause();
-          }}>
-          <UiIcon name={paused ? "play" : "pause"} />
-        </button>
-      )}
-    </>
+    <video
+      className={styles.film}
+      aria-hidden="true"
+      autoPlay
+      muted
+      playsInline
+      loop
+      preload="none"
+      poster="/images/landing/court-film.webp"
+      src="/images/landing/court-film.mp4"
+    />
   );
 }
 
+function subscribeToScroll(notify: () => void) {
+  window.addEventListener("scroll", notify, { passive: true });
+  return () => window.removeEventListener("scroll", notify);
+}
+
 export function LandingPage() {
+  const scrolled = useSyncExternalStore(subscribeToScroll, () => window.scrollY > 0, () => false);
   const reducedMotion = useSyncExternalStore(
     subscribeToMotionPreference,
     () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
@@ -206,7 +196,7 @@ export function LandingPage() {
   }, []);
   const scene = chapters[chapter];
   return (
-    <div className={styles.landing}>
+    <div className={styles.landing} data-scrolled={scrolled}>
       <main id="main">
         <section className={styles.filmHero}>
           <CourtFilm reducedMotion={reducedMotion} />
@@ -215,17 +205,14 @@ export function LandingPage() {
             <h1 className={styles.heroHeadline}>
               Play better padel. <em>Train beyond the court.</em>
             </h1>
-            <p>
-              Build strength, move faster, and stay ready for every shot. Personalized
-              workouts designed for padel players, right at home.
-            </p>
+            <p>Personalized padel workouts you can do at home.</p>
             <div className={styles.actions}>
               <PlanLink label="Build My Training Plan" />
-              <a href="#how-it-works" className={styles.freeLink}>
-                See How It Works <UiIcon name="arrow-right" />
-              </a>
             </div>
           </div>
+          <a className={styles.scrollCue} href="#why-axyro" aria-label="Scroll to the next section">
+            <UiIcon name="chevron-down" />
+          </a>
         </section>
         <section className={styles.matchDemand} id="why-axyro">
           <div>

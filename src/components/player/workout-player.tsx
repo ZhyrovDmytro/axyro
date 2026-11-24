@@ -306,7 +306,6 @@ function WorkoutPlayerRuntime({
   const [actualDurationSeconds, setActualDurationSeconds] = useState<
     number | undefined
   >();
-  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [completedSetKeys, setCompletedSetKeys] = useState<Set<string>>(
     new Set(restored?.completedSetKeys ?? []),
   );
@@ -760,29 +759,13 @@ function WorkoutPlayerRuntime({
             <dd>{plannedMinutes} min</dd>
           </div>
         </dl>
-        <WorkoutFeedbackForm
-          exercises={[
-            ...new Map(
-              exercises.map((exercise) => [
-                exercise.id,
-                { id: exercise.id, name: exercise.name },
-              ]),
-            ).values(),
-          ]}
-          onSave={(answer) => {
-            const result = recordFeedback(answer);
-            if (result) setFeedbackSubmitted(true);
-            return result;
-          }}
-        />
-        {feedbackSubmitted && (
-          <Link
-            className="button button--primary button--full completion-primary-action"
-            href={completionHref ?? "/"}
-          >
-            Done
-          </Link>
-        )}
+        <WorkoutFeedbackForm onSave={recordFeedback} />
+        <Link
+          className="button button--primary button--full completion-primary-action"
+          href={completionHref ?? "/"}
+        >
+          Done
+        </Link>
         <section
           className="completion-secondary-actions"
           aria-labelledby="completion-options-heading"

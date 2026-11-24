@@ -25,8 +25,8 @@ test("library filters reuse the catalog and distant cards defer demos", async ({
       demoRequests.push(request.url());
   });
   await page.goto("/exercises");
-  const cards = page.locator(".exercise-card");
-  await expect(cards.last()).toBeAttached();
+  const cards = page.locator(".exercise-card").filter({ visible: true });
+  await expect(cards.last()).toBeVisible();
   const poster = cards.last().locator("img");
   await poster.scrollIntoViewIfNeeded();
   await expect(poster).toHaveAttribute("src", /\.webp$/);

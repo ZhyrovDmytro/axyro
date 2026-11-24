@@ -6,9 +6,9 @@ and errors continue to use the shared provider.
 
 ## Design direction
 
-The guest page uses graphite, dark green, lime and off-white. Its headline, “Play better padel. Train beyond the court.”, overlays a muted roughly 22-second film edited from seven supplied clips. Half-second crossfades connect the shots and loop. A pause control and static reduced-motion poster accompany the existing calls to action. The film leads into footwork, exercise demonstrations and the guided player. The plan, training areas, Free and Pro access and FAQ follow.
+The guest page uses graphite, dark green, lime and off-white. Its headline, “Play better padel. Train beyond the court.”, overlays a muted roughly 22-second film edited from seven supplied clips. Half-second crossfades connect the shots and loop. Visitors who prefer reduced motion see the static court poster. The film fills the visible viewport behind the floating top bar. Its background is transparent at the top and fades to charcoal when scrolling begins. A centered desktop chevron links to the next section and stays still for reduced motion. The film leads into footwork, exercise demonstrations and the guided player. The plan, training areas, Free and Pro access and FAQ follow.
 
-Build My Training Plan opens plan setup. See How It Works jumps to the player section. Full creative directions, image attribution and verification are in [the design report](LANDING_DESIGN.md).
+Build My Training Plan opens plan setup. Full creative directions, image attribution and verification are in [the design report](LANDING_DESIGN.md).
 
 ## Navigation and access
 

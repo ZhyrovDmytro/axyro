@@ -14,11 +14,12 @@ const account = {
 
 test("membership currency preserves billing period and submits the selected price", async ({
   page,
-}) => {
+}, testInfo) => {
   await mockServices(page);
   await page.route("**/api/billing/products", (route) =>
     route.fulfill({
       json: {
+        termsVersion: "2026-11-23",
         products: [
           {
             id: "eur_month",
@@ -53,8 +54,20 @@ test("membership currency preserves billing period and submits the selected pric
     }),
   );
   let submittedPrice = "";
+  let acceptedVersion = "";
   await page.route("**/api/billing/checkout", async (route) => {
-    submittedPrice = route.request().postDataJSON().priceId;
+    const submitted = route.request().postDataJSON();
+    submittedPrice = submitted.priceId;
+    acceptedVersion = submitted.acceptedTermsVersion;
+    if (submittedPrice === "eur_year") {
+      return route.fulfill({
+        status: 409,
+        json: {
+          pendingPriceId: "eur_month",
+          pendingUntil: "2026-11-24T10:00:00Z",
+        },
+      });
+    }
     await route.fulfill({
       status: 503,
       json: { error: "Test checkout stopped" },
@@ -73,10 +86,40 @@ test("membership currency preserves billing period and submits the selected pric
   await expect(
     page.getByRole("radio", { name: /Monthly/ }),
   ).toHaveAccessibleName(/6.99/);
-  await page.getByRole("button", { name: "Start Pro", exact: true }).click();
+  await page.getByRole("radio", { name: /Yearly/ }).check();
+  const acceptTerms = page.getByRole("checkbox", {
+    name: /accept the membership terms/i,
+  });
+  const continueToStripe = page.getByRole("button", {
+    name: "Continue to Stripe",
+    exact: true,
+  });
+  await expect(continueToStripe).toBeDisabled();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await acceptTerms.scrollIntoViewIfNeeded();
+  await page.screenshot({
+    path: testInfo.outputPath("contract-confirmation-390.png"),
+  });
+  await acceptTerms.check();
+  await page
+    .getByRole("button", { name: "Continue to Stripe", exact: true })
+    .click();
   await expect(
     page
-      .getByRole("region", { name: "Unlock every padel workout" })
+      .getByRole("region", { name: "The full padel workout library" })
+      .getByRole("alert"),
+  ).toContainText(/checkout is already open for .*6.99 every month/i);
+  await expect(page.getByRole("radio", { name: /Monthly/ })).toBeChecked();
+  expect(submittedPrice).toBe("eur_year");
+  expect(acceptedVersion).toBe("2026-11-23");
+  await expect(acceptTerms).not.toBeChecked();
+  await acceptTerms.check();
+  await page
+    .getByRole("button", { name: "Continue to Stripe", exact: true })
+    .click();
+  await expect(
+    page
+      .getByRole("region", { name: "The full padel workout library" })
       .getByRole("alert"),
   ).toHaveText("Test checkout stopped");
   expect(submittedPrice).toBe("eur_month");
@@ -203,7 +246,7 @@ test("Free workout to Pro checkout continues directly into personal plan and sig
   expect(state.generations()).toBe(0);
   await expect(page.getByLabel("Currency", { exact: true })).toHaveCount(0);
   await page
-    .getByRole("button", { name: "Unlock My Plan", exact: true })
+    .getByRole("button", { name: "Continue to Stripe", exact: true })
     .click();
   await expect.poll(state.generations, { timeout: 30000 }).toBe(1);
   await expect(page.locator(".plan-preview")).toHaveCount(0);

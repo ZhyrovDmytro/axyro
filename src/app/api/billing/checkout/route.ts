@@ -1,3 +1,7 @@
+import {
+  checkoutContractFields,
+  contractTermsVersion,
+} from "@/services/billing/contract-confirmation";
 import { z } from "zod";
 import { enforceRateLimit } from "@/services/http/rate-limit";
 import {
@@ -30,6 +34,7 @@ export async function POST(request: Request) {
     const parsed = z
       .object({
         priceId: z.string(),
+        acceptedTermsVersion: z.string().optional(),
         returnTo: z
           .string()
           .max(1000)
@@ -70,12 +75,58 @@ export async function POST(request: Request) {
         { status: 409 },
       );
     }
+    const live = /^(sk|rk)_live_/.test(process.env.STRIPE_SECRET_KEY ?? "");
+    const origin = billingOrigin();
+    const contract = checkoutContractFields(origin);
+    if (
+      live &&
+      (!contract || process.env.AXYRO_LIVE_CHECKOUT_ENABLED !== "true")
+    ) {
+      return Response.json(
+        { error: "Live checkout is unavailable." },
+        { status: 503 },
+      );
+    }
+    if (contract && parsed.data.acceptedTermsVersion !== contractTermsVersion) {
+      return Response.json(
+        {
+          error:
+            "Review and accept the current membership terms before continuing.",
+        },
+        { status: 400 },
+      );
+    }
     const customer = await customerForUser(session.user.id, session.user.email);
     const reservation = await reserveCheckout(
       session.user.id,
       parsed.data.priceId,
       parsed.data.returnTo,
     );
+    if (reservation.priceId !== parsed.data.priceId) {
+      return Response.json(
+        {
+          error: "A checkout is open for a different membership.",
+          pendingPriceId: reservation.priceId,
+          pendingUntil: new Date(reservation.expiresAt * 1000).toISOString(),
+        },
+        { status: 409 },
+      );
+    }
+    if (live) {
+      const price = z
+        .object({ tax_behavior: z.string() })
+        .parse(
+          await stripeRequest(
+            `prices/${encodeURIComponent(reservation.priceId)}`,
+          ),
+        );
+      if (price.tax_behavior !== "inclusive") {
+        return Response.json(
+          { error: "This price is unavailable." },
+          { status: 503 },
+        );
+      }
+    }
     const subscriptions = await providerSubscriptions(customer);
     if (
       subscriptions.some(
@@ -87,15 +138,21 @@ export async function POST(request: Request) {
         { error: "A subscription already exists. Manage it in Account." },
         { status: 409 },
       );
-    const successUrl = new URL(reservation.returnTo, billingOrigin());
+    const successUrl = new URL(reservation.returnTo, origin);
     successUrl.searchParams.set("checkout", "success");
-    const cancelUrl = new URL(reservation.returnTo, billingOrigin());
+    const cancelUrl = new URL(reservation.returnTo, origin);
     cancelUrl.searchParams.set("checkout", "cancelled");
     const checkout = stripeUrlSchema.parse(
       await stripeRequest(
         "checkout/sessions",
         new URLSearchParams({
+          ...contract,
           mode: "subscription",
+          "subscription_data[billing_mode][type]": "classic",
+          "branding_settings[background_color]": "#111412",
+          "branding_settings[button_color]": "#d9fc54",
+          "branding_settings[font_family]": "default",
+          "branding_settings[border_style]": "rounded",
           customer,
           "line_items[0][price]": reservation.priceId,
           expires_at: String(reservation.expiresAt),
@@ -106,6 +163,7 @@ export async function POST(request: Request) {
           cancel_url: cancelUrl.toString(),
         }),
         `checkout-${reservation.id}`,
+        "2025-09-30.clover",
       ),
     );
     return Response.json(checkout);

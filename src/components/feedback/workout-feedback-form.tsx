@@ -4,14 +4,13 @@ import { useEffect, useId, useRef, useState } from "react";
 
 import type {
   PerceivedDifficulty,
-  FeedbackReason,
   SaveFeedbackEventInput,
   WorkoutFeedbackEvent,
 } from "@/services/persistence/workout-activity-repository";
 
 export const difficultyLabels = {
   TOO_EASY: "Too easy",
-  SLIGHTLY_EASY: "A little easy",
+  SLIGHTLY_EASY: "Easy",
   JUST_RIGHT: "Just right",
   HARD: "Hard",
   TOO_HARD: "Too hard",
@@ -30,29 +29,12 @@ export const feedbackReasonLabels = {
   OTHER: "Other",
 } as const;
 
-type Difficulty = PerceivedDifficulty;
-type Reason = FeedbackReason;
+const difficultyChoices = ["SLIGHTLY_EASY", "JUST_RIGHT", "HARD"] as const;
+
 export type WorkoutFeedbackAnswer = Omit<
   SaveFeedbackEventInput,
   "completionId"
 >;
-
-const hardReasons: Reason[] = [
-  "OVERALL_INTENSITY",
-  "WORKOUT_TOO_LONG",
-  "MUSCLE_FATIGUE",
-  "TECHNIQUE_DIFFICULTY",
-  "INSUFFICIENT_RECOVERY",
-  "PAIN_OR_DISCOMFORT",
-  "OTHER",
-];
-const easyReasons: Reason[] = [
-  "OVERALL_INTENSITY",
-  "EXERCISES_TOO_SIMPLE",
-  "WORKOUT_TOO_SHORT",
-  "TOO_MUCH_REST",
-  "OTHER",
-];
 
 export function feedbackDifficultyLabel(event: WorkoutFeedbackEvent) {
   return event.perceivedDifficulty
@@ -68,31 +50,17 @@ export function feedbackDifficultyLabel(event: WorkoutFeedbackEvent) {
 
 export function WorkoutFeedbackForm({
   initialFeedback,
-  exercises = [],
   onSave,
 }: {
   initialFeedback?: WorkoutFeedbackEvent | null;
-  exercises?: Array<{ id: string; name: string }>;
   onSave: (answer: WorkoutFeedbackAnswer) => WorkoutFeedbackEvent | null;
 }) {
   const id = useId();
-  const [difficulty, setDifficulty] = useState<Difficulty | null>(
-    initialFeedback?.perceivedDifficulty ?? null,
-  );
-  const [reasons, setReasons] = useState<Reason[]>(
-    initialFeedback?.reasons ?? [],
-  );
-  const [comment, setComment] = useState(initialFeedback?.comment ?? "");
-  const [affectedExerciseIds, setAffectedExerciseIds] = useState<string[]>(
-    initialFeedback?.affectedExerciseIds ?? [],
-  );
   const [saved, setSaved] = useState(initialFeedback ?? null);
   const [editing, setEditing] = useState(!initialFeedback);
   const previousEditing = useRef(editing);
   const feedbackFocusTarget = useRef<HTMLButtonElement>(null);
   const [error, setError] = useState("");
-  const difficult = difficulty === "HARD" || difficulty === "TOO_HARD";
-  const pain = reasons.includes("PAIN_OR_DISCOMFORT");
 
   useEffect(() => {
     if (previousEditing.current !== editing) {
@@ -101,20 +69,9 @@ export function WorkoutFeedbackForm({
     }
   }, [editing]);
 
-  function save(value: Difficulty, selectedReasons = reasons) {
+  function save(value: PerceivedDifficulty) {
     try {
-      const result = onSave({
-        perceivedDifficulty: value,
-        reasons: value === "JUST_RIGHT" ? [] : selectedReasons,
-        comment: comment.trim(),
-        affectedExerciseIds: selectedReasons.some(
-          (reason) =>
-            reason === "PAIN_OR_DISCOMFORT" ||
-            reason === "TECHNIQUE_DIFFICULTY",
-        )
-          ? affectedExerciseIds
-          : [],
-      });
+      const result = onSave({ perceivedDifficulty: value });
       if (!result) throw new Error("Feedback could not be saved.");
       setSaved(result);
       setEditing(false);
@@ -133,114 +90,25 @@ export function WorkoutFeedbackForm({
         <h2 id={`${id}-heading`}>How did this workout feel?</h2>
       </header>
       {editing ? (
-        <form
-          className="feedback-form"
-          onSubmit={(event) => {
-            event.preventDefault();
-            if (difficulty) save(difficulty);
-          }}
-        >
+        <>
           <fieldset className="workout-check-in">
-            <legend className="sr-only">How did this workout feel?</legend>
+            <legend className="sr-only">Workout difficulty</legend>
             <div className="workout-check-in__options">
-              {(Object.keys(difficultyLabels) as Difficulty[]).map((value) => (
+              {difficultyChoices.map((value, index) => (
                 <button
-                  ref={
-                    difficulty === value ||
-                    (!difficulty && value === "TOO_EASY")
-                      ? feedbackFocusTarget
-                      : undefined
-                  }
-                  aria-pressed={difficulty === value}
+                  ref={index === 0 ? feedbackFocusTarget : undefined}
                   className="workout-check-in__option"
                   key={value}
                   type="button"
-                  onClick={() => {
-                    setDifficulty(value);
-                    setReasons([]);
-                    setAffectedExerciseIds([]);
-                    if (value === "JUST_RIGHT") save(value, []);
-                  }}
+                  onClick={() => save(value)}
                 >
                   <strong>{difficultyLabels[value]}</strong>
                 </button>
               ))}
             </div>
           </fieldset>
-          {difficulty && difficulty !== "JUST_RIGHT" && (
-            <>
-              <fieldset className="feedback-follow-up">
-                <legend>
-                  {difficult
-                    ? "What made it difficult?"
-                    : "What felt too easy?"}
-                </legend>
-                {(difficult ? hardReasons : easyReasons).map((reason) => (
-                  <label key={reason}>
-                    <input
-                      type="checkbox"
-                      checked={reasons.includes(reason)}
-                      onChange={(event) =>
-                        setReasons((current) =>
-                          event.target.checked
-                            ? [...current, reason]
-                            : current.filter((item) => item !== reason),
-                        )
-                      }
-                    />
-                    {feedbackReasonLabels[reason]}
-                  </label>
-                ))}
-              </fieldset>
-              {(pain || reasons.includes("TECHNIQUE_DIFFICULTY")) &&
-                exercises.length > 0 && (
-                  <fieldset className="feedback-follow-up">
-                    <legend>Which movements? (optional)</legend>
-                    {exercises.map((exercise) => (
-                      <label key={exercise.id}>
-                        <input
-                          type="checkbox"
-                          checked={affectedExerciseIds.includes(exercise.id)}
-                          onChange={(event) =>
-                            setAffectedExerciseIds((current) =>
-                              event.target.checked
-                                ? [...current, exercise.id]
-                                : current.filter(
-                                    (item) => item !== exercise.id,
-                                  ),
-                            )
-                          }
-                        />
-                        {exercise.name}
-                      </label>
-                    ))}
-                  </fieldset>
-                )}
-            </>
-          )}
-          {difficulty && (
-            <>
-              <label className="feedback-comment" htmlFor={`${id}-comment`}>
-                Anything else? (optional)
-                <textarea
-                  className="plan-input"
-                  id={`${id}-comment`}
-                  maxLength={500}
-                  rows={3}
-                  value={comment}
-                  onChange={(event) => setComment(event.target.value)}
-                />
-              </label>
-              <button
-                className="button button--primary button--full"
-                type="submit"
-              >
-                {error ? "Try again" : "Save feedback"}
-              </button>
-            </>
-          )}
           {error && <p role="alert">{error}</p>}
-        </form>
+        </>
       ) : (
         saved && (
           <div className="feedback-result">
@@ -267,8 +135,7 @@ export function WorkoutFeedbackForm({
           </div>
         )
       )}
-      {(pain ||
-        saved?.reasons?.includes("PAIN_OR_DISCOMFORT") ||
+      {(saved?.reasons?.includes("PAIN_OR_DISCOMFORT") ||
         saved?.rating === "pain-or-discomfort") && (
         <p className="workout-check-in__status" role="status">
           Do not push through pain. Stop movements that cause discomfort and

@@ -62,6 +62,12 @@ jobs:
           done
           for quota_pid in "${quota_pids[@]}"; do wait "$quota_pid"; done
           test "$(cat "$RUNNER_TEMP"/quota-* | awk '$0 == "0" { n++ } END { print n+0 }')" = 3
+      - name: Test billing migration and service-only access
+        env:
+          BILLING_DB_CONTAINER: ${{ job.services.postgres.id }}
+        run: |
+          docker exec -i "$BILLING_DB_CONTAINER" psql -U postgres -v ON_ERROR_STOP=1 < supabase/migrations/20261123090000_billing_withdrawals.sql
+          docker exec -i "$BILLING_DB_CONTAINER" psql -U postgres -v ON_ERROR_STOP=1 < tests/security/billing-withdrawals.sql
       - run: npm audit --audit-level=high
       - run: npm run build -- --webpack
       - run: npx playwright install --with-deps chromium

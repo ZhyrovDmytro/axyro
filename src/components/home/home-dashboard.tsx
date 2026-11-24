@@ -252,7 +252,7 @@ function DiscoverHome() {
             <div>
               <strong>Tell Axyro what matters</strong>
               <p>
-                Choose goals, days, equipment, match dates and current comfort.
+                Choose goals, days, equipment and match dates.
               </p>
             </div>
           </li>

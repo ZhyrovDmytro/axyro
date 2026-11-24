@@ -9,14 +9,13 @@ export const metadata: Metadata = {
 
 export default function RehubPage() {
   return (
-    <main className={`page-shell ${styles.page}`}>
-      <div className={styles.copy}>
-        <h1>Rehub</h1>
+    <main className="page-shell section-page">
+      <div>
+        <h1 className="section-title">Rehub</h1>
         <p className={styles.status}>Coming soon to Axyro Pro</p>
         <p className={styles.description}>
           We’re building a library of recovery exercises and workouts for the
-          days between matches. You’ll be able to browse by body area, including
-          shoulders, wrists and legs.
+          days between matches.
         </p>
       </div>
     </main>

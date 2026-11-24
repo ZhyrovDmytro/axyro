@@ -6,7 +6,7 @@ on:
       base_url:
         description: Deployed staging HTTPS origin
         required: true
-        default: https://axyro-training.netlify.app
+        default: https://axyro-staging.netlify.app
 
 permissions:
   contents: read

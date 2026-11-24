@@ -53,7 +53,7 @@ preview generation does not bypass those authorization checks.
 
 ## Screens
 
-`/signin`, `/signup`, `/forgot-password`, `/reset-password`, `/account`, `/upgrade`, `/terms`. Existing workout/plan/library screens retain their visual patterns. Account provides name editing, membership management, a Change password button that opens a modal form for email accounts, logout and explicit destructive deletion. The header account control links to these settings; workout settings remain at `/settings`.
+`/signin`, `/signup`, `/forgot-password`, `/reset-password`, `/account`, `/upgrade`, `/terms`. Existing workout/plan/library screens retain their visual patterns. Account provides name editing, membership management, a Change password button that opens a modal form for email accounts, sign-out and a separate account deletion section. Delete account opens a confirmation dialog that requires typing DELETE. On mobile, the navigation dropdown contains Account (Sign in for guests) and Settings. The header account control links to these settings; workout settings remain at `/settings`.
 
 ## Development and launch
 

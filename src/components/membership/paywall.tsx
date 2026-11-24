@@ -13,7 +13,24 @@ type Product = {
   currency: string;
   interval: "month" | "year";
   intervalCount: number;
+  taxInclusive?: boolean;
 };
+function formatPrice(product: Product) {
+  const money = new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: product.currency.toUpperCase(),
+  });
+  return money.format(
+    product.amount / 10 ** (money.resolvedOptions().maximumFractionDigits ?? 2),
+  );
+}
+
+function billingPeriod(product: Product) {
+  return product.intervalCount === 1
+    ? product.interval
+    : `${product.intervalCount} ${product.interval}s`;
+}
+
 export type PaywallContext = "plan" | "workout" | "progress" | "library";
 export type PlanOfferPreview = {
   title: string;
@@ -42,6 +59,8 @@ export function Paywall({
   const { hasPro, refresh } = useEntitlement();
   const [products, setProducts] = useState<Product[]>([]);
   const [selected, setSelected] = useState("");
+  const [termsVersion, setTermsVersion] = useState<string | null>(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [busy, setBusy] = useState<"checkout" | "restore" | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -60,6 +79,11 @@ export function Paywall({
         );
         if (!sorted.length) throw new Error("No products available");
         setProducts(sorted);
+        setTermsVersion(
+          typeof payload.termsVersion === "string"
+            ? payload.termsVersion
+            : null,
+        );
         setSelected(
           (sorted.find((product) => product.currency === "usd") ?? sorted[0])
             ?.id ?? "",
@@ -87,9 +111,30 @@ export function Paywall({
       const response = await fetch("/api/billing/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId: selected, returnTo }),
+        body: JSON.stringify({
+          priceId: selected,
+          returnTo,
+          acceptedTermsVersion: acceptedTerms ? termsVersion : undefined,
+        }),
       });
       const payload = await response.json();
+      if (response.status === 409) {
+        const pending = products.find(
+          ({ id }) => id === payload.pendingPriceId,
+        );
+        if (pending && typeof payload.pendingUntil === "string") {
+          const until = new Date(payload.pendingUntil);
+          if (Number.isFinite(until.getTime())) {
+            setSelected(pending.id);
+            setAcceptedTerms(false);
+            setError(
+              `Checkout is already open for ${formatPrice(pending)} every ${billingPeriod(pending)}. Review the selected price and continue, or choose another membership after ${until.toLocaleString()}.`,
+            );
+            setBusy(null);
+            return;
+          }
+        }
+      }
       if (!response.ok)
         throw new Error(
           payload.error ?? "Checkout unavailable. Please try again.",
@@ -118,8 +163,8 @@ export function Paywall({
   }
   const titles = {
     plan: "Build your personal padel training plan",
-    workout: "Unlock every padel workout",
-    progress: "Unlock your full training progress",
+    workout: "The full padel workout library",
+    progress: "Your workout history and progress",
     library: "Your complete movement library",
   };
   const Heading = embedded ? "h2" : "h1";
@@ -171,8 +216,6 @@ export function Paywall({
           {[
             "Personalized padel training plan",
             "Full workout and exercise library",
-            "Core, legs, shoulders, mobility and conditioning",
-            "Training with your available equipment",
             "Progress and workout history",
           ].map((benefit) => (
             <li key={benefit}>
@@ -244,17 +287,7 @@ export function Paywall({
                         {product.interval === "year" ? "Yearly" : "Monthly"}
                       </strong>
                       <span className="membership-product-price">
-                        {new Intl.NumberFormat(undefined, {
-                          style: "currency",
-                          currency: product.currency.toUpperCase(),
-                        }).format(
-                          product.amount /
-                            10 **
-                              (new Intl.NumberFormat(undefined, {
-                                style: "currency",
-                                currency: product.currency.toUpperCase(),
-                              }).resolvedOptions().maximumFractionDigits ?? 2),
-                        )}
+                        {formatPrice(product)}
                         <span className="membership-product-period">
                           /{" "}
                           {product.intervalCount > 1
@@ -267,28 +300,6 @@ export function Paywall({
                   </label>
                 ))}
             </fieldset>
-            <div className="membership-promo">
-              <label htmlFor={`${id}-membership-promo-code`}>
-                Promo code <span>(optional)</span>
-              </label>
-              <input
-                id={`${id}-membership-promo-code`}
-                className="plan-input"
-                name="promoCode"
-                type="text"
-                placeholder="Enter promo code"
-                autoComplete="off"
-                autoCapitalize="characters"
-                spellCheck={false}
-                maxLength={64}
-                disabled={!!busy}
-                aria-describedby={`${id}-membership-promo-help`}
-              />
-              <small id={`${id}-membership-promo-help`}>
-                Promo codes are coming soon. Codes entered here won’t change
-                your price yet.
-              </small>
-            </div>
           </>
         )}
         {error && (
@@ -314,17 +325,38 @@ export function Paywall({
             Try the free workout
           </Link>
         )}
+        {selectedProduct && (
+          <p className="account-fine-print">
+            <strong>{formatPrice(selectedProduct)}</strong> due at checkout and
+            every {billingPeriod(selectedProduct)} until cancelled.
+            {selectedProduct.taxInclusive && " Includes applicable taxes."} No
+            free trial.{" "}
+            <Link className="text-link" href="/terms">
+              Read the membership terms
+            </Link>
+            .
+          </p>
+        )}
+        {user && selectedProduct && termsVersion && (
+          <label className="membership-terms-confirmation">
+            <input
+              type="checkbox"
+              checked={acceptedTerms}
+              disabled={!!busy}
+              onChange={(event) => setAcceptedTerms(event.target.checked)}
+            />
+            <span>
+              I accept the membership terms and request immediate Pro access.
+            </span>
+          </label>
+        )}
         {user && !productsUnavailable && products.length > 0 && (
           <button
             className="button button--primary button--full"
-            disabled={!!busy || !selected}
+            disabled={!!busy || !selected || (!!termsVersion && !acceptedTerms)}
             onClick={() => void purchase()}
           >
-            {busy === "checkout"
-              ? "Opening checkout…"
-              : context === "plan"
-                ? "Unlock My Plan"
-                : "Start Pro"}
+            {busy === "checkout" ? "Opening checkout…" : "Continue to Stripe"}
           </button>
         )}
         {!user && (products.length > 0 || productsUnavailable) && (
@@ -356,12 +388,10 @@ export function Paywall({
           </p>
         )}
         <p className="account-fine-print">
-          Creating an account is free; Pro is a separate subscription. One
-          complete workout is free forever. Pro renews until cancelled. Prices
-          and billing terms are confirmed at checkout.
+          One complete workout is free. Pro access starts after payment.
         </p>
         <div className="account-links">
-          <Link href="/terms">Terms</Link>
+          <Link href="/withdrawal">Withdrawal</Link>
           <Link href="/privacy">Privacy</Link>
           {user && (
             <button disabled={!!busy} onClick={() => void restore()}>

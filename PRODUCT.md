@@ -12,11 +12,11 @@ Training frequency and recovery still follow the athlete's chosen schedule.
 
 A mobile-first guided home-workout web app for people who want structured athletic training without needing a gym.
 
-The product includes a personalized 60-day training plan beginning on the questionnaire date. Initial setup collects sport, goals, physical development areas, availability, session length, available equipment and optional current discomfort. Bodyweight is the default equipment. Padel players can choose balanced training or answer three detailed priority questions. Refinement lets both sports review equipment and discomfort, and padel players can edit their court priorities. Athletes manage matches in the plan calendar.
+The product includes a personalized 60-day training plan beginning on the questionnaire date. Initial setup collects sport, goals, physical development areas, availability, session length and available equipment. Bodyweight is the default equipment. Padel players can choose balanced training or answer three detailed priority questions. Refinement lets both sports review equipment, and padel players can edit their court priorities. Athletes manage matches in the plan calendar.
 
-For Padel, setup asks about recognizable game situations: accelerating to the net, recovering back for lobs, reacting from the split step, lateral coverage, braking, rotation during bandejas/víboras, overhead power/control, volley stability, racket control, low-ball movement, balance and late-match capacity. These answers increase the ranking of exercises with matching movement roles. Physical development areas separately prioritize shoulder/upper-back, forearm/grip, core/lower-back, hip/glute, knee/single-leg, or calf/ankle/foot work. Neither is a pain report: current pain areas are used only as safety constraints.
+For Padel, setup asks about recognizable game situations: accelerating to the net, recovering back for lobs, reacting from the split step, lateral coverage, braking, rotation during bandejas/víboras, overhead power/control, volley stability, racket control, low-ball movement, balance and late-match capacity. These answers increase the ranking of exercises with matching movement roles. Physical development areas separately prioritize shoulder/upper-back, forearm/grip, core/lower-back, hip/glute, knee/single-leg, or calf/ankle/foot work.
 
-Current soreness or discomfort can be provided optionally for shoulder, elbow/forearm, wrist/hand, neck/upper back, lower back, hip/groin, knee, calf/Achilles and ankle/foot. It is used only to exclude workouts that load a reported area and to pause conflicting automatic progression. Pain is never treated as a goal to “fix,” and the small catalog may yield fewer or no suitable sessions.
+Setup and workout feedback collect structured training choices. Previous versions collected symptom reports. Existing plans may retain historical safety constraints.
 
 The curated library contains 40 exercises covering all body areas. Home training uses bodyweight and optional dumbbells. The three prone shoulder movements are executable floor exercises with optional light dumbbells, using their retained demonstration clips. See `CONTENT_COVERAGE.md`.
 
@@ -228,7 +228,7 @@ after-exercise recovery. The drag handle also supports keyboard reordering.
 The picker lists all compatible unused movements for the session. The edited copy runs through the same workout player and canonical exercise content stays available for other workouts.
 
 Immediately before starting, the athlete can use **Adapt today** for less time,
-missing equipment, soreness/discomfort, a single exercise replacement, or a
+missing equipment, a single exercise replacement, or a
 lighter day. The product previews before/after duration and exercise counts,
 applies the minimum necessary deterministic change, and offers Reset
 adaptations. This is a one-session override: it is recorded with completion
@@ -250,13 +250,13 @@ weeks deliberately reduce load. All sections stay within the selected duration
 tolerance. Limited compatible exercise pools can require repetition. Refinement walks through the current plan one question at a time and previews all selected changes together before saving. Schedule, duration and equipment may apply for seven days or update the saved defaults. Members can also request a lighter week, replace a movement, or adjust comfort and focus. It preserves the block dates, past sessions, progress and resumable workouts. Compatible manual moves and edits are retained. Updates that require replacing an incompatible edit show the proposed replacement. **Build next 60 days** starts a separate block.
 
 ### Training plan adaptation
-The deterministic generator selects exercises by sport, goals, Padel relevance, equipment, environment and current discomfort. Pro can use model-proposed exercise IDs with the same deterministic constraints and fallback. The representative evaluation scheduled all 40 curated movements across compatible profiles. Exercise technique describes the hardest movement in the main section. Effort changes work and recovery within the time budget, and spoken guidance cadence is controlled separately in the player. The generator constructs each timed prescription near the athlete's 5-, 10-, or 20-minute preference
+The deterministic generator selects exercises by sport, goals, Padel relevance, equipment and environment. Pro can use model-proposed exercise IDs with the same deterministic constraints and fallback. The representative evaluation scheduled all 40 curated movements across compatible profiles. Exercise technique describes the hardest movement in the main section. Effort changes work and recovery within the time budget, and spoken guidance cadence is controlled separately in the player. The generator constructs each timed prescription near the athlete's 5-, 10-, or 20-minute preference
 within explicit set and work-duration safety bounds. It records every
 target-duration adjustment. A generated session is accepted only when its
 authoritative player duration is within the smaller of 10% of the chosen target
 or two minutes. If the eligible catalog cannot meet that contract, setup stops
 and explains that no compatible plan fits, offering shorter sessions or an
-equipment review while retaining accurate discomfort answers, instead of saving a misleading
+equipment review, instead of saving a misleading
 plan. Older persisted plans that predate this rule remain inspectable, but label
 the mismatch explicitly rather than describing it as a successful match.
 Every selected physical development area must appear in the main training work
@@ -285,12 +285,12 @@ completed plan session, Too easy or Too hard can produce one small proposal for
 the next comparable session; the athlete explicitly applies it or keeps the
 current level. Just right keeps the calendar progression unchanged.
 
-Pain/discomfort asks for the affected area and immediately pauses matching
+Historical pain reports can pause matching
 automatic progression with clear safety guidance and a review path.
 Adaptations preserve their source feedback event and do not use AI, diagnosis,
 or probabilistic scoring.
 
-Pre-workout comfort adaptations use the same conservative body-area mapping as
+Legacy pre-workout comfort adaptations use the same conservative body-area mapping as
 pain feedback. Equipment replacement considers only equipment already available
 for today's session. If no safe semantic match exists, the affected movement may
 be removed rather than replaced merely to fill time. Structured adjustment
@@ -361,4 +361,4 @@ retain their saved flow.
 
 ### Feedback-driven weekly plan adjustments
 
-Completed workouts request a brief five-choice difficulty answer, with conditional reasons and an optional note. History supports feedback edits. Feedback accumulates during each plan-relative week; meaningful next-week changes are explained and require acceptance. Standard programmed progression continues for appropriate or insufficiently observed weeks. Pain is a separate safety signal and cannot justify increases. Canonical prescriptions and accepted change history remain available. See [feedback adaptation architecture](docs/FEEDBACK_ADAPTATION.md) for scoring, confidence, persistence and timing/safety boundaries.
+Completed workouts request one optional difficulty rating (Easy, Just right or Hard). History supports feedback edits. Feedback accumulates during each plan-relative week; meaningful next-week changes are explained and require acceptance. Standard programmed progression continues for appropriate or insufficiently observed weeks. Historical pain feedback is a separate safety signal and cannot justify increases. Canonical prescriptions and accepted change history remain available. See [feedback adaptation architecture](docs/FEEDBACK_ADAPTATION.md) for scoring, confidence, persistence and timing/safety boundaries.

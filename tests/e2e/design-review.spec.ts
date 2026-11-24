@@ -74,7 +74,7 @@ test("signed-in members get a working fallback when the membership list is empty
     page.getByRole("link", { name: "Try the free workout", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: /Unlock My Plan|Start Pro/ }),
+    page.getByRole("button", { name: "Continue to Stripe" }),
   ).toHaveCount(0);
   await expect(
     page.getByText(

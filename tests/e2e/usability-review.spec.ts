@@ -40,7 +40,7 @@ test("setup restores answers and the current step after refresh and exit", async
   await expect(
     page.getByRole("checkbox", { name: "Get stronger", exact: true }),
   ).toBeChecked();
-  await expect(page.locator(".onboarding-header")).toContainText("2 of 7");
+  await expect(page.locator(".onboarding-header")).toContainText("2 of 6");
   await page.getByRole("button", { name: "Exit", exact: true }).click();
   await page.goto("/plan/setup");
   await expect(
@@ -77,7 +77,7 @@ test("setup and review use the same two equipment choices", async ({
   await mockFreeMember(page);
   await page.goto("/plan/setup");
   await page.getByRole("radio", { name: /Another sport/ }).check();
-  for (let step = 0; step < 5; step++) {
+  for (let step = 0; step < 4; step++) {
     await page.getByRole("button", { name: "Continue", exact: true }).click();
   }
   await page.setViewportSize({ width: 320, height: 667 });
@@ -148,7 +148,7 @@ test("leaving plan generation cancels the request and keeps the answers", async 
   });
   await page.goto("/plan/setup");
   await page.getByRole("radio", { name: /Another sport/ }).check();
-  for (let step = 0; step < 5; step++) {
+  for (let step = 0; step < 4; step++) {
     await page.getByRole("button", { name: "Continue", exact: true }).click();
   }
   const choices = page.getByRole("group", {

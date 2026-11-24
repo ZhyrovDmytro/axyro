@@ -374,12 +374,13 @@ for (const width of [320, 1280]) {
   });
 }
 
-test("court film respects reduced motion and can be played and paused", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
+test("court film follows motion preferences without playback controls", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
-  const play = page.getByRole("button", { name: "Play court film" });
-  await expect(play).toBeVisible();
-  await play.click();
-  await page.getByRole("button", { name: "Pause court film" }).click();
-  await expect(play).toBeFocused();
+  const film = page.locator('video[src$="court-film.mp4"]');
+  await expect(film).toBeVisible();
+  await expect(film).toHaveJSProperty("controls", false);
+  await expect(page.getByRole("button", { name: /court film/i })).toHaveCount(0);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(film).toHaveCount(0);
 });

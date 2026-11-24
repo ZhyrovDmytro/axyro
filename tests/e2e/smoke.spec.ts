@@ -55,7 +55,7 @@ test("opens mobile navigation over the page without moving content", async ({
   const primaryNavigation = page.getByRole("navigation", {
     name: "Primary navigation",
   });
-  await expect(primaryNavigation.getByRole("link")).toHaveCount(5);
+  await expect(primaryNavigation.getByRole("link")).toHaveCount(7);
   for (const label of ["Home", "Plan", "Workouts", "Library", "Rehub"]) {
     await expect(
       primaryNavigation.getByRole("link", { name: label, exact: true }),
@@ -67,15 +67,13 @@ test("opens mobile navigation over the page without moving content", async ({
     .evaluateAll((links) =>
       links.map((link) => link.getBoundingClientRect().top),
     );
-  expect(new Set(linkBoxes.map(Math.round)).size).toBe(5);
+  expect(new Set(linkBoxes.map(Math.round)).size).toBe(7);
 
   await expect(
-    page
-      .getByRole("banner")
+    primaryNavigation
       .getByRole("link", { name: "Sign in", exact: true }),
   ).toBeVisible();
-  const settings = page
-    .getByRole("banner")
+  const settings = page.locator(".site-header, .mobile-nav-popup")
     .getByRole("link", { name: "Settings", exact: true });
   for (const width of [320, 1280]) {
     await page.setViewportSize({ width, height: 844 });
@@ -134,7 +132,7 @@ test("builds and customizes a 60-day training plan", async ({ page }) => {
   await page
     .getByRole("checkbox", { name: /Rotate better on bandejas and víboras/ })
     .check();
-  for (let step = 0; step < 5; step += 1) {
+  for (let step = 0; step < 4; step += 1) {
     await page.getByRole("button", { name: "Continue" }).click();
   }
 
@@ -710,7 +708,7 @@ test("does not overwrite a different active workout", async ({ page }) => {
   );
 });
 
-test("saves pain as a reason linked to affected movements", async ({
+test("collects structured difficulty feedback without symptom reports", async ({
   page,
 }) => {
   await page.goto("/workouts/foundation-strength/start?intensity=light");
@@ -725,36 +723,16 @@ test("saves pain as a reason linked to affected movements", async ({
     page.getByRole("heading", { name: "How did this workout feel?" }),
   ).toBeVisible();
 
-  await expect(
-    page.getByRole("link", { name: "Done", exact: true }),
-  ).toHaveCount(0);
-  await page.getByRole("button", { name: "Too hard", exact: true }).click();
-  await page.getByRole("checkbox", { name: "Pain or discomfort" }).check();
-  await expect(page.getByText("Which movements? (optional)")).toBeVisible();
-  await page
-    .getByRole("textbox", { name: "Anything else? (optional)" })
-    .fill("Left side was uncomfortable.");
-  await page
-    .getByRole("button", { name: "Save feedback", exact: true })
-    .click();
-  await expect(page.getByText(/Do not push through pain/)).toBeVisible();
-  await expect(
-    page.getByRole("link", { name: "Done", exact: true }),
-  ).toBeVisible();
+  await expect(page.getByRole("link", { name: "Done", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Hard", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Hard", exact: true })).toBeVisible();
   await page.goto("/activity");
   await page.locator(".activity-card").first().click();
-  await expect(page.getByText("Left side was uncomfortable.")).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Edit feedback" }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Hard", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Edit feedback" }).click();
-  await page.getByRole("button", { name: "Hard", exact: true }).click();
-  await page.getByRole("checkbox", { name: "Muscle fatigue" }).check();
-  await page
-    .getByRole("button", { name: "Save feedback", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Easy", exact: true }).click();
   await page.reload();
-  await expect(page.getByText("Muscle fatigue", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Easy", exact: true })).toBeVisible();
 });
 
 test("collects easy feedback without changing the plan after one session", async ({
@@ -791,11 +769,7 @@ test("collects easy feedback without changing the plan after one session", async
     page.getByRole("heading", { name: "How did this workout feel?" }),
   ).toBeVisible();
 
-  await page.getByRole("button", { name: "Too easy", exact: true }).click();
-  await page.getByRole("checkbox", { name: "Too much rest" }).check();
-  await page
-    .getByRole("button", { name: "Save feedback", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Easy", exact: true }).click();
   await expect(
     page.getByText("Saved. Your feedback stays with this completed session."),
   ).toBeVisible();
@@ -844,7 +818,7 @@ test("updates compact exercise filters immediately and keeps them in the URL", a
     page.getByRole("heading", { name: "Exercise library." }),
   ).toBeVisible();
 
-  const search = page.getByLabel("Search exercises");
+  const search = page.getByRole("searchbox", { name: "Search exercises" });
   await search.click();
   await search.pressSequentially("w");
   await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBe("w");

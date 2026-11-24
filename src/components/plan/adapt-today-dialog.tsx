@@ -22,26 +22,13 @@ import {
 } from "@/domain/workout/session-sections";
 
 type AdaptMode =
-  "menu" | "less-time" | "equipment" | "comfort" | "replace" | "preview";
+  "menu" | "less-time" | "equipment" | "replace" | "preview";
 
 const equipmentLabels: Record<Exclude<Equipment, "none">, string> = {
   light_dumbbell: "Light dumbbell",
   dumbbell: "Dumbbell",
   two_dumbbells: "Pair of dumbbells",
 };
-
-const comfortAreas = [
-  ["shoulder", "Shoulder"],
-  ["elbow-forearm", "Elbow / forearm"],
-  ["wrist-hand", "Wrist / hand"],
-  ["neck-upper-back", "Neck / upper back"],
-  ["lower-back", "Lower back"],
-  ["hip-groin", "Hip / groin"],
-  ["knee", "Knee"],
-  ["calf-achilles", "Calf / Achilles"],
-  ["ankle-foot", "Ankle / foot"],
-  ["other", "Other"],
-] as const;
 
 function replaceAdaptation(
   adaptations: readonly SessionAdaptation[],
@@ -203,8 +190,6 @@ export function AdaptTodayDialog({
                   ? "How much time do you have?"
                   : mode === "equipment"
                     ? "What don’t you have today?"
-                    : mode === "comfort"
-                      ? "Where do you feel uncomfortable?"
                       : mode === "replace"
                         ? `Replace ${replacementExercise?.name ?? "exercise"}`
                         : "Updated session"}
@@ -234,10 +219,6 @@ export function AdaptTodayDialog({
               <span>
                 Only replace movements that need unavailable equipment.
               </span>
-            </button>
-            <button onClick={() => setMode("comfort")} type="button">
-              <strong>I feel sore or uncomfortable</strong>
-              <span>Avoid loading the selected area today.</span>
             </button>
             <button onClick={chooseLighter} type="button">
               <strong>Make today lighter</strong>
@@ -319,28 +300,6 @@ export function AdaptTodayDialog({
             >
               Preview changes
             </button>
-          </div>
-        )}
-
-        {mode === "comfort" && (
-          <div className="adapt-choice-grid adapt-choice-grid--areas">
-            {comfortAreas.map(([value, label]) => (
-              <button
-                key={value}
-                onClick={() => {
-                  setPending((current) =>
-                    replaceAdaptation(current, {
-                      type: "body_area_discomfort",
-                      bodyAreas: [value],
-                    }),
-                  );
-                  setMode("preview");
-                }}
-                type="button"
-              >
-                {label}
-              </button>
-            ))}
           </div>
         )}
 

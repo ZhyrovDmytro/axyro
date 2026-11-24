@@ -11,9 +11,9 @@ export const metadata = publicMetadata(
 
 export default function WorkoutsPage() {
   return (
-    <main className="page-shell page-shell--inner workout-library-page">
+    <main className="page-shell section-page workout-library-page">
       <header className="page-intro">
-        <h1>Find your workout.</h1>
+        <h1 className="section-title">Find your workout.</h1>
         <p>
           Choose a focus. Train for 5, 10 or 20 minutes, including recovery. Ten
           is the default.

@@ -96,6 +96,11 @@ export async function POST(request: Request) {
         "checkout/sessions",
         new URLSearchParams({
           mode: "subscription",
+          "subscription_data[billing_mode][type]": "classic",
+          "branding_settings[background_color]": "#111412",
+          "branding_settings[button_color]": "#d9fc54",
+          "branding_settings[font_family]": "default",
+          "branding_settings[border_style]": "rounded",
           customer,
           "line_items[0][price]": reservation.priceId,
           expires_at: String(reservation.expiresAt),
@@ -106,6 +111,7 @@ export async function POST(request: Request) {
           cancel_url: cancelUrl.toString(),
         }),
         `checkout-${reservation.id}`,
+        "2025-09-30.clover",
       ),
     );
     return Response.json(checkout);

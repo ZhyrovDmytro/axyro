@@ -571,3 +571,10 @@ business and markets. Recheck current requirements when completing legal tasks.
 | 2026-11-21 | L14 | Added the approved support address to the local footer, Settings and Help. Production publication and end-to-end delivery verification remain pending. |
 
 2026-11-22 · L03 / L19 · PR #9 release candidate. The Netlify preview passed all three deployed guest smoke tests. First hosted quality job passed. Six browser regressions were investigated and their targeted checks passed locally after fixes. Production publication and the updated hosted checks are pending at this checkpoint.
+
+2026-11-24 · L06/L08: Applied the Checkout Studio draft's charcoal and lime
+branding to hosted subscription sessions. Stripe accepted both colors in a
+non-live Checkout Session, and Netlify published staging commit `6a71cd1`.
+The production branding release preserves classic billing and the existing
+Basil webhook version. The broader withdrawal and billing-email candidate
+requires production operator details and transactional email configuration.

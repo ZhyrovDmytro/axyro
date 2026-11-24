@@ -4,13 +4,13 @@ import { z } from "zod";
 export function priceIds() {
   return [process.env.STRIPE_USD_MONTHLY_PRICE_ID, process.env.STRIPE_USD_YEARLY_PRICE_ID, process.env.STRIPE_MONTHLY_PRICE_ID, process.env.STRIPE_YEARLY_PRICE_ID].filter((id): id is string => !!id);
 }
-export async function stripeRequest(path: string, body?: URLSearchParams, idempotencyKey?: string): Promise<unknown> {
+export async function stripeRequest(path: string, body?: URLSearchParams, idempotencyKey?: string, apiVersion = "2025-06-30.basil"): Promise<unknown> {
   if (!process.env.STRIPE_SECRET_KEY) throw new Error("Billing is not configured.");
   const response = await fetch(`https://api.stripe.com/v1/${path}`, {
     method: body ? "POST" : "GET",
     headers: {
       Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`,
-      "Stripe-Version": "2025-06-30.basil",
+      "Stripe-Version": apiVersion,
       ...(body ? { "Content-Type": "application/x-www-form-urlencoded" } : {}),
       ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
     },

@@ -98,6 +98,10 @@ describe("Checkout trust boundaries", () => {
     const calls = vi.mocked(stripeRequest).mock.calls;
     expect(calls[0][2]).toBe(calls[1][2]);
     expect(calls[0][1]?.toString()).toBe(calls[1][1]?.toString());
+    expect(calls[0][1]?.get("branding_settings[background_color]")).toBe("#111412");
+    expect(calls[0][1]?.get("branding_settings[button_color]")).toBe("#d9fc54");
+    expect(calls[0][1]?.get("subscription_data[billing_mode][type]")).toBe("classic");
+    expect(calls[0][3]).toBe("2025-09-30.clover");
   });
   it("does not redirect to a reserved checkout with a different price", async () => {
     vi.mocked(reserveCheckout).mockResolvedValueOnce({

@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { connection } from "next/server";
 
 import { publicMetadata, supportEmail } from "@/lib/publishing";
+import { billingEmailConfigured } from "@/services/billing/transactional-email";
+
 import { WithdrawalForm } from "./withdrawal-form";
 
 export const metadata = publicMetadata(
@@ -9,7 +12,11 @@ export const metadata = publicMetadata(
   "Exercise your right to withdraw from an Axyro Pro purchase.",
 );
 
-export default function WithdrawalPage() {
+export default async function WithdrawalPage() {
+  await connection();
+  const showForm =
+    process.env.NODE_ENV !== "production" || billingEmailConfigured();
+
   return (
     <main className="page-shell account-shell">
       <article className="account-panel withdrawal-panel">
@@ -22,9 +29,11 @@ export default function WithdrawalPage() {
           </Link>
           .
         </p>
-        <WithdrawalForm />
+        {showForm && <WithdrawalForm />}
         <p className="account-fine-print withdrawal-contact">
-          You can also send your withdrawal by email to{" "}
+          {showForm
+            ? "You can also email your withdrawal to "
+            : "Email your withdrawal to "}
           <a className="text-link" href={`mailto:${supportEmail}`}>
             {supportEmail}
           </a>

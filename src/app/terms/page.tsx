@@ -35,7 +35,7 @@ export default function TermsPage() {
           <h2>Withdrawing from a purchase</h2>
           <p>EU consumers generally have 14 days from entering an online service
             contract to withdraw without giving a reason. Cancelling renewal stops
-            future charges. You can <Link className="text-link" href="/withdrawal">withdraw from the contract online</Link> or email
+            future charges. You can <Link className="text-link" href="/withdrawal">find withdrawal instructions</Link> or email
             the operator with a clear statement before the deadline.</p>
           <p>You may use this wording: “I withdraw from my Axyro Pro contract
             ordered on [date]. My name is [name], my address is [address] and

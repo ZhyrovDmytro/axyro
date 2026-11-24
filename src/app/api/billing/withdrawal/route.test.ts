@@ -156,3 +156,11 @@ it("keeps the operator alert pending after its delivery fails", async () => {
     `withdrawal-test-site-${details.id}-operator_notified_at`,
   );
 });
+
+it("does not collect withdrawals in production without email delivery", async () => {
+  vi.stubEnv("NODE_ENV", "production");
+  mocks.billingEmailConfigured.mockReturnValueOnce(false);
+
+  expect((await POST(request())).status).toBe(503);
+  expect(mocks.supabaseRequest).not.toHaveBeenCalled();
+});

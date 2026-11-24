@@ -5,6 +5,7 @@ import {
   recordWithdrawal,
   withdrawalInput,
 } from "@/services/billing/withdrawal";
+import { billingEmailConfigured } from "@/services/billing/transactional-email";
 import { enforceAuthRateLimit } from "@/services/http/rate-limit";
 import {
   readRequestText,
@@ -20,6 +21,13 @@ export async function POST(request: Request) {
     return Response.json(
       { error: "Invalid origin." },
       { status: 403, headers },
+    );
+  }
+
+  if (process.env.NODE_ENV === "production" && !billingEmailConfigured()) {
+    return Response.json(
+      { error: "Online withdrawal is unavailable. Please email support." },
+      { status: 503, headers },
     );
   }
 

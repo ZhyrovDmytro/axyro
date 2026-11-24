@@ -724,3 +724,11 @@ API `2025-09-30.clover` with explicit classic billing. Other requests and
 webhook payloads retain the Basil version. All 667 unit tests, TypeScript and
 lint passed. Before the release, the production withdrawal route returned 404
 and staging returned 200 with the current terms version in its products API.
+
+2026-11-24 · L03/L06/L08/L11: Prepared the full candidate for the public
+site in its approved test-payment mode. The withdrawal page provides the
+support email when transactional delivery is unconfigured. The online form
+and submission endpoint require configured email delivery in production
+builds, including hosted staging. This keeps withdrawal notices from being
+accepted without a route to the operator. Live payments and production
+contract email still require operator and delivery configuration.

@@ -54,6 +54,9 @@ describe("daily workouts", () => {
             expect(item.prescription.durationSeconds).toBeGreaterThanOrEqual(
               15,
             );
+            if (item.exerciseId === "pogo-hop") {
+              expect(item.prescription.durationSeconds).toBe(15);
+            }
             if (item.prescription.perSide) {
               const sides = sequence.filter(
                 (step) =>
@@ -100,6 +103,7 @@ describe("preserved timing and equipment boundaries", () => {
   it("makes all 40 home-compatible movements available to plans and quick starts", () => {
     const eligible = exercises.filter(isExercisePlanEligible);
     expect(eligible).toHaveLength(40);
+    expect(starterWorkouts).toHaveLength(6);
     const ids = new Set(eligible.map((exercise) => exercise.id));
     for (const workout of starterWorkouts)
       for (const item of workout.items)

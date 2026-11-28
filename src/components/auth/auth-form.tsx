@@ -1,4 +1,5 @@
 "use client";
+import { trainingTagline } from "@/lib/brand-copy";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useState, type FormEvent } from "react";
@@ -129,7 +130,7 @@ export function AuthForm({
           <div className={`auth-story__image auth-story__image--${mode}`} />
           <div className="auth-story__caption">
             <p>Your next session starts here.</p>
-            <span>Guided home workouts. 5, 10 or 20 minutes.</span>
+            <span>{trainingTagline}</span>
           </div>
         </aside>
       )}

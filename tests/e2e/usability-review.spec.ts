@@ -114,6 +114,39 @@ test("setup and review use the same two equipment choices", async ({
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });
 
+test("review keeps an edit action beside each unanswered padel question", async ({
+  page,
+}) => {
+  await mockFreeMember(page);
+  await page.goto("/plan/setup");
+  const next = page.getByRole("button", { name: "Continue", exact: true });
+  for (let step = 0; step < 8; step++) await next.click();
+
+  const review = page.locator(".review-list");
+  for (const question of [
+    "Court movement",
+    "Power & control",
+    "Mobility & capacity",
+  ]) {
+    const title = review.locator("dt").filter({ hasText: question });
+    await expect(title.getByRole("button", { name: /^Edit / })).toHaveCount(1);
+    await expect(title.locator("xpath=following-sibling::dd")).toHaveText(
+      "No preference",
+    );
+  }
+
+  const power = review.locator("dt").filter({ hasText: "Power & control" });
+  await power.getByRole("button", { name: /^Edit / }).click();
+  const choice = page.getByRole("checkbox", {
+    name: /Build stronger, controlled overheads/,
+  });
+  await choice.check();
+  await page.getByRole("button", { name: "Save answer", exact: true }).click();
+  await expect(power.locator("xpath=following-sibling::dd")).toHaveText(
+    "Build stronger, controlled overheads",
+  );
+});
+
 test("leaving plan generation cancels the request and keeps the answers", async ({
   page,
 }) => {

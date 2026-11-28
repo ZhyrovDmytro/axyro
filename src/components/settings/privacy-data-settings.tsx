@@ -1,5 +1,9 @@
 "use client";
 
+import { AnalyticsSettings } from "@/components/settings/analytics-settings";
+import { analyticsEnabled } from "@/lib/analytics";
+
+import { trainingTagline } from "@/lib/brand-copy";
 import { PaywallLink } from "@/components/membership/paywall-modal";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/auth-provider";
@@ -17,12 +21,13 @@ import {
   type DailyDuration,
 } from "@/domain/workout/daily-duration";
 import { createBrowserTrainingProfileRepository } from "@/services/persistence/local-training-profile-repository";
+import { retryUserStorageSync } from "@/services/persistence/user-storage";
 import { createBrowserUserDataService } from "@/services/persistence/user-data-service";
 
 type Confirmation = "reset" | "delete" | null;
 
 export function PrivacyDataSettings({ supportEmail }: { supportEmail: string }) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const trainingDataLocation =
     user && !user.isDevelopmentAdmin
       ? "from this device and your synced account data"
@@ -36,8 +41,12 @@ export function PrivacyDataSettings({ supportEmail }: { supportEmail: string }) 
   const [durationMessage, setDurationMessage] = useState("");
   const [confirmation, setConfirmation] = useState<Confirmation>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [savingDataAction, setSavingDataAction] = useState(false);
+  const [exportError, setExportError] = useState(false);
   const confirmationDialogRef = useRef<HTMLElement>(null);
-  const closeConfirmation = useCallback(() => setConfirmation(null), []);
+  const closeConfirmation = useCallback(() => {
+    if (!savingDataAction) setConfirmation(null);
+  }, [savingDataAction]);
   useDialogFocusTrap(
     Boolean(confirmation),
     confirmationDialogRef,
@@ -71,7 +80,22 @@ export function PrivacyDataSettings({ supportEmail }: { supportEmail: string }) 
     }
   }
 
-  function finish(action: "reset" | "delete") {
+  function downloadTrainingData() {
+    try {
+      const json = createBrowserUserDataService(user?.id ?? null).exportTrainingData();
+      const url = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "axyro-training-data.json";
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setExportError(false);
+    } catch {
+      setExportError(true);
+    }
+  }
+
+  async function finish(action: "reset" | "delete") {
     const service = createBrowserUserDataService(user?.id ?? null);
     const succeeded =
       action === "reset" ? service.resetTrainingPlan() : service.deleteAll();
@@ -83,6 +107,18 @@ export function PrivacyDataSettings({ supportEmail }: { supportEmail: string }) 
       );
       setConfirmation(null);
       return;
+    }
+    if (user && !user.isDevelopmentAdmin) {
+      setSavingDataAction(true);
+      const result = await retryUserStorageSync().catch(() => "failed");
+      setSavingDataAction(false);
+      if (result !== "saved") {
+        setConfirmation(null);
+        setActionError(result === "conflict"
+          ? "Training data changed on another device. Reload and try again to apply this change to your account."
+          : "Axyro could not confirm the change to your account. Try again or contact support.");
+        return;
+      }
     }
     setActionError(null);
     setConfirmation(null);
@@ -114,7 +150,7 @@ export function PrivacyDataSettings({ supportEmail }: { supportEmail: string }) 
       <section className="context-card">
         <h2>About Axyro</h2>
         <p>
-          Guided home workouts for padel. Try one complete starter workout free.
+          {trainingTagline} Try one complete starter workout free.
           Axyro Pro includes personalized plans and the full exercise library.
         </p>
         <p>
@@ -242,6 +278,8 @@ export function PrivacyDataSettings({ supportEmail }: { supportEmail: string }) 
         {durationMessage && <p role="status">{durationMessage}</p>}
       </section>
 
+      {analyticsEnabled && <AnalyticsSettings />}
+
       <section className="context-card">
         <h2>Data storage</h2>
         {user && !user.isDevelopmentAdmin ? (
@@ -254,7 +292,7 @@ export function PrivacyDataSettings({ supportEmail }: { supportEmail: string }) 
             <p>
               Supabase stores account and training data. Stripe manages
               subscriptions. Optional AI planning sends structured training preferences to OpenAI through our server. Axyro has no
-              advertising or analytics integration.
+              advertising integration.
             </p>
             <p>
               Pain and discomfort reports are excluded from AI planning.
@@ -266,6 +304,41 @@ export function PrivacyDataSettings({ supportEmail }: { supportEmail: string }) 
         <Link className="text-link" href="/privacy">
           Read the privacy notice
         </Link>
+      </section>
+
+      <section className="context-card privacy-controls" id="privacy-rights">
+        <h2>Privacy and data</h2>
+        <div className="privacy-action-row">
+          <div>
+            <h3>Training data</h3>
+            <p>Download your workouts and training data from this device as a JSON file.</p>
+          </div>
+          <button
+            className="button button--secondary"
+            type="button"
+            disabled={loading || !ready}
+            onClick={downloadTrainingData}
+          >
+            Download training data
+          </button>
+          {exportError && (
+            <p className="form-error" role="alert">
+              Your training data could not be downloaded from this browser.
+            </p>
+          )}
+        </div>
+        <div className="privacy-action-row">
+          <div>
+            <h3>Privacy requests</h3>
+            <p>Request account records, a correction, or help exercising your privacy rights.</p>
+          </div>
+          <a
+            className="text-link"
+            href={`mailto:${supportEmail}?subject=Axyro%20privacy%20request`}
+          >
+            Send a privacy request
+          </a>
+        </div>
       </section>
 
       {user && plan && (
@@ -290,12 +363,15 @@ export function PrivacyDataSettings({ supportEmail }: { supportEmail: string }) 
       )}
 
       <section className="context-card">
-        <h2>Delete all my data</h2>
+        <h2>Delete training data</h2>
         <p>
           {user
             ? `Deletes your training profile, plans, history, feedback, preferences, and active workout ${trainingDataLocation}.`
             : "Clears your workout data and preferences from this device."}
         </p>
+        {user && !user.isDevelopmentAdmin && (
+          <p>To close your account, go to <Link className="text-link" href="/account">Account</Link>. Use the privacy request link above for billing or other records.</p>
+        )}
         <button
           className="text-button text-button--danger"
           type="button"
@@ -304,7 +380,7 @@ export function PrivacyDataSettings({ supportEmail }: { supportEmail: string }) 
             setConfirmation("delete");
           }}
         >
-          Delete all my data
+          Delete training data
         </button>
       </section>
 
@@ -318,18 +394,17 @@ export function PrivacyDataSettings({ supportEmail }: { supportEmail: string }) 
             ref={confirmationDialogRef}
             tabIndex={-1}
           >
-            <p className="kicker">Privacy &amp; data</p>
             <h2 id="data-confirmation-heading">
               {confirmation === "reset"
                 ? "Reset your training plan?"
-                : "Delete all your Axyro data?"}
+                : "Delete your training data?"}
             </h2>
             <p>
               {confirmation === "reset"
                 ? "This removes your current and upcoming plan. Your completed workout history and saved profile stay available."
                 : !user
                   ? "This permanently clears your workout data and preferences from this device."
-                  : `This permanently removes your training profile, plans, workout history, feedback, preferences, and active workout ${trainingDataLocation}.`}
+                  : `This permanently removes your training profile, plans, workout history, feedback, preferences, and active workout ${trainingDataLocation}. It also removes custom workouts from this device.`}
             </p>
             <div className="button-row">
               <button
@@ -339,13 +414,15 @@ export function PrivacyDataSettings({ supportEmail }: { supportEmail: string }) 
                     : "button button--primary"
                 }
                 type="button"
-                onClick={() => finish(confirmation)}
+                disabled={savingDataAction}
+                onClick={() => void finish(confirmation)}
               >
-                {confirmation === "reset" ? "Reset plan" : "Delete all data"}
+                {savingDataAction ? "Saving…" : confirmation === "reset" ? "Reset plan" : "Delete training data"}
               </button>
               <button
                 className="button button--secondary"
                 type="button"
+                disabled={savingDataAction}
                 onClick={closeConfirmation}
               >
                 Cancel

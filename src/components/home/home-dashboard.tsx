@@ -1,4 +1,5 @@
 "use client";
+import { trainingTagline } from "@/lib/brand-copy";
 import { PaywallLink } from "@/components/membership/paywall-modal";
 import { PageSkeleton } from "@/components/page-skeleton";
 
@@ -82,10 +83,7 @@ function DiscoverHome() {
       <section className="home-landing-hero" aria-labelledby="hero-title">
         <div className="home-landing-copy">
           <h1 id="hero-title">Train at home for padel</h1>
-          <p className="lede">
-            Guided workouts with bodyweight or dumbbells. Choose 5, 10 or 20
-            minutes.
-          </p>
+          <p className="lede">{trainingTagline}</p>
           <div className="home-landing-actions">
             <Link className="button button--primary" href="/plan/setup">
               Build my plan <UiIcon name="arrow-right" />
@@ -171,9 +169,8 @@ function DiscoverHome() {
             <div>
               <strong>Fits the week you actually have</strong>
               <p>
-                Start with 10 minutes. Choose 5 for a busy day or 20 when you
-                have more time. Your training days and recovery still shape the
-                week.
+                Start with just 10 minutes a day. Fit training and recovery
+                around your schedule.
               </p>
             </div>
           </article>
@@ -277,7 +274,7 @@ function DiscoverHome() {
         <div>
           <h2 id="home-cta-heading">Build your training plan</h2>
           <p>
-            Ten minutes at a time. A 60-day plan with room for training, matches
+            Just 10 minutes a day. A 60-day plan with room for training, matches
             and recovery.
           </p>
         </div>

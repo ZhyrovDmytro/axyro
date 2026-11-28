@@ -52,6 +52,7 @@ import { useScreenWakeLock } from "@/hooks/use-screen-wake-lock";
 import { useWorkoutMediaCache } from "@/hooks/use-workout-media-cache";
 import { useUserPreferences } from "@/hooks/use-user-preferences";
 import { useWorkoutActivity } from "@/hooks/use-workout-activity";
+import { trackWorkoutEvent } from "@/lib/analytics";
 import { titleCase } from "@/lib/format";
 import type {} from "@/services/persistence/workout-activity-repository";
 import { createBrowserWorkoutActivityRepository } from "@/services/persistence/local-workout-activity-repository";
@@ -69,6 +70,7 @@ type WorkoutPlayerProps = {
   sequence: SessionStep[];
   intensity: IntensityLevel;
   exitHref?: string;
+  resumeHref?: string;
   completionHref?: string;
   onComplete?: () => void;
   activityContext?: {
@@ -251,6 +253,7 @@ function WorkoutPlayerRuntime({
   sequence,
   intensity,
   exitHref,
+  resumeHref,
   completionHref,
   onComplete,
   activityContext,
@@ -282,6 +285,7 @@ function WorkoutPlayerRuntime({
   );
   const invalidRestore =
     initialContinuity.kind === "invalid" || (isSameSavedSession && !canRestore);
+  const canRunWorkout = !invalidRestore && (!saved || isSameSavedSession);
   const restored = canRestore ? saved : null;
   const [state, dispatchSession] = useReducer(sessionReducer, undefined, () =>
     createSessionState(sequence, restored ?? undefined),
@@ -295,6 +299,7 @@ function WorkoutPlayerRuntime({
     dispatchSession(event);
   };
   const completionReported = useRef(false);
+  const startReported = useRef(false);
   const [startedAt] = useState(
     () => restored?.startedAt ?? new Date().toISOString(),
   );
@@ -332,7 +337,8 @@ function WorkoutPlayerRuntime({
   } = useUserPreferences({ sessionIntensity: intensity });
   const guidanceCadenceMultiplier = guidanceCadenceMultipliers[guidanceCadence];
   const wakeLockStatus = useScreenWakeLock(
-    preferencesReady &&
+    canRunWorkout &&
+      preferencesReady &&
       keepScreenAwake &&
       state.status === "running" &&
       step.type !== "completed",
@@ -415,6 +421,7 @@ function WorkoutPlayerRuntime({
     workoutId: workout.id,
     intensity,
     snapshot: sessionSnapshot,
+    enabled: canRunWorkout,
     completed: step.type === "completed",
     actualDurationSeconds,
     startedAt,
@@ -424,7 +431,7 @@ function WorkoutPlayerRuntime({
     phaseKey: state.currentIndex,
     durationSeconds: stepDurationSeconds(step),
     paused: state.status === "paused",
-    enabled: step.type !== "completed",
+    enabled: canRunWorkout && step.type !== "completed",
     initialRemainingMs: restored?.pausedRemainingMs,
     startedAtMs:
       phaseStart?.phaseKey === state.currentIndex ? phaseStart.atMs : undefined,
@@ -479,7 +486,7 @@ function WorkoutPlayerRuntime({
     phaseKey: state.currentIndex,
     remainingMs,
     paused: state.status === "paused",
-    enabled: preferencesReady && audioEnabled,
+    enabled: canRunWorkout && preferencesReady && audioEnabled,
     phaseStartedAtMs:
       phaseStart?.phaseKey === state.currentIndex ? phaseStart.atMs : undefined,
   });
@@ -560,9 +567,11 @@ function WorkoutPlayerRuntime({
         ...(activityContext?.planId ? { planId: activityContext.planId } : {}),
         workoutId: workout.id,
         workoutName: workout.name,
-        resumeHref: activityContext
-          ? `/plan/workouts/${sessionId}/start?intensity=${intensity}`
-          : `/workouts/${workout.slug}/start?intensity=${intensity}&minutes=${workout.estimatedMinutes}`,
+        resumeHref:
+          resumeHref ??
+          (activityContext
+            ? `/plan/workouts/${sessionId}/start?intensity=${intensity}`
+            : `/workouts/${workout.slug}/start?intensity=${intensity}&minutes=${workout.estimatedMinutes}`),
         exitHref:
           exitHref ?? (activityContext ? "/plan" : `/workouts/${workout.slug}`),
         intensity,
@@ -599,6 +608,7 @@ function WorkoutPlayerRuntime({
       intensity,
       invalidRestore,
       isSameSavedSession,
+      resumeHref,
       saved,
       sequence,
       sessionId,
@@ -646,12 +656,29 @@ function WorkoutPlayerRuntime({
   }, [saveContinuity]);
 
   useEffect(() => {
-    if (step.type === "completed" && !completionReported.current) {
+    if (
+      canRunWorkout &&
+      !canRestore &&
+      step.type !== "completed" &&
+      !startReported.current
+    ) {
+      startReported.current = true;
+      trackWorkoutEvent("workout_started");
+    }
+  }, [canRunWorkout, canRestore, step.type]);
+
+  useEffect(() => {
+    if (
+      canRunWorkout &&
+      step.type === "completed" &&
+      !completionReported.current
+    ) {
       completionReported.current = true;
       continuityRepository.clearActive(sessionId);
       onComplete?.();
+      trackWorkoutEvent("workout_completed");
     }
-  }, [continuityRepository, onComplete, sessionId, step.type]);
+  }, [canRunWorkout, continuityRepository, onComplete, sessionId, step.type]);
 
   if (saved && !isSameSavedSession) {
     return (

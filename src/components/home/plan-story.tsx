@@ -84,8 +84,8 @@ export function PlanStory() {
               </div>
               <h3>Set your days and session length</h3>
               <p>
-                Choose training days, 5, 10 or 20 minutes, and the equipment you
-                have. Add match dates to make space for recovery.
+                Start with just 10 minutes a day. Choose your training days and
+                equipment, and add match dates to make space for recovery.
               </p>
             </div>
           </li>

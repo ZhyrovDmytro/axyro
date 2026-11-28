@@ -1,3 +1,5 @@
+import { PaywallLink } from "@/components/membership/paywall-modal";
+import { SavedCustomWorkouts } from "@/components/workout/saved-custom-workouts";
 import { publicMetadata } from "@/lib/publishing";
 
 import { WorkoutLibrary } from "@/components/workout/workout-library";
@@ -12,14 +14,19 @@ export const metadata = publicMetadata(
 export default function WorkoutsPage() {
   return (
     <main className="page-shell section-page workout-library-page">
-      <header className="page-intro">
+      <header className="page-intro workout-library-intro">
         <h1 className="section-title">Find your workout.</h1>
-        <p>
-          Choose a focus. Train for 5, 10 or 20 minutes, including recovery. Ten
-          is the default.
-        </p>
+        <PaywallLink
+          className="button button--primary"
+          context="workout"
+          href="/workouts/custom/new"
+          returnTo="/workouts/custom/new"
+        >
+          Add workout
+        </PaywallLink>
       </header>
 
+      <SavedCustomWorkouts />
       <WorkoutLibrary workouts={workouts} showCategories={false} />
     </main>
   );

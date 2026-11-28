@@ -18,6 +18,7 @@ type UseWorkoutActivityOptions = {
   intensity: IntensityLevel;
   snapshot: WorkoutSessionSnapshot;
   completed: boolean;
+  enabled?: boolean;
   actualDurationSeconds?: number;
   startedAt?: string;
   resumedAfterInterruption?: boolean;
@@ -38,6 +39,7 @@ export function useWorkoutActivity({
   intensity,
   snapshot,
   completed,
+  enabled = true,
   actualDurationSeconds,
   startedAt: restoredStartedAt,
   resumedAfterInterruption = false,
@@ -54,6 +56,7 @@ export function useWorkoutActivity({
   const startedAt = useRef<Date | null>(null);
 
   useEffect(() => {
+    if (!enabled) return;
     const currentRepository = createBrowserWorkoutActivityRepository();
     repository.current = currentRepository;
     const sessionStartedAt = restoredStartedAt
@@ -68,7 +71,7 @@ export function useWorkoutActivity({
       sessionStartedAt,
       resumedAfterInterruption,
     );
-  }, [intensity, restoredStartedAt, resumedAfterInterruption, workoutId]);
+  }, [enabled, intensity, restoredStartedAt, resumedAfterInterruption, workoutId]);
 
   const ensureCompletion = useCallback(() => {
     if (completion.current) return completion.current;

@@ -1,6 +1,7 @@
 import type { StorageLike } from "./storage";
 
 export const userStorageChangedEvent = "axyro:user-storage-changed";
+export const customWorkoutsStorageKey = "veyro.custom-workouts.v1";
 export const userDataKeys = [
   "veyro.training-profile.v2",
   "veyro.training-plan.v1",
@@ -140,7 +141,7 @@ export async function confirmTrainingPlanSave(
 
 /** Factories capture their owner, so stale callbacks cannot write to a new account. */
 export function createBrowserUserStorage(
-  expectedOwner?: string,
+  expectedOwner?: string | null,
 ): StorageLike | null {
   const storage = browserStorage();
   if (
@@ -169,13 +170,15 @@ export function createBrowserUserStorage(
       if (storage.getItem(scopedKey) === value) return;
       storage.setItem(scopedKey, value);
       notify();
-      if (owner && syncEnabled) scheduleSync(storage, owner, version);
+      if (owner && syncEnabled && key !== customWorkoutsStorageKey)
+        scheduleSync(storage, owner, version);
     },
     removeItem(key) {
       if (generation !== version || !allowed(key)) return;
       storage.removeItem(scopedStorageKey(owner, key));
       notify();
-      if (owner && syncEnabled) scheduleSync(storage, owner, version);
+      if (owner && syncEnabled && key !== customWorkoutsStorageKey)
+        scheduleSync(storage, owner, version);
     },
   };
 }
@@ -216,7 +219,7 @@ export async function initializeUserStorage(userId: string | null) {
 /** Remove this account's cache after server-confirmed account deletion. */
 export function removeUserStorage(userId: string) {
   const storage = browserStorage();
-  for (const key of userDataKeys)
+  for (const key of [...userDataKeys, customWorkoutsStorageKey])
     storage?.removeItem(scopedStorageKey(userId, key));
   clearPlanDraft(userId);
   clearUserStorageIdentity();

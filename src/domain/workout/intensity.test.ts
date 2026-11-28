@@ -67,11 +67,11 @@ describe("workout intensity", () => {
       "light",
     );
 
-    expect(result.items).toHaveLength(2);
+    expect(result.items).toHaveLength(workout.items.length - 1);
     expect(result.items.map((item) => item.exerciseId)).not.toContain(
-      "dead-bug",
+      "scapular-push-up",
     );
-    expect(workout.items).toHaveLength(3);
+    expect(workout.items).toHaveLength(4);
   });
 
   it("adds one compatible movement for challenging effort", () => {

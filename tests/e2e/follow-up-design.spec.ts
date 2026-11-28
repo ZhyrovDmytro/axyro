@@ -86,14 +86,14 @@ test("reduced motion stops cadence movement without removing its cue", async ({
   );
 });
 
-test("only the selected effort uses the lime fill", async ({ page }) => {
+test("only the selected effort uses the selected surface", async ({ page }) => {
   await page.goto("/workouts/foundation-strength");
   const challenging = page.getByRole("button", { name: /Challenging/ });
   const standard = page.getByRole("button", { name: /Standard/ });
   await challenging.click();
   await expect(challenging).toHaveAttribute("aria-pressed", "true");
   await expect(standard).toHaveAttribute("aria-pressed", "false");
-  await expect(challenging).toHaveCSS("background-color", "rgb(217, 252, 84)");
+  await expect(challenging).toHaveCSS("background-color", "rgb(65, 78, 56)");
   await expect(standard).toHaveCSS("background-color", "rgb(32, 39, 34)");
   await expect(standard).toContainText("Recommended");
   await page.locator(".effort-options").scrollIntoViewIfNeeded();
@@ -142,7 +142,7 @@ test("completion counts unique movements instead of repeated intervals", async (
       .locator(".completion-stats > div")
       .filter({ hasText: "Movements" })
       .locator("dd"),
-  ).toHaveText("3");
+  ).toHaveText("4");
   await expect(
     page
       .locator(".completion-stats > div")
@@ -233,8 +233,12 @@ test("settings distinguish guest storage from a signed-in account", async ({
     "Your preferences save on this device.",
   );
   await expect(page.locator("main h2").first()).toHaveText("About Axyro");
-  await expect(page.getByText("Default session length", { exact: true })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Reset training plan" })).toHaveCount(0);
+  await expect(
+    page.getByText("Default session length", { exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Reset training plan" }),
+  ).toHaveCount(0);
   const user = {
     id: "a0000000-0000-4000-8000-000000000000",
     email: "settings@example.com",

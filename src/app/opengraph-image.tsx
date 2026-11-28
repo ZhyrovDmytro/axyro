@@ -1,3 +1,4 @@
+import { trainingTagline } from "@/lib/brand-copy";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { ImageResponse } from "next/og";
@@ -44,7 +45,7 @@ export default async function ShareImage() {
           <span>You play padel.</span>
           <span>Do you train for it?</span>
         </div>
-        <span style={{ fontSize: 28 }}>Guided home workouts for padel</span>
+        <span style={{ fontSize: 28 }}>{trainingTagline}</span>
       </div>
       {/* ImageResponse renders this source directly into the share card. */}
       <img

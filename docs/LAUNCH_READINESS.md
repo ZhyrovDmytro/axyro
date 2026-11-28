@@ -1,6 +1,6 @@
 # Paid public launch tracker
 
-Last updated: 2026-11-23 (Europe/Prague).
+Last updated: 2026-11-28 (Europe/Prague).
 
 This is the shared checklist for launching Axyro as a paid public web app.
 Current verdict: **not ready to accept public payments**. Core membership code
@@ -732,3 +732,64 @@ and submission endpoint require configured email delivery in production
 builds, including hosted staging. This keeps withdrawal notices from being
 accepted without a route to the operator. Live payments and production
 contract email still require operator and delivery configuration.
+
+
+### Release review · 2026-11-26
+
+- **L03 / L06 / L08 / L09 / L11.** Read-only public HTTPS checks returned 200 on
+  Home, Privacy, Terms, Withdrawal and the billing products endpoint. Privacy
+  showed the generic Czech project identity. Withdrawal showed the email-only
+  fallback. The products endpoint returned four offers and no contract terms
+  version. Keep live checkout closed until the operator identity, applicable
+  tax and consumer disclosures, online withdrawal and durable email
+  confirmation, live merchant configuration and end-to-end payment lifecycle
+  have been verified. HTTP status checks do not exercise transactions.
+- **L09 / L10 / L12.** Confirm processor roles and contracts, transfers and
+  safeguards, retention and backup deletion, and run a support-assisted
+  access/export/deletion drill. Verify the symptom-input removal in production
+  and decide how to handle historical reports and backups. Review actual storage
+  on signed-in and provider-return flows, including optional preferences.
+  [Czech storage guidance](https://uoou.gov.cz/verejnost/qa-otazky-a-odpovedi/cookies) ·
+  [EDPB transparency and rights guidance](https://www.edpb.europa.eu/sme/be-compliant/respect-individuals-rights_en) ·
+  [EU online withdrawal function](https://eur-lex.europa.eu/legal-content/en/TXT/?uri=CELEX%3A32023L2673)
+- **L17 / L19.** Fixed a player issue in the local release candidate. A conflicting
+  or invalid saved session now prevents the alternate player from running its
+  timer, audio and activity writes. Code review also found that Repeat workout
+  resets the sequence while reusing the runtime's session ID and completion
+  guards. A repeat can reuse the first activity and leave an active marker.
+  Verify and define repeat behavior for standalone and planned workouts before
+  closing player acceptance. Physical iOS and Android checks remain open.
+- **L20.** Added optional first-party workout start and completion counts behind
+  the build flag `NEXT_PUBLIC_AXYRO_ANALYTICS` (default false). Settings is
+  the entry point for opt-in and withdrawal. Requests send only a fixed event
+  name, omit credentials and suppress the referrer. The handler writes one
+  structured function log record per accepted event. Counts are directional
+  and unlinked, include sessions completed by skipping, and exclude new starts
+  on restore. They cannot measure unique users or cohort conversion. Before
+  hosted activation, confirm log access and retention, provider request
+  metadata and applicable consent evidence, update the notice, and check
+  staging network requests and logs with the flag enabled. Site activation
+  requires a new build. Keep analytics optional and independent of billing.
+
+Local verification for this review: zero-warning lint, TypeScript, all 668
+unit tests, the webpack production build and the npm advisory check passed.
+The selected mobile Chromium run passed 66 scenarios. Analytics and withdrawal
+initially failed on a missing signed-in fixture and outdated Terms link text,
+respectively, and both passed on rerun with the corrected tests. The run covers
+guest discovery, plan and account flows, workout progression and continuity,
+custom workout creation, purchase navigation, and accessibility scans. Payment
+and withdrawal browser tests use simulated provider boundaries.
+
+
+2026-11-28 · L09 / L12: Added a direct privacy-request contact in the notice
+and Settings, with a versioned JSON download of the current user's device
+training records. Account records outside that download follow the verified
+support process. For signed-in accounts, plan reset and training-data deletion
+now require a confirmed cloud sync before Settings navigates away. The
+controller identity and contact configuration, processor terms and transfer
+safeguards, retention schedule, historical-data disposition and a hosted rights
+request drill remain open. Analytics remains off by default under L20.
+Local verification passed zero-warning lint, TypeScript, 668 unit tests and
+16 mobile Chromium scenarios. The new browser regressions verify that device
+exports exclude other accounts and that a failed cloud deletion stays visible
+and can be retried. The cloud responses in these browser tests are simulated.

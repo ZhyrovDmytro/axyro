@@ -43,7 +43,7 @@ and a fine featured-card outline. Large workout cards and previews remain dark.
 - Black library intro panels and the black landing opening establish the brand.
 - Large intro headings use a heavy italic treatment for an athletic voice;
   instructional copy, exercise titles, forms, and timers remain upright.
-- Orange identifies primary actions and selected states; large training panels stay dark.
+- Lime identifies primary actions and small state indicators. Selected controls use a raised olive surface and retain their standard border.
 - Navigation is black on desktop and mobile, with an orange active destination.
 - The public landing page and signed-in app use the same compact framed header.
   Brand sits left, desktop navigation in the middle, and a labeled Sign in or
@@ -152,11 +152,10 @@ instruction is omitted in this layout while specific guidance remains available.
 Cadence bars animate with transform rather than height. Reduced motion displays
 static bars; it does not remove the visual cadence affordance.
 
-Selected effort uses an orange fill with dark text. Other efforts stay neutral;
-Standard has a small Recommended label when it is not selected. Onboarding uses
-one native checkbox/radio indicator per choice, with orange accent and border only
-for selected choices. Start and Resume are the primary orange actions on member
-Home and Plan; future-session review actions are secondary.
+Selected effort uses a raised olive surface and a lime Selected label. Standard
+shows Recommended when unselected. Onboarding uses one native checkbox or radio
+indicator per choice. Start and Resume are the primary lime actions on member
+Home and Plan. Future-session review actions are secondary.
 
 Home and Plan reuse the authored training title via `getWorkoutTrainingTitle`,
 matching the editor, player and saved activity names. Outcomes remain supporting
@@ -340,7 +339,8 @@ no Start action here. Match editing and deletion confirmation
 replace the day content inside this same panel; Escape returns to the day first.
 Upcoming games remain available below the desktop panel. Scheduling, recovery and
 persistence rules are unchanged. Retain the charcoal surfaces, current typography,
-orange training edges and distinct today/selected/focus states.
+training and match markers. A dot marks today, a raised olive fill marks the
+selected date, and an outline marks keyboard focus.
 
 ### Signed-in home
 

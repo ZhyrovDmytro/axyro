@@ -116,18 +116,26 @@ export const padelPerformanceWorkouts: WorkoutInput[] = [
     publicationStatus: "published",
     estimatedMinutes: 15,
     items: [
+      item("calf-prep", "dynamic-court-march", {
+        work: 20,
+        sets: 1,
+        role: "optional",
+      }),
+      {
+        ...item("calf-pogo", "pogo-hop", {
+          work: 15,
+          sets: 3,
+          role: "accessory",
+          rest: 35,
+        }),
+        maxWorkSeconds: 15,
+      },
       item("calf-straight", "single-leg-calf-raise", {
         work: 35,
         perSide: true,
         priority: 100,
       }),
       item("calf-soleus", "bent-knee-soleus-raise", { work: 35, priority: 95 }),
-      item("calf-pogo", "pogo-hop", {
-        work: 15,
-        sets: 3,
-        role: "accessory",
-        rest: 35,
-      }),
     ],
   },
   {
@@ -173,6 +181,7 @@ export const padelPerformanceWorkouts: WorkoutInput[] = [
         work: 35,
         priority: 100,
       }),
+      item("shoulder-scap", "scapular-push-up", { role: "accessory" }),
       item("shoulder-rotation", "side-lying-db-external-rotation", {
         perSide: true,
         priority: 95,
@@ -202,7 +211,6 @@ export const padelPerformanceWorkouts: WorkoutInput[] = [
         role: "accessory",
         priority: 80,
       }),
-      item("shoulder-scap", "scapular-push-up", { role: "accessory" }),
       item("shoulder-thread", "thread-the-needle", {
         work: 30,
         perSide: true,
@@ -234,6 +242,11 @@ export const padelPerformanceWorkouts: WorkoutInput[] = [
         priority: 95,
       }),
       item("forearm-row", "single-arm-row", {
+        perSide: true,
+        role: "accessory",
+      }),
+      item("forearm-grip", "suitcase-march", {
+        work: 25,
         perSide: true,
         role: "accessory",
       }),

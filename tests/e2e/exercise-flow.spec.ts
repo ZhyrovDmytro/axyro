@@ -146,3 +146,71 @@ test("adds and replaces movements from the end of the pickers and starts the edi
   await expect(movement).toBeVisible();
   await expect(page.locator(".player-media .exercise-media")).toBeVisible();
 });
+
+test("creates, saves and starts a custom workout from the workout library", async ({
+  page,
+}) => {
+  const login = await page.request.post("/api/auth/signin", {
+    headers: { Origin: new URL(test.info().project.use.baseURL!).origin },
+    data: { email: "admin", password: "admin" },
+  });
+  expect(login.ok()).toBe(true);
+  await page.goto("/workouts");
+  await page.getByRole("link", { name: "Add workout" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Create workout" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Save workout" }).click();
+  await expect(page.locator("main").getByRole("alert")).toContainText(
+    "add at least one exercise",
+  );
+  await page
+    .getByRole("textbox", { name: "Workout name" })
+    .fill("My court prep");
+
+  const add = page.getByRole("button", { name: "Add exercise", exact: true });
+  const picker = page.getByRole("dialog", { name: /Add exercise/ });
+  await add.click();
+  await expect(picker.locator(".exercise-picker-list button")).toHaveCount(40);
+  await picker
+    .getByRole("textbox", { name: "Search exercises" })
+    .fill("Bodyweight Squat");
+  await picker.getByRole("button", { name: /Bodyweight Squat/ }).click();
+  await add.click();
+  await picker
+    .getByRole("textbox", { name: "Search exercises" })
+    .fill("Bodyweight Squat");
+  await expect(picker.locator(".exercise-picker-list button")).toHaveCount(0);
+  await picker
+    .getByRole("textbox", { name: "Search exercises" })
+    .fill("Dead Bug");
+  await picker.getByRole("button", { name: /Dead Bug/ }).click();
+
+  await page.getByRole("button", { name: "Save workout" }).click();
+  await expect(page).toHaveURL(/\/workouts\/custom\/custom-/);
+  await page.goto("/workouts");
+  await page.getByRole("link", { name: /My court prep/ }).click();
+  await expect(page.getByRole("textbox", { name: "Workout name" })).toHaveValue(
+    "My court prep",
+  );
+  await expect(page.locator(".editor-exercise-list > li")).toHaveCount(2);
+  await page.getByRole("link", { name: "Start workout · Standard" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Bodyweight Squat" }),
+  ).toBeVisible();
+  await expect(page.getByRole("timer")).toBeVisible();
+  await page.getByRole("button", { name: "Exit workout" }).click();
+  await page.getByRole("button", { name: "Save & exit" }).click();
+  const resume = page.getByRole("link", { name: "Resume workout" });
+  await expect(resume).toHaveAttribute(
+    "href",
+    /\/workouts\/custom\/custom-.*\/start\?intensity=standard/,
+  );
+  await resume.click();
+  await expect(
+    page.getByRole("group", { name: "Workout controls" }).getByRole("button", {
+      name: "Resume",
+      exact: true,
+    }),
+  ).toBeVisible();
+});

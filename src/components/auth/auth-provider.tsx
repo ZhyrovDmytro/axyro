@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useConfirmation } from "@/components/confirmation-dialog";
 import type { AuthUser } from "@/services/auth/types";
 import {
   clearUserStorageIdentity,
@@ -40,6 +41,7 @@ export async function authRequest(path: string, body: Record<string, unknown>) {
   return payload;
 }
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const confirm = useConfirmation();
   const [state, setState] = useState({
     user: null as AuthUser | null,
     loading: true,
@@ -145,12 +147,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               onClick={() => {
                 if (!syncConflict) {
                   void retrySync();
-                } else if (
-                  window.confirm(
-                    "Replace this device’s unsaved training changes with the saved cloud data? This cannot be undone.",
-                  )
-                ) {
-                  void refresh();
+                } else {
+                  confirm({
+                    title: "Reload saved cloud data?",
+                    description: "Your unsaved training changes on this device will be replaced. This cannot be undone.",
+                    action: "Replace unsaved changes",
+                    destructive: true,
+                    onConfirm: () => void refresh(),
+                  });
                 }
               }}
             >

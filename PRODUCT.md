@@ -132,6 +132,13 @@ It should show, without clutter:
 
 During movement, large numbers and obvious states are preferable to dense text.
 
+Restarting, discarding, or saving an unfinished workout as incomplete requires
+an in-app confirmation. Planned-session cancellation, skipping a workout, and
+replacing unsaved training data use the same dialog. The safe action receives
+focus first, and Escape dismisses the dialog without applying the change.
+Rescheduling conflicts appear next to the date field so it can be corrected
+without leaving the form.
+
 ## Audio signals and visual tempo
 Audio guidance uses short tones for each of the final five available seconds,
 followed by a longer tone at the phase boundary. These replace spoken counting,
@@ -203,6 +210,13 @@ Cards should communicate quickly:
 Do not overload cards with all prescriptions.
 
 Discovery offers six focused quick starts: full-body foundations, lower-body control, shoulders, core, forearms, and calves/ankles. All default to 10 minutes; workout details offer 5 and 20.
+
+**Add workout** opens the existing workout editor for Pro members. A standalone
+workout starts empty. Members can name it, choose unique exercises from the
+library, reorder them, and adjust sets, timed work, and recovery. Saved
+workouts appear under **My workouts** and use the guided player. They are
+stored for the signed-in account in that browser and are separate from the
+training plan and cloud sync.
 
 ## Delivery priority
 

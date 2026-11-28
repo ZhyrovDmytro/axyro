@@ -1,4 +1,8 @@
-import { clearPlanDraft, createBrowserUserStorage } from "./user-storage";
+import {
+  clearPlanDraft,
+  createBrowserUserStorage,
+  customWorkoutsStorageKey,
+} from "./user-storage";
 import { toDateKey } from "@/domain/training-plan/date";
 import { activeWorkoutSessionStorageKey } from "./local-workout-session-repository";
 import { preferencesStorageKey } from "./local-preferences-repository";
@@ -18,6 +22,7 @@ export const axyroUserDataStorageKeys = [
   activeWorkoutSessionStorageKey,
   preferencesStorageKey,
   adaptationProfileStorageKey,
+  customWorkoutsStorageKey,
 ] as const;
 
 function removeStorageKeys(storage: StorageLike, keys: readonly string[]) {
@@ -53,15 +58,33 @@ export function deleteAllUserData(storage: StorageLike) {
   return removeStorageKeys(storage, axyroUserDataStorageKeys);
 }
 
+export function exportUserData(storage: StorageLike): string {
+  const data: Record<string, unknown> = {};
+  for (const key of axyroUserDataStorageKeys) {
+    const value = storage.getItem(key);
+    if (value === null) continue;
+    try {
+      data[key] = JSON.parse(value);
+    } catch {
+      data[key] = value;
+    }
+  }
+  return JSON.stringify({ version: 1, trainingData: data }, null, 2);
+}
+
 export function createBrowserUserDataService(userId: string | null) {
   let storage: StorageLike | null = null;
   try {
-    storage = createBrowserUserStorage();
+    storage = createBrowserUserStorage(userId);
   } catch {
     // Browser privacy settings can deny access to local storage entirely.
   }
 
   return {
+    exportTrainingData() {
+      if (!storage) throw new Error("Training data is unavailable");
+      return exportUserData(storage);
+    },
     resetTrainingPlan() {
       const draftCleared = clearPlanDraft(userId);
       return storage ? resetTrainingPlanData(storage) && draftCleared : false;

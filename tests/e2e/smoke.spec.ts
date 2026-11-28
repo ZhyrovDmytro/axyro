@@ -284,9 +284,10 @@ test("deletes every locally stored Axyro data category", async ({ page }) => {
     }
   });
 
-  await page.getByRole("button", { name: "Delete all my data" }).click();
+  await page.getByRole("button", { name: "Delete training data" }).click();
   await page
-    .getByRole("button", { name: "Delete all data", exact: true })
+    .getByRole("dialog")
+    .getByRole("button", { name: "Delete training data", exact: true })
     .click();
   await expect(page).toHaveURL(/\/plan\/setup$/);
 
@@ -688,6 +689,23 @@ test("restores an interrupted workout paused at the exact phase", async ({
   await expect(
     page.getByRole("link", { name: "Resume workout" }),
   ).toHaveAttribute("href", /minutes=5/);
+
+  const discard = page.getByRole("button", { name: "Discard", exact: true });
+  const confirmation = page.getByRole("alertdialog", {
+    name: "Discard this unfinished workout?",
+  });
+  await discard.click();
+  await expect(confirmation.getByRole("button", { name: "Go back" })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(confirmation).toBeHidden();
+  await expect(discard).toBeFocused();
+  await expect(page.getByRole("link", { name: "Resume workout" })).toBeVisible();
+
+  await discard.click();
+  await confirmation.getByRole("button", { name: "Discard workout" }).click();
+  await expect(page.getByRole("link", { name: "Resume workout" })).toBeHidden();
+  await page.reload();
+  await expect(page.getByRole("link", { name: "Resume workout" })).toBeHidden();
 });
 
 test("does not overwrite a different active workout", async ({ page }) => {

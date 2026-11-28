@@ -90,6 +90,11 @@ const goalLabels: Record<(typeof trainingGoalValues)[number], string> = {
 };
 
 type PadelPriorityStep = "padel-movement" | "padel-power" | "padel-capacity";
+const padelPrioritySteps: readonly PadelPriorityStep[] = [
+  "padel-movement",
+  "padel-power",
+  "padel-capacity",
+];
 type PadelLimitationOption = (typeof padelLimitationOptions)[number];
 
 const padelOptionsByStep: Record<
@@ -625,8 +630,8 @@ export function PlanOnboarding() {
           <fieldset>
             <legend>What sport are you training for?</legend>
             <p className="question-help">
-              Training days start at 10 minutes. You can switch to 5 or 20
-              later.
+              Start with just 10 minutes a day. You can adjust your session
+              length later.
             </p>
             {!hasPro && (
               <p className="question-help">
@@ -881,7 +886,8 @@ export function PlanOnboarding() {
           <fieldset>
             <legend>What equipment will you have?</legend>
             <p className="question-help">
-              Bodyweight exercises are always available.
+              Most exercises need no equipment. If you have dumbbells, your
+              plan can include a few exercises that use them.
             </p>
             <div className="choice-grid choice-grid--equipment">
               {planEquipmentOptions.map(({ value, label }) => (
@@ -948,27 +954,23 @@ export function PlanOnboarding() {
                     : "Balanced development"}
                 </dd>
               </div>
-              {profile.sport === "padel" && (
-                <div>
-                  <dt>
-                    Padel focus {editAnswer("padel-movement", "court movement")}{" "}
-                    {editAnswer("padel-power", "power and control")}{" "}
-                    {editAnswer("padel-capacity", "mobility and capacity")}
-                  </dt>
-                  <dd>
-                    {profile.padelLimitations.length > 0
-                      ? profile.padelLimitations
-                          .map(
-                            (limitation) =>
-                              padelLimitationOptions.find(
-                                (option) => option.value === limitation,
-                              )?.label,
-                          )
-                          .join(", ")
-                      : "Balanced development"}
-                  </dd>
-                </div>
-              )}
+              {profile.sport === "padel" &&
+                padelPrioritySteps.map((question) => {
+                  const title = stepLabels[question];
+                  const answers = padelOptionsByStep[question]
+                    .filter(({ value }) => profile.padelLimitations.includes(value))
+                    .map(({ label }) => label);
+                  return (
+                    <div key={question}>
+                      <dt>
+                        {title} {editAnswer(question, title.toLowerCase())}
+                      </dt>
+                      <dd>
+                        {answers.length ? answers.join(", ") : "No preference"}
+                      </dd>
+                    </div>
+                  );
+                })}
               <div>
                 <dt>Weekly rhythm {editAnswer("schedule", "schedule")}</dt>
                 <dd>

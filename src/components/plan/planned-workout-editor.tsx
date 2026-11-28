@@ -17,13 +17,15 @@ import {
   planAvoidedExercisesOnDate,
   planProfileOnDate,
 } from "@/domain/training-plan/plan-adjustment";
-import { formatPlanDate } from "@/domain/training-plan/date";
+import { saveCustomWorkout } from "@/services/persistence/local-custom-workouts";
+import { calculateSessionDuration } from "@/domain/workout/session-duration";
+import { formatPlanDate, toDateKey } from "@/domain/training-plan/date";
 import {
   buildDefaultWorkoutItem,
   refreshPlannedWorkoutDuration,
 } from "@/domain/training-plan/generate-training-plan";
 import type { PlannedWorkout } from "@/domain/training-plan/training-plan.types";
-import type { WorkoutItem } from "@/domain/workout/workout.types";
+import type { Workout, WorkoutItem } from "@/domain/workout/workout.types";
 import {
   intensityLevels,
   intensityPresets,
@@ -63,10 +65,76 @@ type DragPreview = {
   pointerOffsetY: number;
 };
 
+function customEditorSession(workout: Workout): PlannedWorkout {
+  const estimatedDurationSeconds = Math.max(
+    1,
+    calculateSessionDuration(workout),
+  );
+  const sections = [{ type: "main" as const, items: workout.items }];
+  const snapshot = {
+    workout,
+    sections,
+    targetDurationSeconds: estimatedDurationSeconds,
+    estimatedDurationSeconds,
+    durationDeltaSeconds: 0,
+    durationStatus: "on_target" as const,
+    adjustments: [],
+  };
+  return {
+    ...snapshot,
+    id: workout.id,
+    sourceWorkoutId: workout.id,
+    scheduledDate: toDateKey(new Date()),
+    weekNumber: 1,
+    progressionPhase: "foundation",
+    progression: {
+      reason: "weekly_progression",
+      phase: "foundation",
+      changes: [],
+    },
+    feedbackAdaptations: [],
+    originalSessionSnapshot: snapshot,
+    todayAdaptations: [],
+    isEdited: false,
+    status: "scheduled",
+  };
+}
+
 export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
+  const planContext = useTrainingPlan();
+  return <WorkoutEditor sessionId={sessionId} planContext={planContext} />;
+}
+
+export function CustomWorkoutEditor({
+  workout,
+  userId,
+}: {
+  workout: Workout;
+  userId: string;
+}) {
+  return <WorkoutEditor sessionId={workout.id} custom={{ workout, userId }} />;
+}
+
+function WorkoutEditor({
+  sessionId,
+  custom,
+  planContext,
+}: {
+  sessionId: string;
+  custom?: { workout: Workout; userId: string };
+  planContext?: ReturnType<typeof useTrainingPlan>;
+}) {
   const router = useRouter();
-  const { plan, ready, updatePlan } = useTrainingPlan();
-  const source = plan?.sessions.find((session) => session.id === sessionId);
+  const plan = planContext?.plan;
+  // Standalone workouts use the editor's session view model without joining a training plan.
+  const [customSource, setCustomSource] = useState(() =>
+    custom ? customEditorSession(custom.workout) : null,
+  );
+  const source =
+    customSource ?? plan?.sessions.find((session) => session.id === sessionId);
+  const isNewCustomWorkout = custom && sessionId === "new";
+  const backHref = custom ? "/workouts" : "/plan";
+
   const [draft, setDraft] = useState<PlannedWorkout | null>(null);
   const [query, setQuery] = useState("");
   const [showLibrary, setShowLibrary] = useState(false);
@@ -77,14 +145,15 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
   const [dragPreview, setDragPreview] = useState<DragPreview | null>(null);
   const [reorderAnnouncement, setReorderAnnouncement] = useState("");
   const [adaptTodayOpen, setAdaptTodayOpen] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(Boolean(custom));
   const [replacementExerciseId, setReplacementExerciseId] = useState<
     string | null
   >(null);
   const activeWorkout = useActiveWorkoutSession();
   const isResumable =
     activeWorkout?.kind === "valid" &&
-    activeWorkout.state.sessionId === sessionId;
+    (custom ? activeWorkout.state.workoutId : activeWorkout.state.sessionId) ===
+      sessionId;
   const resumeHref = isResumable ? activeWorkout.state.resumeHref : null;
   const draggedItemIdRef = useRef<string | null>(null);
 
@@ -112,11 +181,13 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
       : []),
   ];
   const compatibleMain = (exercise: (typeof exercises)[number]) =>
-    Boolean(
-      effectiveProfile &&
-      isCompatiblePlanExercise(exercise, effectiveProfile, "main") &&
-      !avoidedExercises.includes(exercise.id),
-    );
+    custom
+      ? exercise.supportedModes.includes("timed")
+      : Boolean(
+          effectiveProfile &&
+          isCompatiblePlanExercise(exercise, effectiveProfile, "main") &&
+          !avoidedExercises.includes(exercise.id),
+        );
   const filteredExercises = exercises.filter((exercise) => {
     if (
       !compatibleMain(exercise) ||
@@ -139,7 +210,7 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
     );
   });
 
-  if (!ready)
+  if (!custom && !planContext?.ready)
     return (
       <PageSkeleton
         title="Edit session"
@@ -187,11 +258,13 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
   const shownEquipment = [
     ...new Set(shownExercises.flatMap((exercise) => exercise.equipment)),
   ];
-  const durationPreferenceMessage = formatDurationPreferenceMessage({
-    actualSeconds: shownDurationSeconds,
-    targetSeconds: shownDraft.targetDurationSeconds,
-    status: refreshedAdaptationSession.durationStatus,
-  });
+  const durationPreferenceMessage = custom
+    ? ""
+    : formatDurationPreferenceMessage({
+        actualSeconds: shownDurationSeconds,
+        targetSeconds: shownDraft.targetDurationSeconds,
+        status: refreshedAdaptationSession.durationStatus,
+      });
   const adaptationSession =
     refreshedAdaptationSession.todayAdaptations.length > 0
       ? refreshedAdaptationSession
@@ -259,6 +332,7 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
   function openExerciseLibrary(index: number) {
     setInsertionIndex(index);
     setShowLibrary(true);
+    setSaveError("");
   }
 
   function finishDragging() {
@@ -292,11 +366,14 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
         isEdited: true,
         workout: {
           ...base.workout,
-          id: `custom-${base.id}`,
-          slug: `custom-${base.id}`.replace(/[^a-z0-9-]/g, "-"),
-          name: base.workout.name.endsWith(" · My edit")
-            ? base.workout.name
-            : `${base.workout.name} · My edit`,
+          id: custom ? base.workout.id : `custom-${base.id}`,
+          slug: custom
+            ? base.workout.slug
+            : `custom-${base.id}`.replace(/[^a-z0-9-]/g, "-"),
+          name:
+            custom || base.workout.name.endsWith(" · My edit")
+              ? base.workout.name
+              : `${base.workout.name} · My edit`,
           items,
         },
       };
@@ -305,6 +382,43 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
   }
 
   function saveDraft() {
+    if (custom) {
+      const name = shownDraft.workout.name.trim();
+      if (!name || !shownDraft.workout.items.length) {
+        setSaveError("Enter a workout name and add at least one exercise.");
+        return false;
+      }
+      if (!draft && !isNewCustomWorkout) return true;
+      if (isResumable) {
+        setSaveError(
+          "Finish or discard the paused workout before saving changes.",
+        );
+        return false;
+      }
+      const id = isNewCustomWorkout
+        ? `custom-${crypto.randomUUID()}`
+        : sessionId;
+      const workout = {
+        ...refreshedAdaptationSession.workout,
+        id,
+        slug: id,
+        name,
+      };
+      if (!saveCustomWorkout(custom.userId, workout)) {
+        setSaveError(
+          "Couldn’t save this workout. Check your timing values and browser storage.",
+        );
+        return false;
+      }
+      setSaveError("");
+      if (isNewCustomWorkout) router.replace(`/workouts/custom/${id}`);
+      else {
+        setCustomSource(customEditorSession(workout));
+        setDraft(null);
+      }
+      return true;
+    }
+
     const latest = createBrowserTrainingPlanRepository().load();
     const current = latest?.sessions.find(({ id }) => id === sourceSession.id);
     const latestProfile =
@@ -381,7 +495,7 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
               adjustments: refreshed.adjustments,
             },
           };
-    updatePlan((current) => ({
+    planContext?.updatePlan((current) => ({
       ...current,
       sessions: current.sessions.map((session) =>
         session.id === savedDraft.id ? savedDraft : session,
@@ -393,8 +507,8 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
 
   return (
     <main className="page-shell page-shell--detail page-shell--workout-detail editor-page">
-      <Link className="back-link" href="/plan">
-        <UiIcon name="arrow-left" /> Training plan
+      <Link className="back-link" href={backHref}>
+        <UiIcon name="arrow-left" /> {custom ? "Workouts" : "Training plan"}
       </Link>
       {saveError && (
         <p className="form-error" role="alert">
@@ -403,23 +517,30 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
       )}
       <section className="detail-hero detail-hero--workout planned-workout-hero">
         <div>
-          <div className="tag-row">
-            <span className="pill pill--dark">
-              {titleCase(refreshedAdaptationSession.workout.difficulty)}{" "}
-              technique
-            </span>
-            {shownDraft.workout.focus.map((focus) => (
-              <span className="pill" key={focus}>
-                {titleCase(focus)}
+          {!custom && (
+            <div className="tag-row">
+              <span className="pill pill--dark">
+                {titleCase(refreshedAdaptationSession.workout.difficulty)}{" "}
+                technique
               </span>
-            ))}
-            <span className="pill">
-              {formatPlanDate(shownDraft.scheduledDate)}
-            </span>
-          </div>
+              {shownDraft.workout.focus.map((focus) => (
+                <span className="pill" key={focus}>
+                  {titleCase(focus)}
+                </span>
+              ))}
+              <span className="pill">
+                {formatPlanDate(shownDraft.scheduledDate)}
+              </span>
+            </div>
+          )}
+          {custom && (
+            <h1>{isNewCustomWorkout ? "Create workout" : "Edit workout"}</h1>
+          )}
           {isEditing ? (
             <input
               aria-label="Workout name"
+              placeholder={custom ? "Workout name" : undefined}
+              maxLength={custom ? 80 : undefined}
               autoFocus
               className="title-input"
               onChange={(event) =>
@@ -435,50 +556,56 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
             <h1>{shownDraft.workout.name}</h1>
           )}
           <p>
-            {isEditing
-              ? "Changes apply only to this planned session. The original library workout stays untouched."
-              : shownDraft.workout.shortDescription}
+            {custom
+              ? "Choose exercises from the library and set your timing."
+              : isEditing
+                ? "Changes apply only to this planned session. The original library workout stays untouched."
+                : shownDraft.workout.shortDescription}
           </p>
-          <div className="planned-workout-hero__actions">
-            {!isEditing && (
-              <Link
-                className="button button--primary planned-workout-hero__start"
-                href={
-                  resumeHref ??
-                  `/plan/workouts/${shownDraft.id}/start?intensity=${intensity}`
-                }
-                onClick={
-                  isResumable
-                    ? undefined
-                    : (event) => {
-                        if (!saveDraft()) event.preventDefault();
-                      }
-                }
+          {!custom && (
+            <div className="planned-workout-hero__actions">
+              {!isEditing && (
+                <Link
+                  className="button button--primary planned-workout-hero__start"
+                  href={
+                    resumeHref ??
+                    `/plan/workouts/${shownDraft.id}/start?intensity=${intensity}`
+                  }
+                  onClick={
+                    isResumable
+                      ? undefined
+                      : (event) => {
+                          if (!saveDraft()) event.preventDefault();
+                        }
+                  }
+                >
+                  {isResumable ? "Resume workout" : "Start workout"}
+                  <UiIcon name="arrow-right" />
+                </Link>
+              )}
+              <button
+                className="button button--secondary"
+                onClick={() => {
+                  if (isEditing) {
+                    setDraft(null);
+                    setIsEditing(false);
+                  } else {
+                    setIsEditing(true);
+                  }
+                }}
+                type="button"
               >
-                {isResumable ? "Resume workout" : "Start workout"}
-                <UiIcon name="arrow-right" />
-              </Link>
-            )}
-            <button
-              className="button button--secondary"
-              onClick={() => {
-                if (isEditing) {
-                  setDraft(null);
-                  setIsEditing(false);
-                } else {
-                  setIsEditing(true);
-                }
-              }}
-              type="button"
-            >
-              {isEditing ? "Cancel editing" : "Edit workout"}
-            </button>
-          </div>
+                {isEditing ? "Cancel editing" : "Edit workout"}
+              </button>
+            </div>
+          )}
         </div>
         <dl className="workout-facts">
           <div>
             <dt>Session time</dt>
-            <dd>{shownDurationMinutes} min</dd>
+            <dd>
+              {shownDraft.workout.items.length ? shownDurationMinutes : 0} min
+            </dd>
           </div>
           <div>
             <dt>Exercises</dt>
@@ -554,7 +681,7 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
       ) : (
         <div className="detail-layout planned-workout-layout">
           <section aria-labelledby="exercise-list-heading">
-            {isEditing && (
+            {isEditing && !custom && (
               <div className="session-section-overview">
                 {refreshedAdaptationSession.sections.map((section) => (
                   <div
@@ -588,7 +715,7 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
             )}
             <div className="section-heading section-heading--compact">
               <div>
-                <p className="kicker">Your planned session</p>
+                {!custom && <p className="kicker">Your planned session</p>}
                 <h2 id="exercise-list-heading">Workout plan</h2>
               </div>
               {isEditing ? (
@@ -622,6 +749,9 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
             <p aria-live="polite" className="sr-only">
               {reorderAnnouncement}
             </p>
+            {custom && !shownDraft.workout.items.length && (
+              <p>Add an exercise to build your workout.</p>
+            )}
             <ol className={isEditing ? "editor-exercise-list" : "workout-plan"}>
               {shownDraft.workout.items.map((item, index) => {
                 const exercise = exerciseById.get(item.exerciseId);
@@ -774,8 +904,8 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
                               sec{item.prescription.perSide ? " per side" : ""}
                             </span>
                             <input
-                              max="600"
-                              min="5"
+                              max={custom ? item.maxWorkSeconds : 600}
+                              min={custom ? item.minWorkSeconds : 5}
                               onChange={(event) =>
                                 updateItem(item.id, {
                                   prescription: {
@@ -784,7 +914,7 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
                                   },
                                 })
                               }
-                              step="5"
+                              step={custom ? 1 : 5}
                               type="number"
                               value={item.prescription.durationSeconds}
                             />
@@ -854,21 +984,25 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
                     )}
                     {isEditing && (
                       <div className="exercise-edit-actions">
-                        <button
-                          aria-label={`Replace ${exercise.name}`}
-                          className="replace-exercise"
-                          onClick={() => {
-                            setReplacementExerciseId(exercise.id);
-                            setAdaptTodayOpen(true);
-                          }}
-                          type="button"
-                        >
-                          Replace
-                        </button>
+                        {!custom && (
+                          <button
+                            aria-label={`Replace ${exercise.name}`}
+                            className="replace-exercise"
+                            onClick={() => {
+                              setReplacementExerciseId(exercise.id);
+                              setAdaptTodayOpen(true);
+                            }}
+                            type="button"
+                          >
+                            Replace
+                          </button>
+                        )}
                         <button
                           aria-label={`Remove ${exercise.name}`}
                           className="remove-exercise"
-                          disabled={shownDraft.workout.items.length === 1}
+                          disabled={
+                            !custom && shownDraft.workout.items.length === 1
+                          }
                           onClick={() =>
                             setDraft({
                               ...shownDraft,
@@ -949,105 +1083,123 @@ export function PlannedWorkoutEditor({ sessionId }: { sessionId: string }) {
               )}
           </section>
 
-          <aside
-            className="start-panel"
-            aria-labelledby="planned-ready-heading"
-          >
-            <p className="kicker">Choose your effort</p>
-            <h2 id="planned-ready-heading">Choose effort before you start.</h2>
-            <p>Your custom timings are the standard baseline.</p>
-            <div className="effort-options" aria-label="Workout effort">
-              {intensityLevels.map((level) => {
-                const preset = intensityPresets[level];
-                const selected = intensity === level;
-                return (
-                  <button
-                    aria-pressed={selected}
-                    className={`effort-option${selected ? " effort-option--selected" : ""}`}
-                    onClick={() => setIntensity(level)}
-                    type="button"
-                    key={level}
-                  >
-                    <span>
-                      <strong>{preset.label}</strong>
-                      {selected ? (
-                        <small>Selected</small>
-                      ) : (
-                        level === "standard" && <small>Recommended</small>
-                      )}
-                    </span>
-                    <p>{preset.description}</p>
-                    <span aria-hidden="true">
-                      {selected && <UiIcon name="check" />}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-            <Link
-              className="button button--primary button--full start-workout-button"
-              href={
-                resumeHref ??
-                `/plan/workouts/${shownDraft.id}/start?intensity=${intensity}`
-              }
-              onClick={
-                isResumable
-                  ? undefined
-                  : (event) => {
-                      if (!saveDraft()) event.preventDefault();
-                    }
-              }
-            >
-              {isResumable
-                ? "Resume workout"
-                : `Start workout · ${intensityPresets[intensity].label}`}
-            </Link>
-            <small>
-              {durationPreferenceMessage} Intervals and rests advance
-              automatically.
-            </small>
-            <div className="planned-workout-secondary-actions">
+          {isNewCustomWorkout ? (
+            <aside className="start-panel" aria-label="Save workout">
               <button
-                className="button button--secondary button--full"
-                onClick={() => {
-                  setReplacementExerciseId(null);
-                  setAdaptTodayOpen(true);
-                }}
+                className="button button--primary button--full"
+                onClick={saveDraft}
                 type="button"
               >
-                Adapt today
+                Save workout
               </button>
-              {shownDraft.todayAdaptations.length > 0 && (
-                <button
-                  className="text-button"
-                  onClick={() => setDraft(resetTodayAdaptations(shownDraft))}
-                  type="button"
-                >
-                  Reset adaptations
-                </button>
-              )}
-              {isEditing ? (
-                <button
-                  className="button button--dark button--full"
-                  onClick={() => {
-                    if (!saveDraft()) return;
-                    setIsEditing(false);
-                  }}
-                  type="button"
-                >
-                  Save changes
-                </button>
-              ) : (
-                <button
-                  className="text-button"
-                  onClick={() => router.push("/plan")}
-                  type="button"
-                >
-                  Back to plan
-                </button>
-              )}
-            </div>
-          </aside>
+            </aside>
+          ) : (
+            <aside
+              className="start-panel"
+              aria-labelledby="planned-ready-heading"
+            >
+              <p className="kicker">Choose your effort</p>
+              <h2 id="planned-ready-heading">
+                Choose effort before you start.
+              </h2>
+              <p>Your custom timings are the standard baseline.</p>
+              <div className="effort-options" aria-label="Workout effort">
+                {intensityLevels.map((level) => {
+                  const preset = intensityPresets[level];
+                  const selected = intensity === level;
+                  return (
+                    <button
+                      aria-pressed={selected}
+                      className={`effort-option${selected ? " effort-option--selected" : ""}`}
+                      onClick={() => setIntensity(level)}
+                      type="button"
+                      key={level}
+                    >
+                      <span>
+                        <strong>{preset.label}</strong>
+                        {selected ? (
+                          <small>Selected</small>
+                        ) : (
+                          level === "standard" && <small>Recommended</small>
+                        )}
+                      </span>
+                      <p>{preset.description}</p>
+                      <span aria-hidden="true">
+                        {selected && <UiIcon name="check" />}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <Link
+                className="button button--primary button--full start-workout-button"
+                href={
+                  resumeHref ??
+                  (custom
+                    ? `/workouts/custom/${sessionId}/start?intensity=${intensity}`
+                    : `/plan/workouts/${shownDraft.id}/start?intensity=${intensity}`)
+                }
+                onClick={
+                  isResumable
+                    ? undefined
+                    : (event) => {
+                        if (!saveDraft()) event.preventDefault();
+                      }
+                }
+              >
+                {isResumable
+                  ? "Resume workout"
+                  : `Start workout · ${intensityPresets[intensity].label}`}
+              </Link>
+              <small>
+                {durationPreferenceMessage} Intervals and rests advance
+                automatically.
+              </small>
+              <div className="planned-workout-secondary-actions">
+                {!custom && (
+                  <button
+                    className="button button--secondary button--full"
+                    onClick={() => {
+                      setReplacementExerciseId(null);
+                      setAdaptTodayOpen(true);
+                    }}
+                    type="button"
+                  >
+                    Adapt today
+                  </button>
+                )}
+                {shownDraft.todayAdaptations.length > 0 && (
+                  <button
+                    className="text-button"
+                    onClick={() => setDraft(resetTodayAdaptations(shownDraft))}
+                    type="button"
+                  >
+                    Reset adaptations
+                  </button>
+                )}
+                {isEditing ? (
+                  <button
+                    className="button button--dark button--full"
+                    onClick={() => {
+                      if (!saveDraft()) return;
+                      if (!custom) setIsEditing(false);
+                    }}
+                    type="button"
+                  >
+                    Save changes
+                  </button>
+                ) : (
+                  <button
+                    className="text-button"
+                    onClick={() => router.push("/plan")}
+                    type="button"
+                  >
+                    Back to plan
+                  </button>
+                )}
+              </div>
+            </aside>
+          )}
         </div>
       )}
 

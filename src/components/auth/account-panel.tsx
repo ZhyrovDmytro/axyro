@@ -231,7 +231,10 @@ export function AccountPanel() {
             Upgrade to Pro
           </Link>
         )}
-        <Link className="text-link" href="/withdrawal">
+        <Link
+          className="text-link membership-withdrawal-link"
+          href="/withdrawal"
+        >
           Withdraw from your Pro contract
         </Link>
       </section>

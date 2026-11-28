@@ -168,11 +168,8 @@ test("weekly statuses match Activity and missed training can move to today", asy
   const missed = week.locator('li[data-status="missed"]');
   await missed.getByText("Move training", { exact: true }).click();
   await missed.getByLabel("New training date").fill("2026-11-02");
-  page.once("dialog", async (dialog) => {
-    expect(dialog.message()).toContain("You already have a workout");
-    await dialog.accept();
-  });
   await missed.getByRole("button", { name: "Save date", exact: true }).click();
+  await expect(missed.getByRole("alert")).toContainText("You already have a workout");
   await expect(missed).toBeVisible();
   await missed.getByLabel("New training date").fill("2026-10-31");
   await missed.getByRole("button", { name: "Save date", exact: true }).click();

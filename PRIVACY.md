@@ -52,7 +52,7 @@ The following keys describe browser training data. Signed-in accounts use an acc
 | `veyro.preferences.v1`        | Audio and preferred effort settings                                             | Restore user-selected guidance behavior                |
 | `veyro.adaptation-profile.v1` | Difficulty trend and bounded preferred/avoided exercise IDs                     | Adapt only future plan proposals                       |
 
-Clearing browser storage removes the local copy. Signed-in training data can sync back from Supabase. Use the in-app data controls to change account data. Resetting a plan removes the
+Custom workout definitions are stored in that browser under the signed-in account and are excluded from cloud sync. Clearing browser storage removes the local copy. Signed-in training data can sync back from Supabase. Use the in-app data controls to change account data. Resetting a plan removes the
 current plan and active workout but deliberately retains the profile, history,
 feedback and preferences. **Delete all my data** removes every key listed above.
 
@@ -86,3 +86,28 @@ A saved plan containing retired/reference-only exercises is no longer launched.
 The app flags it for rebuilding and retains the original local plan until the
 athlete replaces or deletes it. Completion/activity records are preserved.
 The daily-duration changes introduce no new storage keys or external tracking.
+
+
+## Optional workout analytics
+
+Analytics is disabled by default. If a build enables it, Settings offers a
+browser-specific choice in `axyro.analytics.v1`. The stored choice lasts until
+it is changed or the browser's site data is cleared. Declining analytics stops
+future reporting from that browser.
+
+With consent, the player sends only `workout_started` or `workout_completed`
+to the same origin. The request omits credentials and the page referrer. The
+app logs only the fixed event name and a source label. The hosting platform
+can receive connection metadata. Confirm hosting log access, metadata and
+retention, and update the public notice before enabling hosted analytics.
+
+
+## Access and portability
+
+Settings downloads a versioned JSON copy of the current guest or signed-in
+user's training data stored in this browser, including local custom workouts.
+Other accounts' keys, unattributed legacy storage, browser analytics choices
+and authentication data are outside the export. Axyro provides a separate
+privacy request contact for access to account and provider-side records and for
+other rights. Settings waits for account synchronization before confirming a
+signed-in training-data reset or deletion.

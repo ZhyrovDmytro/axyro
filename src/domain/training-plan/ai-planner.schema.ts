@@ -41,7 +41,7 @@ export const aiPlanRequestSchema = z.object({
   profile: athleteProfileSchema.refine(
     (profile) => [5, 10, 20].includes(profile.sessionDurationMinutes),
     {
-      message: "Choose 5, 10 or 20 minutes.",
+      message: "Choose an available session length.",
       path: ["sessionDurationMinutes"],
     },
   ),

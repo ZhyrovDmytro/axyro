@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import { useConfirmation } from "@/components/confirmation-dialog";
+
 import { createBrowserWorkoutActivityRepository } from "@/services/persistence/local-workout-activity-repository";
 import { createBrowserWorkoutSessionRepository } from "@/services/persistence/local-workout-session-repository";
 import type { ActiveWorkoutSessionState } from "@/services/persistence/workout-session-repository";
@@ -17,6 +19,7 @@ interface ActiveWorkoutCardProps {
 }
 
 export function ActiveWorkoutCard({ onDismiss }: ActiveWorkoutCardProps = {}) {
+  const confirm = useConfirmation();
   const loaded = useActiveWorkoutSession();
   const [dismissedSessionId, setDismissedSessionId] = useState<string | null>(
     null,
@@ -31,41 +34,59 @@ export function ActiveWorkoutCard({ onDismiss }: ActiveWorkoutCardProps = {}) {
   const started = new Date(active.startedAt);
   const stale = new Date().getTime() - started.getTime() > 24 * 60 * 60 * 1000;
 
-  function restartWorkout() {
-    if (
-      !window.confirm(
-        "Restart workout? Your current workout progress will be cleared.",
-      )
-    )
-      return;
-    createBrowserWorkoutActivityRepository().discardSession(session.sessionId);
+  function clearWorkout() {
     createBrowserWorkoutSessionRepository().clearActive(session.sessionId);
-    window.location.assign(session.resumeHref);
+    setDismissedSessionId(session.sessionId);
+    onDismiss?.(session.sessionId);
+  }
+
+  function restartWorkout() {
+    confirm({
+      title: "Restart this workout?",
+      description:
+        "You’ll start from the beginning and lose your current progress.",
+      action: "Restart workout",
+      destructive: true,
+      onConfirm() {
+        createBrowserWorkoutActivityRepository().discardSession(
+          session.sessionId,
+        );
+        createBrowserWorkoutSessionRepository().clearActive(session.sessionId);
+        window.location.assign(session.resumeHref);
+      },
+    });
   }
 
   function markIncomplete() {
-    if (
-      !window.confirm(
-        "Mark this workout incomplete? It will be saved in your activity and removed from Continue workout.",
-      )
-    )
-      return;
-    createBrowserWorkoutActivityRepository().finalizeIncompleteSession(
-      session.sessionId,
-      undefined,
-      Math.round(session.activeDurationMs / 1000),
-    );
-    createBrowserWorkoutSessionRepository().clearActive(session.sessionId);
-    setDismissedSessionId(session.sessionId);
-    onDismiss?.(session.sessionId);
+    confirm({
+      title: "Save this workout as incomplete?",
+      description:
+        "It will stay in your activity and you’ll no longer be able to resume it.",
+      action: "Save as incomplete",
+      onConfirm() {
+        createBrowserWorkoutActivityRepository().finalizeIncompleteSession(
+          session.sessionId,
+          undefined,
+          Math.round(session.activeDurationMs / 1000),
+        );
+        clearWorkout();
+      },
+    });
   }
 
   function discardWorkout() {
-    if (!window.confirm("Discard this unfinished workout?")) return;
-    createBrowserWorkoutActivityRepository().discardSession(session.sessionId);
-    createBrowserWorkoutSessionRepository().clearActive(session.sessionId);
-    setDismissedSessionId(session.sessionId);
-    onDismiss?.(session.sessionId);
+    confirm({
+      title: "Discard this unfinished workout?",
+      description: "Your progress for this workout will be deleted.",
+      action: "Discard workout",
+      destructive: true,
+      onConfirm() {
+        createBrowserWorkoutActivityRepository().discardSession(
+          session.sessionId,
+        );
+        clearWorkout();
+      },
+    });
   }
 
   return (

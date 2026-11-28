@@ -1,5 +1,6 @@
 "use client";
 
+import { trainingTagline } from "@/lib/brand-copy";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
@@ -57,7 +58,7 @@ const chapters = [
 const questions = [
   [
     "Who is Axyro for?",
-    "The workouts are built around padel. Beginners can choose a lighter effort, follow the demonstrations and start with a five-minute session.",
+    "The workouts are built around padel. Beginners can choose a lighter effort, follow the demonstrations and move at their own pace.",
   ],
   [
     "Can I try Axyro without an account?",
@@ -68,8 +69,8 @@ const questions = [
     "Axyro is built for home training, using bodyweight and optional light dumbbells. Each workout lists what you need before you start.",
   ],
   [
-    "What if I only have five minutes?",
-    "Choose 5, 10 or 20 minutes on the workout preview. Ten is the default. Work and recovery fit within your session, and changing effort does not extend it.",
+    "How long is a workout?",
+    "Start with just 10 minutes a day. Your session includes work and recovery, and you can adjust its length on the workout preview.",
   ],
   [
     "Can I train alongside my matches?",
@@ -205,7 +206,7 @@ export function LandingPage() {
             <h1 className={styles.heroHeadline}>
               Play better padel. <em>Train beyond the court.</em>
             </h1>
-            <p>Personalized padel workouts you can do at home.</p>
+            <p>{trainingTagline}</p>
             <div className={styles.actions}>
               <PlanLink label="Build My Training Plan" />
             </div>
@@ -289,6 +290,9 @@ export function LandingPage() {
                     height={48}
                     unoptimized
                   />
+                  {index === heroIndex && (
+                    <UiIcon name="check" className={styles.movementSelected} />
+                  )}
                 </button>
               ))}
             </div>

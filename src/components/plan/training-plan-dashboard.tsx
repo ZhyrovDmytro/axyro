@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmation } from "@/components/confirmation-dialog";
 import { PageSkeleton } from "@/components/page-skeleton";
 import { useAuth } from "@/components/auth/auth-provider";
 import { PaywallLink } from "@/components/membership/paywall-modal";
@@ -288,6 +289,11 @@ export function TrainingPlanDashboardContent({
   adjustmentNotice?: { date: string; count: number; temporary: boolean };
 }) {
   const { preferredIntensity, ready: preferencesReady } = useUserPreferences();
+  const confirm = useConfirmation();
+  const [moveError, setMoveError] = useState<{
+    sessionId: string;
+    message: string;
+  } | null>(null);
   const [selectedDate, setSelectedDate] = useState("");
   const [visibleSessionCount, setVisibleSessionCount] = useState(6);
   const [rebalanceResult, setRebalanceResult] = useState("");
@@ -358,8 +364,8 @@ export function TrainingPlanDashboardContent({
             </p>
           )}
           <p className="lede">
-            Start with 10 minutes on your training days. A few answers shape
-            your next 60 days, with 5- and 20-minute options when you need them.
+            Start with just 10 minutes a day. A few answers shape your next 60
+            days of training and recovery.
           </p>
           <div className="plan-benefits" aria-label="Plan features">
             <div>
@@ -705,24 +711,38 @@ export function TrainingPlanDashboardContent({
     setIsGameDialogOpen(false);
   }
 
-  function removeSession(session: PlannedWorkout) {
-    if (!window.confirm("Cancel this planned session?")) return;
-    createBrowserWorkoutActivityRepository().cancelSession(session.id);
-    updatePlan((current) => ({
-      ...current,
-      sessions: current.sessions.filter((item) => item.id !== session.id),
-    }));
+  function removeSession(session: PlannedWorkout, onRemoved?: () => void) {
+    confirm({
+      title: "Cancel this planned session?",
+      description: "The workout will be removed from your training plan.",
+      action: "Cancel session",
+      destructive: true,
+      onConfirm() {
+        createBrowserWorkoutActivityRepository().cancelSession(session.id);
+        updatePlan((current) => ({
+          ...current,
+          sessions: current.sessions.filter((item) => item.id !== session.id),
+        }));
+        onRemoved?.();
+      },
+    });
   }
 
   function skipSession(session: PlannedWorkout) {
-    if (!window.confirm("Skip this workout?")) return;
-    createBrowserWorkoutActivityRepository().skipSession(session.id);
-    updatePlan((current) => ({
-      ...current,
-      sessions: current.sessions.map((item) =>
-        item.id === session.id ? { ...item, status: "skipped" } : item,
-      ),
-    }));
+    confirm({
+      title: "Skip this workout?",
+      description: "It will stay in your plan with a skipped status.",
+      action: "Skip workout",
+      onConfirm() {
+        createBrowserWorkoutActivityRepository().skipSession(session.id);
+        updatePlan((current) => ({
+          ...current,
+          sessions: current.sessions.map((item) =>
+            item.id === session.id ? { ...item, status: "skipped" } : item,
+          ),
+        }));
+      },
+    });
   }
 
   function moveSession(session: PlannedWorkout, date: string) {
@@ -732,12 +752,9 @@ export function TrainingPlanDashboardContent({
       date > plan.endDate ||
       (session.status !== "scheduled" && session.status !== "missed")
     )
-      return false;
+      return "Choose an available date within your training plan.";
     if (crossesPlanAdjustmentWindow(plan, session.scheduledDate, date)) {
-      window.alert(
-        "This move crosses a temporary adjustment. Choose a date within the same training window.",
-      );
-      return false;
+      return "This move crosses a temporary adjustment. Choose a date within the same training window.";
     }
     const conflict = plan?.sessions.some(
       (candidate) =>
@@ -747,10 +764,7 @@ export function TrainingPlanDashboardContent({
         candidate.scheduledDate === date,
     );
     if (conflict) {
-      window.alert(
-        `You already have a workout on ${formatPlanDate(date)}. Choose another day.`,
-      );
-      return false;
+      return `You already have a workout on ${formatPlanDate(date)}. Choose another day.`;
     }
     createBrowserWorkoutActivityRepository().rescheduleSession(
       session.id,
@@ -764,7 +778,27 @@ export function TrainingPlanDashboardContent({
           : item,
       ),
     }));
-    return true;
+    return null;
+  }
+
+  function submitMove(event: FormEvent<HTMLFormElement>, session: PlannedWorkout) {
+    event.preventDefault();
+    const date = String(new FormData(event.currentTarget).get("date"));
+    const message = moveSession(session, date);
+    setMoveError(message ? { sessionId: session.id, message } : null);
+    if (!message) {
+      const details = event.currentTarget.closest("details");
+      details?.removeAttribute("open");
+      details?.querySelector("summary")?.focus();
+    }
+  }
+
+  function renderMoveError(sessionId: string) {
+    return moveError?.sessionId === sessionId && (
+      <p className="safety-note" role="alert">
+        {moveError.message}
+      </p>
+    );
   }
 
   function renderMoveTraining(session: PlannedWorkout) {
@@ -786,21 +820,14 @@ export function TrainingPlanDashboardContent({
         }}
       >
         <summary>Move training</summary>
-        <form
-          onSubmit={(event) => {
-            event.preventDefault();
-            const date = String(new FormData(event.currentTarget).get("date"));
-            if (moveSession(session, date)) {
-              event.currentTarget.closest("details")?.removeAttribute("open");
-            }
-          }}
-        >
+        <form onSubmit={(event) => submitMove(event, session)}>
           <label>
             New training date
             <input
               className="plan-input"
               type="date"
               name="date"
+              onChange={() => setMoveError(null)}
               defaultValue={
                 session.scheduledDate < today ? today : session.scheduledDate
               }
@@ -815,6 +842,7 @@ export function TrainingPlanDashboardContent({
           >
             Save date
           </button>
+          {renderMoveError(session.id)}
         </form>
       </details>
     );
@@ -1282,10 +1310,11 @@ export function TrainingPlanDashboardContent({
                           {selectedSession.status === "scheduled" && (
                             <button
                               className="cancel-calendar-training"
-                              onClick={() => {
-                                removeSession(selectedSession);
-                                setSelectedDate("");
-                              }}
+                              onClick={() =>
+                                removeSession(selectedSession, () =>
+                                  setSelectedDate(""),
+                                )
+                              }
                               type="button"
                             >
                               Cancel training
@@ -1583,18 +1612,7 @@ export function TrainingPlanDashboardContent({
                   )}
                   <details>
                     <summary>Move</summary>
-                    <form
-                      onSubmit={(event) => {
-                        event.preventDefault();
-                        const data = new FormData(event.currentTarget);
-                        const date = String(data.get("date"));
-                        moveSession(session, date);
-                        (
-                          event.currentTarget
-                            .parentElement as HTMLDetailsElement | null
-                        )?.removeAttribute("open");
-                      }}
-                    >
+                    <form onSubmit={(event) => submitMove(event, session)}>
                       <label>
                         New date
                         <input
@@ -1603,6 +1621,7 @@ export function TrainingPlanDashboardContent({
                           max={plan.endDate}
                           min={today}
                           name="date"
+                          onChange={() => setMoveError(null)}
                           required
                           type="date"
                         />
@@ -1613,6 +1632,7 @@ export function TrainingPlanDashboardContent({
                       >
                         Save
                       </button>
+                      {renderMoveError(session.id)}
                     </form>
                   </details>
                   <button

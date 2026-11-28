@@ -74,10 +74,6 @@
 .form :global(.daily-duration__options strong) {
   font-size: 1.125rem;
 }
-.form :global(.daily-duration__options label.is-selected) {
-  background: var(--surface-soft);
-  border-color: var(--accent);
-}
 .form :global(.daily-duration__options label:focus-within) {
   outline: 2px solid var(--text);
 }
@@ -174,7 +170,7 @@
   cursor: default;
 }
 .option:has(input:checked) {
-  border-color: var(--accent);
+  background: var(--surface-selected);
 }
 .option input {
   accent-color: var(--accent);
@@ -313,9 +309,9 @@
   font-size: 0.75rem;
 }
 .rhythm li[data-scheduled] {
-  background: var(--surface-soft);
+  background: var(--surface-selected);
   color: var(--text);
-  box-shadow: inset 0 -2px var(--accent);
+  font-weight: 700;
 }
 .rhythm > span {
   border: 0;

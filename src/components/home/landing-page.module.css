@@ -1448,6 +1448,7 @@
   border-radius: 0 0 16px 16px;
 }
 .movementPicker button {
+  position: relative;
   flex: 1;
   min-width: 0;
   min-height: 48px;
@@ -1458,11 +1459,23 @@
   cursor: pointer;
 }
 .movementPicker button[aria-pressed="true"] {
-  border: 2px solid var(--accent);
-  padding: 2px;
+  background: var(--surface-selected);
 }
-.movementPicker button:hover {
-  border-color: var(--accent);
+@media (hover: hover) {
+  .movementPicker button:hover {
+    background: var(--surface-selected);
+  }
+}
+.movementPicker .movementSelected {
+  position: absolute;
+  inset-block-start: 6px;
+  inset-inline-end: 6px;
+  width: 18px;
+  height: 18px;
+  padding: 2px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--ink);
 }
 .movementPicker img {
   width: 100%;

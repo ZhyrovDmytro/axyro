@@ -24,7 +24,7 @@ test("withdraws from a contract without signing in and downloads a dated receipt
 
   await page.goto("/terms");
   await page
-    .getByRole("link", { name: "withdraw from the contract online" })
+    .getByRole("link", { name: "find withdrawal instructions" })
     .click();
   await expect(
     page.getByRole("heading", { name: "Withdraw from your Pro contract" }),
